@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/loading-spinner";
 
-export default async function Show() {
+export default function Show() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 

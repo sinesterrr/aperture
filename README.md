@@ -44,6 +44,8 @@ Special Thanks to **[@AyaanZaveri](https://github.com/AyaanZaveri)**, this is ba
 - **Theming Enhancements** – Liquid Glass like Theme coming soon
 - **Using Tauri instead of Electron** – Now native apps will be based on tauri for better performance, especially with Vite + React + Tauri
 
+- **🔹Now Supports Direct Play🔹** – Now the urls can be played by both transcoding as well as direct streaming.
+
 ---
 
 ## 🧠 Built With

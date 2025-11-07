@@ -5,6 +5,7 @@ import {
   BaseItemDto,
   LogFile,
 } from "@jellyfin/sdk/lib/generated-client/models";
+import { MediaSourceInfo } from "@jellyfin/sdk/lib/generated-client/models/media-source-info";
 import axios from "axios";
 import { createJellyfinInstance } from "../lib/utils";
 import { JellyfinUserWithToken } from "../types/jellyfin";
@@ -198,6 +199,36 @@ export async function getStreamUrl(
   }
 
   return url;
+}
+
+export async function getDirectStreamUrl(
+  itemId: string,
+  mediaSource: MediaSourceInfo,
+  audioStreamIndex: number = 1
+): Promise<string> {
+  const { serverUrl, user } = await getAuthData();
+  if (!mediaSource.Id) {
+    throw new Error("Missing media source id for direct play");
+  }
+
+  const playSessionId = uuidv4();
+  const container = mediaSource.Container || "mp4";
+  const params = new URLSearchParams({
+    api_key: user.AccessToken || "",
+    Static: "true",
+    MediaSourceId: mediaSource.Id,
+    PlaySessionId: playSessionId,
+  });
+
+  if (audioStreamIndex !== undefined && audioStreamIndex !== null) {
+    params.append("AudioStreamIndex", audioStreamIndex.toString());
+  }
+
+  if (mediaSource.ETag) {
+    params.append("Tag", mediaSource.ETag);
+  }
+
+  return `${serverUrl}/Videos/${itemId}/stream.${container}?${params.toString()}`;
 }
 
 export async function getSubtitleTracks(

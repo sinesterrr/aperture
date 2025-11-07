@@ -19,7 +19,11 @@ import { useComposedRefs } from "../../lib/compose-refs";
 import { cn } from "../../lib/utils";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Slot } from "@radix-ui/react-slot";
-import { useSettings, BITRATE_OPTIONS } from "../../contexts/settings-context";
+import {
+  useSettings,
+  BITRATE_OPTIONS,
+  PlaybackMode,
+} from "../../contexts/settings-context";
 import {
   AlertTriangleIcon,
   CaptionsOffIcon,
@@ -2911,7 +2915,12 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
   const context = useMediaPlayerContext(SETTINGS_NAME);
   const store = useStoreContext(SETTINGS_NAME);
   const dispatch = useMediaDispatch();
-  const { videoBitrate, setVideoBitrate } = useSettings();
+  const { videoBitrate, setVideoBitrate, playbackMode, setPlaybackMode } =
+    useSettings();
+  const playbackModeOptions: { value: PlaybackMode; label: string }[] = [
+    { value: "transcode", label: "Transcode" },
+    { value: "direct", label: "Direct play" },
+  ];
 
   const mediaPlaybackRate = useMediaSelector(
     (state) => state.mediaPlaybackRate ?? 1
@@ -3104,23 +3113,55 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
           </DropdownMenuSub>
         )}
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <span className="flex-1">Bitrate</span>
+        {playbackMode === "direct" ? (
+          <DropdownMenuItem className="justify-between text-muted-foreground pointer-events-none opacity-60">
+            <span className="flex-1">Bitrate (transcode only)</span>
             <Badge variant="outline" className="rounded-sm">
               {BITRATE_OPTIONS.find((option) => option.value === videoBitrate)
                 ?.label ?? "Auto"}
             </Badge>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <span className="flex-1">Bitrate</span>
+              <Badge variant="outline" className="rounded-sm">
+                {BITRATE_OPTIONS.find((option) => option.value === videoBitrate)
+                  ?.label ?? "Auto"}
+              </Badge>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {BITRATE_OPTIONS.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  className="justify-between"
+                  onSelect={() => setVideoBitrate(option.value)}
+                >
+                  {option.label}
+                  {videoBitrate === option.value && <CheckIcon />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <span className="flex-1">Playback mode</span>
+            <Badge variant="outline" className="rounded-sm">
+              {playbackModeOptions.find(
+                (option) => option.value === playbackMode
+              )?.label ?? "Transcode"}
+            </Badge>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            {BITRATE_OPTIONS.map((option) => (
+            {playbackModeOptions.map((option) => (
               <DropdownMenuItem
                 key={option.value}
                 className="justify-between"
-                onSelect={() => setVideoBitrate(option.value)}
+                onSelect={() => setPlaybackMode(option.value)}
               >
                 {option.label}
-                {videoBitrate === option.value && <CheckIcon />}
+                {playbackMode === option.value && <CheckIcon />}
               </DropdownMenuItem>
             ))}
           </DropdownMenuSubContent>

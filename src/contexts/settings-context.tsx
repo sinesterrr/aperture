@@ -6,6 +6,8 @@ export interface BitrateOption {
   bitrate: number;
 }
 
+export type PlaybackMode = "transcode" | "direct";
+
 export const BITRATE_OPTIONS: BitrateOption[] = [
   { value: "auto", label: "Auto", bitrate: 0 },
   { value: "20000", label: "20 Mbps (4K)", bitrate: 20000000 },
@@ -20,6 +22,8 @@ export type AIProvider = "gemini" | "ollama" | "groq" | "openrouter";
 interface SettingsContextType {
   videoBitrate: string;
   setVideoBitrate: (bitrate: string) => void;
+  playbackMode: PlaybackMode;
+  setPlaybackMode: (mode: PlaybackMode) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -28,6 +32,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [videoBitrate, setVideoBitrateState] = useState<string>("auto");
+  const [playbackMode, setPlaybackModeState] =
+    useState<PlaybackMode>("direct");
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -38,6 +44,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     ) {
       setVideoBitrateState(savedBitrate);
     }
+
+    const savedPlaybackMode = localStorage.getItem("samaura-playback-mode");
+    if (savedPlaybackMode === "direct" || savedPlaybackMode === "transcode") {
+      setPlaybackModeState(savedPlaybackMode);
+    }
   }, []);
 
   // Save to localStorage when states change
@@ -46,11 +57,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("samaura-video-bitrate", bitrate);
   };
 
+  const setPlaybackMode = (mode: PlaybackMode) => {
+    setPlaybackModeState(mode);
+    localStorage.setItem("samaura-playback-mode", mode);
+  };
+
   return (
     <SettingsContext.Provider
       value={{
         videoBitrate,
         setVideoBitrate,
+        playbackMode,
+        setPlaybackMode,
       }}
     >
       {children}

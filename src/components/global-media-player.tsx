@@ -30,6 +30,7 @@ import {
 import { useMediaPlayer } from "../contexts/MediaPlayerContext";
 import {
   getStreamUrl,
+  getDirectStreamUrl,
   getLiveTVStreamUrl,
   getSubtitleTracks,
   fetchMediaDetails,
@@ -65,7 +66,7 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
     setCurrentMediaWithSource,
     setCurrentTimestamp,
   } = useMediaPlayer();
-  const { videoBitrate } = useSettings();
+  const { videoBitrate, playbackMode } = useSettings();
 
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [mediaDetails, setMediaDetails] = useState<JellyfinItem | null>(null);
@@ -382,11 +383,17 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
   useEffect(() => {
     if (currentMedia && isPlayerVisible) {
       setVideoStarted(false); // Reset video started state when loading new media
-      setBackdropImageLoaded(false); // Reset backdrop image state
+      setBackdropImageLoaded(false); // Reset blur data URL
       setBlurDataUrl(null); // Reset blur data URL
       loadMedia();
     }
-  }, [currentMedia, isPlayerVisible, videoBitrate, selectedAudioTrackId]);
+  }, [
+    currentMedia,
+    isPlayerVisible,
+    videoBitrate,
+    selectedAudioTrackId,
+    playbackMode,
+  ]);
 
   // Decode blur hash for backdrop image
   useEffect(() => {
@@ -460,7 +467,7 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
           mediaSourceId: sourceToUse.Id || null,
         });
 
-        // Generate stream URL with bitrate setting
+        // Generate stream URL based on playback mode
         const bitrateOption = BITRATE_OPTIONS.find(
           (option) => option.value === videoBitrate
         );
@@ -469,14 +476,35 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
           const url = await getLiveTVStreamUrl(details.Id);
           if (url) setStreamUrl(url);
         } else {
-          const streamUrl = await getStreamUrl(
-            currentMedia.id,
-            sourceToUse.Id!,
-            undefined,
-            bitrate,
-            selectedAudioTrackId
-          );
-          setStreamUrl(streamUrl);
+          let resolvedStreamUrl: string | null = null;
+          const canAttemptDirectPlay = playbackMode === "direct";
+
+          if (canAttemptDirectPlay) {
+            try {
+              resolvedStreamUrl = await getDirectStreamUrl(
+                currentMedia.id,
+                sourceToUse,
+                selectedAudioTrackId
+              );
+              console.info("Using direct play stream");
+            } catch (error) {
+              console.warn(
+                "Direct play failed, falling back to transcoding:",
+                error
+              );
+            }
+          }
+
+          if (!resolvedStreamUrl) {
+            resolvedStreamUrl = await getStreamUrl(
+              currentMedia.id,
+              sourceToUse.Id!,
+              undefined,
+              bitrate,
+              selectedAudioTrackId
+            );
+          }
+          setStreamUrl(resolvedStreamUrl);
         }
 
         // Start fetching subtitle data asynchronously without blocking playback

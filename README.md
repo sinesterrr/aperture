@@ -58,3 +58,56 @@ Special Thanks to **[@AyaanZaveri](https://github.com/AyaanZaveri)**, this is ba
 - **Styling**: Tailwind v4, shadcn/ui, Framer Motion
 - **State Management**: Jotai
 - **Media Backend**: Jellyfin Server API
+
+---
+
+## ⚙️ Instructions
+
+### Local Development
+
+1. **Install dependencies**
+   ```bash
+   yarn install
+   ```
+2. **Start the Vite dev server**
+   ```bash
+   yarn dev
+   ```
+3. Visit `http://localhost:3000` and sign in with your Jellyfin instance credentials.
+
+Hot reloading is enabled by default, so UI changes are reflected immediately.
+
+### Production Build
+
+Create an optimized bundle served by any static host (Vercel, Netlify, S3, etc.):
+
+```bash
+yarn build
+yarn preview   # optional sanity check
+```
+
+The generated assets live in `dist/`. Configure your host to fall back to `index.html` for SPA routing.
+
+### Docker
+
+1. **Local build & run**
+   ```bash
+   docker build -t samaura:latest .
+   docker run -p 4173:4173 samaura:latest
+   ```
+2. **docker-compose**
+   ```bash
+   docker-compose up --build
+   ```
+
+The container serves the built app via the port exposed in `Dockerfile`/`docker-compose.yml`. Adjust env vars (server URL, etc.) via compose overrides or `docker run -e`.
+
+### Tauri Builds (Early Preview)
+
+Tauri desktop bundles can be generated with:
+
+```bash
+yarn tauri build
+```
+
+> **Note:** Native builds(tauri) are **not actively supported** right now. The priority is delivering the best possible web experience first. Feel free to experiment and report issues, but expect slower turnaround on desktop-specific bugs until native support resumes.

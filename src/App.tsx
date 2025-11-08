@@ -30,6 +30,7 @@ function App() {
       themes={[
         "light",
         "dark",
+        "cinematic-theatre-black",
         "neon-grid",
         "emerald-ember",
         "sunset-blocks",

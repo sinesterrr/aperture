@@ -30,6 +30,12 @@ export const THEME_VARIANTS: ThemeVariantEntry = {
       themeId: "dark",
     },
     {
+      name: "Cinematic Theatre Black",
+      description: "Pitch black canvas with ember highlights.",
+      gradient: ["#010103", "#0b0b0f", "#f97316"],
+      themeId: "cinematic-theatre-black",
+    },
+    {
       name: "Neon Grid",
       description: "Magenta to cyan arcade glow.",
       gradient: ["#f472b6", "#c084fc", "#60a5fa"],

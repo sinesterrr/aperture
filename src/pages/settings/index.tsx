@@ -20,6 +20,56 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useAtom(themeSelectionAtom);
 
+  const ThemePreview = ({ themeId }: { themeId: string }) => {
+    const Panel = () => (
+      <div className="flex h-10 gap-1" aria-hidden="true">
+        <div
+          className="flex-1 rounded-md border"
+          style={{
+            background: "var(--background)",
+            borderColor: "var(--border)",
+          }}
+        />
+        <div
+          className="flex-1 rounded-md border"
+          style={{
+            background: "var(--card)",
+            borderColor: "var(--border)",
+          }}
+        />
+        <div
+          className="w-3 rounded-md border"
+          style={{
+            background: "var(--primary)",
+            borderColor: "var(--primary)",
+          }}
+        />
+      </div>
+    );
+
+    if (themeId === "system") {
+      return (
+        <div className="flex gap-1">
+          <div className="flex-1 rounded-lg border p-1 light">
+            <Panel />
+          </div>
+          <div className="flex-1 rounded-lg border p-1 dark">
+            <Panel />
+          </div>
+        </div>
+      );
+    }
+
+    const previewClass =
+      themeId === "light" || themeId === "dark" ? themeId : themeId || "";
+
+    return (
+      <div className={cn("rounded-lg border p-1", previewClass)}>
+        <Panel />
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (!theme) return;
 
@@ -103,12 +153,9 @@ export default function SettingsPage() {
                 </Badge>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {THEME_VARIANTS.variants.map((variant) => {
                   const isSelected = selectedTheme?.variant === variant.name;
-                  const gradient = `linear-gradient(135deg, ${variant.gradient.join(
-                    ", "
-                  )})`;
 
                   return (
                     <button
@@ -118,29 +165,25 @@ export default function SettingsPage() {
                         handleVariantSelect(variant.name, variant.themeId)
                       }
                       className={cn(
-                        "group flex flex-col gap-2 rounded-2xl border bg-background/60 p-3 text-left transition focus-visible:outline focus-visible:outline-primary/40",
+                        "group flex flex-col gap-1.5 rounded-2xl border bg-background/70 p-2.5 text-left transition focus-visible:outline focus-visible:outline-primary/40",
                         isSelected
                           ? "border-primary/60 bg-primary/5 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]"
                           : "border-border/60 hover:-translate-y-0.5 hover:border-primary/40"
                       )}
                     >
-                      <div className="relative h-20 overflow-hidden rounded-xl border border-white/15 bg-muted/40">
-                        <span
-                          className="absolute inset-0"
-                          style={{ background: gradient }}
-                        />
-                        <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25 opacity-0 transition duration-300 group-hover:opacity-100" />
+                      <div className="relative">
+                        <ThemePreview themeId={variant.themeId} />
                         {isSelected ? (
-                          <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 text-primary shadow">
-                            <Check className="h-3.5 w-3.5" />
+                          <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-primary shadow">
+                            <Check className="h-3 w-3" />
                           </span>
                         ) : null}
                       </div>
-                      <div className="flex items-center justify-between text-sm font-medium text-foreground">
-                        {variant.name}
+                      <div className="mt-1 flex items-center justify-between text-sm font-medium text-foreground">
+                        <span className="truncate">{variant.name}</span>
                         <span
                           className={cn(
-                            "text-[11px]",
+                            "text-[11px] font-normal",
                             isSelected ? "text-primary" : "text-muted-foreground"
                           )}
                         >
@@ -148,7 +191,7 @@ export default function SettingsPage() {
                         </span>
                       </div>
                       {variant.description ? (
-                        <p className="text-xs text-muted-foreground leading-snug">
+                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
                           {variant.description}
                         </p>
                       ) : null}

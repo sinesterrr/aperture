@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { MediaSourceInfo } from "../types/jellyfin";
 
 // Fullscreen state
@@ -70,4 +71,19 @@ export const updateAuroraColorsAtom = atom(
     set(previousAuroraColorsAtom, currentColors);
     set(auroraColorsAtom, newColors);
   }
+);
+
+export interface ThemePresetSelection {
+  family: string;
+  variant: string;
+}
+
+const defaultThemeSelection: ThemePresetSelection = {
+  family: "Default",
+  variant: "Auto",
+};
+
+export const themeSelectionAtom = atomWithStorage<ThemePresetSelection>(
+  "samaura-dashboard-theme",
+  defaultThemeSelection
 );

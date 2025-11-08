@@ -1,57 +1,146 @@
+import { useEffect } from "react";
+import { useAtom } from "jotai";
+import { useTheme } from "next-themes";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { Settings2, Ship } from "lucide-react";
 import { AuroraBackground } from "../../components/aurora-background";
 import { SearchBar } from "../../components/search-component";
+import { Badge } from "../../components/ui/badge";
+import { Settings2, Palette, Check } from "lucide-react";
+import { THEME_VARIANTS } from "../../data/theme-presets";
+import { cn } from "../../lib/utils";
+import { themeSelectionAtom } from "../../lib/atoms";
 
 export default function SettingsPage() {
+  const { setTheme } = useTheme();
+  const [selectedTheme, setSelectedTheme] = useAtom(themeSelectionAtom);
+
+  useEffect(() => {
+    if (selectedTheme.family !== "Default") return;
+
+    switch (selectedTheme.variant) {
+      case "Light":
+        setTheme("light");
+        break;
+      case "Dark":
+        setTheme("dark");
+        break;
+      case "Auto":
+      default:
+        setTheme("system");
+        break;
+    }
+  }, [selectedTheme, setTheme]);
+
   return (
     <div className="relative px-4 py-6 max-w-full overflow-hidden">
-      {/* Aurora background */}
       <AuroraBackground colorStops={["#34d399", "#38bdf8", "#2dd4bf"]} />
-
-      {/* Main content with higher z-index */}
       <div className="relative z-10">
-        <div className="relative z-[9999] mb-8">
-          <div className="mb-6">
-            <SearchBar />
-          </div>
+        <div className="mb-6">
+          <SearchBar />
         </div>
+
         <div className="mb-8">
           <h2 className="text-3xl font-semibold text-foreground mb-2 font-poppins flex items-center gap-2">
             <Settings2 className="h-8 w-8" />
             Settings
           </h2>
+          <p className="text-muted-foreground">
+            Customize the interface and preview upcoming dashboard themes.
+          </p>
         </div>
 
         <div className="grid gap-6">
-          {/* Navigator Settings */}
-          <Card className="bg-card/75">
+          <Card className="bg-card/80 backdrop-blur">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 font-poppins text-lg">
-                <Ship className="h-5 w-5" />
-                Work In Progress
+                <Palette className="h-5 w-5" />
+                Dashboard Themes
               </CardTitle>
               <CardDescription>
-                Configuration Settings for the web client.
+                Explore the theme families that will power the upcoming
+                dashboard theming system. Variant switching is under
+                development, but you can preview the lineup here.
               </CardDescription>
             </CardHeader>
-            {/* <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="text-base font-medium">Enable Navigator</div>
-                  <div className="text-sm text-muted-foreground">
-                    Allow the Navigator to help you search and play content.
-                    When disabled, the Navigator button and keyboard shortcuts
-                    will be hidden.
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                {THEME_VARIANTS.map((family) => (
+                  <div
+                    key={family.name}
+                    className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm transition hover:border-primary/60 hover:shadow-lg"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-semibold text-lg text-foreground">
+                          {family.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {family.description}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="text-[11px]">
+                        {family.variants.length} variant
+                        {family.variants.length !== 1 ? "s" : ""}
+                      </Badge>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                      {family.variants.map((variant) => {
+                        const isSelected =
+                          selectedTheme?.family === family.name &&
+                          selectedTheme.variant === variant.name;
+                        const gradient = `linear-gradient(135deg, ${variant.gradient.join(
+                          ", "
+                        )})`;
+
+                        return (
+                          <button
+                            key={`${family.name}-${variant.name}`}
+                            onClick={() =>
+                              setSelectedTheme({
+                                family: family.name,
+                                variant: variant.name,
+                              })
+                            }
+                            className={cn(
+                              "flex items-center justify-between rounded-xl border px-3 py-2 text-left transition focus-visible:outline focus-visible:outline-primary/40",
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary-foreground"
+                                : "border-border bg-background/60 hover:border-primary/50"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span
+                                className="h-8 w-8 rounded-full border border-white/40 shadow-inner"
+                                style={{ background: gradient }}
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {variant.name}
+                                </span>
+                                {variant.description && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {variant.description}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected ? (
+                              <Check className="h-4 w-4 text-primary" />
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            </CardContent> */}
+            </CardContent>
           </Card>
         </div>
       </div>

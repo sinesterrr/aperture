@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { cn } from "../../lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { THEME_OPTIONS } from "../../constants/theme-options";
 
 interface ThemeToggleCardProps {
   className?: string;
@@ -51,20 +51,14 @@ export const ThemeToggleCard: React.FC<ThemeToggleCardProps> = ({
             </div>
 
             <div className="mt-3">
-              <Tabs value={theme} onValueChange={handleThemeChange}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="light" className="text-xs">
-                    <Sun className="h-3 w-3 mr-1" />
-                    Light
-                  </TabsTrigger>
-                  <TabsTrigger value="dark" className="text-xs">
-                    <Moon className="h-3 w-3 mr-1" />
-                    Dark
-                  </TabsTrigger>
-                  <TabsTrigger value="system" className="text-xs">
-                    <Monitor className="h-3 w-3 mr-1" />
-                    System
-                  </TabsTrigger>
+              <Tabs value={theme ?? "system"} onValueChange={handleThemeChange}>
+                <TabsList className="grid w-full gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                  {THEME_OPTIONS.map(({ id, label, icon: Icon }) => (
+                    <TabsTrigger key={id} value={id} className="text-xs h-9">
+                      <Icon className="h-3 w-3 mr-1" />
+                      {label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
               </Tabs>
             </div>

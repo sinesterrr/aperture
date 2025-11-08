@@ -2,13 +2,17 @@ import React, { useState, useEffect } from "react";
 import { isAuthenticated, getServerUrl } from "../actions";
 import { ServerSetup } from "../components/server-setup";
 import { LoginForm } from "../components/login-form";
+import { ThemePreferenceStep } from "./theme-preference-step";
+import { useAtom } from "jotai";
+import { themeSelectionAtom } from "../lib/atoms";
 import { useNavigate } from "react-router-dom";
 
-type OnboardingStep = "server" | "login";
+type OnboardingStep = "server" | "login" | "theme";
 
 export function OnboardingFlow() {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("server");
   const navigate = useNavigate();
+  const [selectedTheme] = useAtom(themeSelectionAtom);
 
   console.log("OnboardingFlow rendered, currentStep:", currentStep);
 
@@ -31,13 +35,21 @@ export function OnboardingFlow() {
     };
 
     checkAuthStatus();
-  }, [navigate]);
+  }, [navigate, selectedTheme.variant]);
 
   const handleServerSetup = () => {
     setCurrentStep("login");
   };
 
   const handleLoginSuccess = () => {
+    if (selectedTheme.variant && selectedTheme.variant !== "Auto") {
+      navigate("/", { replace: true });
+    } else {
+      setCurrentStep("theme");
+    }
+  };
+
+  const handleThemeComplete = () => {
     navigate("/", { replace: true });
   };
 
@@ -52,6 +64,15 @@ export function OnboardingFlow() {
   if (currentStep === "login") {
     return (
       <LoginForm onSuccess={handleLoginSuccess} onBack={handleBackToServer} />
+    );
+  }
+
+  if (currentStep === "theme") {
+    return (
+      <ThemePreferenceStep
+        onComplete={handleThemeComplete}
+        onBack={() => setCurrentStep("login")}
+      />
     );
   }
 

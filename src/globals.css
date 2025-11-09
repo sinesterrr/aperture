@@ -49,6 +49,8 @@
   --color-color-3: var(--color-3);
   --color-color-2: var(--color-2);
   --color-color-1: var(--color-1);
+  --color-success: #22c55e;
+  --color-warning: #facc15;
   @keyframes rainbow {
     0% {
       background-position: 0%;

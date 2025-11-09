@@ -113,16 +113,16 @@ export function getTaskIcon(taskName: string, category: string, state: string): 
 export function getTaskIconColor(state: string): string {
   switch (state) {
     case "Running":
-      return "text-blue-500";
+      return "text-color-1";
     case "Completed":
-      return "text-green-500";
+      return "text-success";
     case "Failed":
-      return "text-red-500";
+      return "text-destructive";
     case "Cancelled":
-      return "text-orange-500";
+      return "text-warning";
     case "Idle":
     default:
-      return "text-gray-500";
+      return "text-muted-foreground";
   }
 }
 

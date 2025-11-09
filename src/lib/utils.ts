@@ -11,11 +11,11 @@ export function cn(...inputs: ClassValue[]) {
 export function createJellyfinInstance() {
   return new Jellyfin({
     clientInfo: {
-      name: "SamAura",
+      name: "Apertúre",
       version: "1.0.0",
     },
     deviceInfo: {
-      name: "SamAura Web Client",
+      name: "Apertúre Web Client",
       id: getDeviceId(),
     },
   });

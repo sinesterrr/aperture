@@ -10,9 +10,9 @@ import { StoreAuthData } from "./store/store-auth-data";
 // Type aliases for easier use
 type JellyfinUserWithToken = UserDto & { AccessToken?: string };
 
-const CLIENT_NAME = "SamAura";
+const CLIENT_NAME = "Apertúre";
 const CLIENT_VERSION = "1.0.0";
-const DEVICE_NAME = "SamAura Web Client";
+const DEVICE_NAME = "Apertúre Web Client";
 
 export interface QuickConnectResult {
   Authenticated?: boolean;

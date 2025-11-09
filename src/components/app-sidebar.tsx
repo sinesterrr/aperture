@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom"; // for React Router
 // @ts-ignore
-import Logo from "../assets/logo/samaura.png";
+import Logo from "../assets/logo/icon.png";
 
 import {
   Sidebar,
@@ -148,10 +148,10 @@ export function AppSidebar({
               <Link to="/">
                 <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   {/* @ts-ignore */}
-                  <img src={Logo} alt="SamAura Logo" className="rounded" />
+                  <img src={Logo} alt="Apertúre Logo" className="rounded" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">SamAura</span>
+                  <span className="font-semibold">Apertúre</span>
                   <span className="text-xs">
                     {serverUrl &&
                       new URL(serverUrl).hostname.replace(

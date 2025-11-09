@@ -84,6 +84,6 @@ const defaultThemeSelection: ThemePresetSelection = {
 };
 
 export const themeSelectionAtom = atomWithStorage<ThemePresetSelection>(
-  "samaura-dashboard-theme",
+  "aperture-dashboard-theme",
   defaultThemeSelection
 );

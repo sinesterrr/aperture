@@ -173,7 +173,7 @@ jobs:
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: samaura-${{ matrix.platform.id }}-${{ needs.prepare.outputs.version }}
+          name: aperture-${{ matrix.platform.id }}-${{ needs.prepare.outputs.version }}
           path: bundle-artifacts/*
           if-no-files-found: error
 
@@ -192,15 +192,15 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t samaura-web:${VERSION} .
+          docker build -t aperture-web:${VERSION} .
           mkdir -p build
-          docker save samaura-web:${VERSION} | gzip > "build/samaura-web-${VERSION}.tar.gz"
+          docker save aperture-web:${VERSION} | gzip > "build/aperture-web-${VERSION}.tar.gz"
 
       - name: Upload Docker image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: samaura-web-${{ env.VERSION }}.tar.gz
-          path: build/samaura-web-${{ env.VERSION }}.tar.gz
+          name: aperture-web-${{ env.VERSION }}.tar.gz
+          path: build/aperture-web-${{ env.VERSION }}.tar.gz
           if-no-files-found: error
 
   release:
@@ -270,6 +270,6 @@ jobs:
           fi
 
           gh release create "$TAG" \
-            --title "samaura v${VERSION}" \
+            --title "Apertúre v${VERSION}" \
             --generate-notes \
             "${files[@]}"

@@ -1,8 +1,8 @@
 <h1 align="center">
   <br>
-    <a href="https://github.com/akhilmulpurii/samaura"><img src="https://github.com/akhilmulpurii/samaura/blob/main/src/assets/logo/samaura.png?raw=true" alt="SAMAURA" width="200"></a>
+    <a href="https://github.com/akhilmulpurii/aperture"><img src="https://github.com/akhilmulpurii/aperture/blob/main/src/assets/logo/icon.png?raw=true" alt="APERTÚRE" width="200"></a>
   <br>
-  SAMAURA
+  APERTÚRE
   <br>
 </h1>
 <h4 align="center">A Modern, Streamlined Jellyfin Client built with Vite+React+Tauri</h4>
@@ -44,12 +44,12 @@ https://github.com/user-attachments/assets/5f536de2-de3f-4b2e-83bc-331ab88880ad
 
 ## ✨ Overview
 
-**SAMAURA** is a clean, modern Jellyfin client built with **Vite+React.js** — designed for speed, simplicity, and elegance.  
+**APERTÚRE** is a clean, modern Jellyfin client built with **Vite+React.js** — designed for speed, simplicity, and elegance.  
 It builds upon the solid foundation of **[Finetic](https://github.com/AyaanZaveri/finetic)** while introducing extended functionality and removing unnecessary complexity.
 
 Special Thanks to **[@AyaanZaveri](https://github.com/AyaanZaveri)**, this is based on his work on finetic, but I am building it upon my personal preferences.
 
-### 🔹 What’s New in SAMAURA
+### 🔹 What’s New in APERTÚRE
 
 - **Simplified Experience** – Removed AI dependencies for a faster, lighter client, as I personally would not use them at all.
 - **Migrated to Vite** - The Entire Project is migrated into Vite + React, since Vite is much faster than webpack and we dont really need SSR features for an application like this.
@@ -108,8 +108,8 @@ The generated assets live in `dist/`. Configure your host to fall back to `index
 
 1. **Local build & run**
    ```bash
-   docker build -t samaura:latest .
-   docker run -p 4173:4173 samaura:latest
+   docker build -t aperture:latest .
+   docker run -p 4173:4173 aperture:latest
    ```
 2. **docker-compose**
    ```bash
@@ -130,9 +130,9 @@ yarn tauri build
 
 ### Public HTTP Jellyfin Servers
 
-The hosted app at `https://samaura.vercel.app` runs over HTTPS. Modern browsers block requests from an HTTPS site to **public** HTTP endpoints for security reasons, which means remote servers such as `http://23.x.x.x:8096` cannot be reached. To use Samaura with a public server:
+The hosted app at `https://aperture.vercel.app` runs over HTTPS. Modern browsers block requests from an HTTPS site to **public** HTTP endpoints for security reasons, which means remote servers such as `http://23.x.x.x:8096` cannot be reached. To use Apertúre with a public server:
 
 1. Add HTTPS to your Jellyfin instance (Let's Encrypt, Caddy/NGINX reverse proxy, Cloudflare tunnel, etc.), or
-2. Run Samaura locally (Vite dev server, Docker, or the Tauri build) over HTTP.
+2. Run Apertúre locally (Vite dev server, Docker, or the Tauri build) over HTTP.
 
 LAN/private IPs (192.168.x.x, 10.x.x.x, etc.) generally still work over HTTP because browsers treat them as “private network” resources, but for anything exposed to the internet you’ll need HTTPS.

@@ -37,7 +37,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   // Load settings from localStorage on mount
   useEffect(() => {
-    const savedBitrate = localStorage.getItem("samaura-video-bitrate");
+    const savedBitrate = localStorage.getItem("aperture-video-bitrate");
     if (
       savedBitrate &&
       BITRATE_OPTIONS.some((option) => option.value === savedBitrate)
@@ -45,7 +45,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setVideoBitrateState(savedBitrate);
     }
 
-    const savedPlaybackMode = localStorage.getItem("samaura-playback-mode");
+    const savedPlaybackMode = localStorage.getItem("aperture-playback-mode");
     if (savedPlaybackMode === "direct" || savedPlaybackMode === "transcode") {
       setPlaybackModeState(savedPlaybackMode);
     }
@@ -54,12 +54,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   // Save to localStorage when states change
   const setVideoBitrate = (bitrate: string) => {
     setVideoBitrateState(bitrate);
-    localStorage.setItem("samaura-video-bitrate", bitrate);
+    localStorage.setItem("aperture-video-bitrate", bitrate);
   };
 
   const setPlaybackMode = (mode: PlaybackMode) => {
     setPlaybackModeState(mode);
-    localStorage.setItem("samaura-playback-mode", mode);
+    localStorage.setItem("aperture-playback-mode", mode);
   };
 
   return (

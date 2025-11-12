@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useAtom } from "jotai";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -8,10 +15,20 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { AuroraBackground } from "../../components/aurora-background";
 import { SearchBar } from "../../components/search-component";
 import { Badge } from "../../components/ui/badge";
-import { Settings2, Palette, Check, ChevronDown } from "lucide-react";
+import {
+  Settings2,
+  Palette,
+  Check,
+  ChevronDown,
+  Lock,
+  QrCode,
+  ImagePlus,
+  Camera,
+} from "lucide-react";
 import { THEME_VARIANTS } from "../../data/theme-presets";
 import { cn } from "../../lib/utils";
 import { themeSelectionAtom } from "../../lib/atoms";
@@ -20,11 +37,160 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../../components/ui/collapsible";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { getUser, getUserImageUrl } from "../../actions";
+import type { JellyfinUserWithToken } from "../../types/jellyfin";
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useAtom(themeSelectionAtom);
   const [themesOpen, setThemesOpen] = useState(true);
+  const [user, setUser] = useState<JellyfinUserWithToken | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [quickConnectDialogOpen, setQuickConnectDialogOpen] =
+    useState(false);
+  const [quickConnectCode, setQuickConnectCode] = useState("");
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(
+    null
+  );
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const updateAvatarPreview = useCallback((next: string | null) => {
+    setAvatarPreview((previous) => {
+      if (previous && previous.startsWith("blob:")) {
+        URL.revokeObjectURL(previous);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProfile = async () => {
+      setProfileLoading(true);
+      try {
+        const currentUser = await getUser();
+        if (!isMounted) return;
+        setUser(currentUser);
+
+        if (currentUser?.Id) {
+          try {
+            const url = await getUserImageUrl(currentUser.Id);
+            if (!isMounted) return;
+            setAvatarUrl(url);
+          } catch (error) {
+            console.error("Failed to load avatar", error);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load profile", error);
+      } finally {
+        if (isMounted) {
+          setProfileLoading(false);
+        }
+      }
+    };
+
+    fetchProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleAvatarDialogToggle = useCallback(
+    (open: boolean) => {
+      setAvatarDialogOpen(open);
+      if (!open) {
+        setPendingAvatarFile(null);
+        updateAvatarPreview(null);
+      }
+    },
+    [updateAvatarPreview]
+  );
+
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPendingAvatarFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    updateAvatarPreview(objectUrl);
+  };
+
+  const handleQuickConnectToggle = (open: boolean) => {
+    setQuickConnectDialogOpen(open);
+    if (!open) {
+      setQuickConnectCode("");
+    }
+  };
+
+  const handleQuickConnectSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    handleQuickConnectToggle(false);
+  };
+
+  const handleQuickConnectCodeChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const clean = event.target.value.replace(/[^a-zA-Z0-9]/g, "");
+    setQuickConnectCode(clean.slice(0, 8).toUpperCase());
+  };
+
+  const displayAvatar = avatarPreview ?? avatarUrl ?? undefined;
+  const lastSeenRaw = user?.LastLoginDate ?? user?.LastActivityDate;
+  const lastSeen = lastSeenRaw
+    ? new Date(lastSeenRaw).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
+  const membershipLabel = profileLoading
+    ? "Loading profile..."
+    : lastSeen
+      ? `Last active ${lastSeen}`
+      : "Profile details will appear here soon.";
+  const profileTiles = [
+    {
+      title: "Password",
+      description: "Change the credentials you use to access Apertúre.",
+      icon: Lock,
+      cta: "Update password",
+      action: () => navigate("/password"),
+    },
+    {
+      title: "Quick Connect",
+      description: "Pair a new device with a one-time Jellyfin code.",
+      icon: QrCode,
+      cta: "Enter code",
+      action: () => handleQuickConnectToggle(true),
+    },
+    {
+      title: "Profile Picture",
+      description: "Refresh the avatar we show across every screen.",
+      icon: ImagePlus,
+      cta: "View & edit",
+      action: () => handleAvatarDialogToggle(true),
+    },
+  ];
 
   const ThemePreview = ({ themeId }: { themeId: string }) => {
     const Panel = () => (
@@ -132,6 +298,89 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
+          <Card className="bg-card/80 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-poppins text-lg">
+                <Settings2 className="h-5 w-5" />
+                Profile & Security
+              </CardTitle>
+              <CardDescription>
+                Manage how you sign in, link devices, and refresh your avatar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/70 p-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20 border-2 border-border/60">
+                    {displayAvatar ? (
+                      <AvatarImage
+                        src={displayAvatar}
+                        alt="Profile avatar"
+                        className="object-cover"
+                      />
+                    ) : null}
+                    <AvatarFallback className="text-lg font-semibold">
+                      {(user?.Name?.[0] ?? "U").toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-xl font-semibold">
+                      {user?.Name ?? "Your profile"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {membershipLabel}
+                    </p>
+                    {user?.Policy?.IsAdministrator ? (
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                        Administrator
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full md:w-auto"
+                  onClick={() => handleAvatarDialogToggle(true)}
+                >
+                  <Camera className="h-4 w-4" />
+                  View photo
+                </Button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {profileTiles.map((tile) => {
+                  const Icon = tile.icon;
+                  return (
+                    <div
+                      key={tile.title}
+                      className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-background/70 p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">{tile.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {tile.description}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="mt-auto"
+                        onClick={tile.action}
+                      >
+                        {tile.cta}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           <Collapsible open={themesOpen} onOpenChange={setThemesOpen}>
             <Card className="bg-card/80 backdrop-blur">
               <CardHeader className="flex flex-wrap items-start justify-between gap-3">
@@ -221,6 +470,114 @@ export default function SettingsPage() {
             </Card>
           </Collapsible>
         </div>
+
+        <Dialog open={avatarDialogOpen} onOpenChange={handleAvatarDialogToggle}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Profile picture</DialogTitle>
+              <DialogDescription>
+                Preview your current image and stage a replacement. We&apos;ll
+                save it once the profile APIs are connected.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative size-32 overflow-hidden rounded-full border-4 border-border/60">
+                  {displayAvatar ? (
+                    <img
+                      src={displayAvatar}
+                      alt="Avatar preview"
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center bg-secondary text-3xl font-semibold">
+                      {(user?.Name?.[0] ?? "U").toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                {pendingAvatarFile ? (
+                  <p className="text-xs text-muted-foreground">
+                    Selected file: {pendingAvatarFile.name}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="avatar-upload">Upload new image</Label>
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFileChange}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Your changes are only previewed for now. We&apos;ll enable saving
+                once account mutations are ready.
+              </p>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleAvatarDialogToggle(false)}
+                >
+                  Close
+                </Button>
+                <Button type="button" disabled>
+                  Save changes
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={quickConnectDialogOpen}
+          onOpenChange={handleQuickConnectToggle}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Quick Connect</DialogTitle>
+              <DialogDescription>
+                Generate a Quick Connect code on your Jellyfin server, then
+                paste it below to link this account.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleQuickConnectSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="quick-connect-code">
+                  Enter Quick Connect code
+                </Label>
+                <Input
+                  id="quick-connect-code"
+                  value={quickConnectCode}
+                  onChange={handleQuickConnectCodeChange}
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  placeholder="8-digit code"
+                  className="tracking-[0.15em] uppercase"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                We&apos;ll plug this form into the authentication flow soon. For
+                now, it gives you a feel for the experience.
+              </p>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleQuickConnectToggle(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={quickConnectCode.length < 6}>
+                  Continue
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

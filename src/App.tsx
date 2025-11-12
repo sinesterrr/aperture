@@ -12,6 +12,7 @@ import SearchPage from "./pages/search";
 import SeasonPage from "./pages/season/[id]";
 import SeriesPage from "./pages/series/[id]";
 import SettingsPage from "./pages/settings";
+import PasswordSettingsPage from "./pages/password";
 import Main from "./pages/main";
 // import Main Layout
 
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/season/:id" element={<SeasonPage />} />
                 <Route path="/series/:id" element={<SeriesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/password" element={<PasswordSettingsPage />} />
               </Route>
               <Route path="/login" element={<Login />} />
             </Routes>

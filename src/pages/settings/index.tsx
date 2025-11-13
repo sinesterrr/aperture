@@ -59,6 +59,7 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useAtom(themeSelectionAtom);
+  const [profileOpen, setProfileOpen] = useState(true);
   const [themesOpen, setThemesOpen] = useState(true);
   const [user, setUser] = useState<JellyfinUserWithToken | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -298,88 +299,109 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
-          <Card className="bg-card/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-poppins text-lg">
-                <Settings2 className="h-5 w-5" />
-                Profile & Security
-              </CardTitle>
-              <CardDescription>
-                Manage how you sign in, link devices, and refresh your avatar.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/70 p-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20 border-2 border-border/60">
-                    {displayAvatar ? (
-                      <AvatarImage
-                        src={displayAvatar}
-                        alt="Profile avatar"
-                        className="object-cover"
-                      />
-                    ) : null}
-                    <AvatarFallback className="text-lg font-semibold">
-                      {(user?.Name?.[0] ?? "U").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-xl font-semibold">
-                      {user?.Name ?? "Your profile"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {membershipLabel}
-                    </p>
-                    {user?.Policy?.IsAdministrator ? (
-                      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                        Administrator
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full md:w-auto"
-                  onClick={() => handleAvatarDialogToggle(true)}
-                >
-                  <Camera className="h-4 w-4" />
-                  View photo
-                </Button>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-3">
-                {profileTiles.map((tile) => {
-                  const Icon = tile.icon;
-                  return (
-                    <div
-                      key={tile.title}
-                      className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-background/70 p-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold">{tile.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {tile.description}
+          <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
+            <Card className="bg-card/80 backdrop-blur">
+              <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 font-poppins text-lg">
+                  <Settings2 className="h-5 w-5" />
+                  Profile & Security
+                </CardTitle>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    aria-expanded={profileOpen}
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                  >
+                    {profileOpen ? "Hide" : "Show"}
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200",
+                        profileOpen ? "rotate-180" : "rotate-0"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CardDescription className="w-full">
+                  Manage how you sign in, link devices, and refresh your avatar.
+                </CardDescription>
+              </CardHeader>
+              <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-up data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-down">
+                <CardContent className="space-y-6">
+                  <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/70 p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-20 w-20 border-2 border-border/60">
+                        {displayAvatar ? (
+                          <AvatarImage
+                            src={displayAvatar}
+                            alt="Profile avatar"
+                            className="object-cover"
+                          />
+                        ) : null}
+                        <AvatarFallback className="text-lg font-semibold">
+                          {(user?.Name?.[0] ?? "U").toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xl font-semibold">
+                          {user?.Name ?? "Your profile"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {membershipLabel}
+                        </p>
+                        {user?.Policy?.IsAdministrator ? (
+                          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                            Administrator
                           </p>
-                        </div>
+                        ) : null}
                       </div>
-                      <Button
-                        variant="outline"
-                        className="mt-auto"
-                        onClick={tile.action}
-                      >
-                        {tile.cta}
-                      </Button>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full md:w-auto"
+                      onClick={() => handleAvatarDialogToggle(true)}
+                    >
+                      <Camera className="h-4 w-4" />
+                      View photo
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {profileTiles.map((tile) => {
+                      const Icon = tile.icon;
+                      return (
+                        <div
+                          key={tile.title}
+                          className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-background/70 p-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold">
+                                {tile.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {tile.description}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            className="mt-auto"
+                            onClick={tile.action}
+                          >
+                            {tile.cta}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           <Collapsible open={themesOpen} onOpenChange={setThemesOpen}>
             <Card className="bg-card/80 backdrop-blur">

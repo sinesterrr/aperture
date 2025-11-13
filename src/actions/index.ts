@@ -10,6 +10,7 @@ export {
   authenticateWithQuickConnect,
   logout,
   getUser,
+  changeUserPassword,
   isAuthenticated,
 } from "./auth";
 

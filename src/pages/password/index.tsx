@@ -1,5 +1,7 @@
-import { Lock } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Lock, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AuroraBackground } from "../../components/aurora-background";
 import { Button } from "../../components/ui/button";
 import {
@@ -11,9 +13,70 @@ import {
 } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { changeUserPassword } from "../../actions";
+
+const MIN_PASSWORD_LENGTH = 3;
 
 export default function PasswordSettingsPage() {
   const navigate = useNavigate();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const meetsLengthRequirement = newPassword.length >= MIN_PASSWORD_LENGTH;
+
+  const passwordsMatch =
+    newPassword.length > 0 &&
+    confirmPassword.length > 0 &&
+    newPassword === confirmPassword;
+
+  const canSubmit =
+    currentPassword.length > 0 &&
+    meetsLengthRequirement &&
+    passwordsMatch &&
+    !isSubmitting;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+    setSuccessMessage(null);
+
+    if (!meetsLengthRequirement) {
+      setFormError(
+        `Your new password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+      );
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setFormError("New password and confirmation must match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await changeUserPassword(currentPassword, newPassword);
+      toast.success("Password updated successfully.");
+
+      setSuccessMessage(
+        "All set! We'll use your new password the next time you sign in."
+      );
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      const message =
+        error?.message ||
+        "We couldn't update your password. Please verify your current password and try again.";
+      setFormError(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative max-w-full overflow-hidden px-4 py-6">
@@ -31,8 +94,8 @@ export default function PasswordSettingsPage() {
             Password settings
           </h2>
           <p className="text-muted-foreground">
-            We&apos;re preparing secure password management for Apertúre. This
-            preview shows the interface we&apos;ll wire up shortly.
+            Update your Jellyfin password securely. We&apos;ll refresh your
+            credentials everywhere once the change succeeds.
           </p>
         </div>
 
@@ -40,48 +103,115 @@ export default function PasswordSettingsPage() {
           <CardHeader>
             <CardTitle>Update password</CardTitle>
             <CardDescription>
-              Once backend support ships you&apos;ll be able to complete this
-              flow and sync the change back to Jellyfin.
+              Enter your current credentials, pick a stronger password, and
+              we&apos;ll update Jellyfin immediately.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current password</Label>
-              <Input
-                id="current-password"
-                type="password"
-                placeholder="••••••••"
-                disabled
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                placeholder="Create a strong password"
-                disabled
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="Re-type your new password"
-                disabled
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tip: choose something unique, at least 12 characters, and avoid
-              reusing passwords from other services.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" onClick={() => navigate("/settings")}>
-                Back to settings
-              </Button>
-              <Button disabled>Save password</Button>
-            </div>
+          <CardContent>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Current password</Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      placeholder="Enter your current password"
+                      value={currentPassword}
+                      onChange={(event) =>
+                        setCurrentPassword(event.target.value)
+                      }
+                      autoComplete="current-password"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Create a strong password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      autoComplete="new-password"
+                      aria-invalid={!meetsLengthRequirement && newPassword !== ""}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Minimum {MIN_PASSWORD_LENGTH} characters.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Re-type your new password"
+                      value={confirmPassword}
+                      onChange={(event) =>
+                        setConfirmPassword(event.target.value)
+                      }
+                      autoComplete="new-password"
+                      aria-invalid={
+                        confirmPassword.length > 0 && !passwordsMatch
+                      }
+                      required
+                    />
+                    {confirmPassword.length > 0 && !passwordsMatch ? (
+                      <p className="text-xs text-destructive">
+                        Passwords must match exactly.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                  Pick anything memorable—as long as it is at least{" "}
+                  <span className="font-semibold text-foreground">
+                    {MIN_PASSWORD_LENGTH} characters
+                  </span>
+                  . We'll keep the rest of the logic simple.
+                </div>
+              </div>
+
+              {formError ? (
+                <div
+                  className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  role="alert"
+                >
+                  {formError}
+                </div>
+              ) : null}
+
+              {successMessage ? (
+                <div
+                  className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400"
+                  role="status"
+                >
+                  {successMessage}
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/settings")}
+                >
+                  Back to settings
+                </Button>
+                <Button type="submit" disabled={!canSubmit}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating…
+                    </>
+                  ) : (
+                    "Save password"
+                  )}
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

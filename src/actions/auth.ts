@@ -1,4 +1,5 @@
 import { SystemApi } from "@jellyfin/sdk/lib/generated-client/api/system-api";
+import { getUserApi } from "@jellyfin/sdk/lib/utils/api/user-api";
 import { Configuration } from "@jellyfin/sdk/lib/generated-client/configuration";
 import type { UserDto } from "@jellyfin/sdk/lib/generated-client/models/user-dto";
 import { createJellyfinInstance } from "../lib/utils";
@@ -397,6 +398,53 @@ export async function getUser(): Promise<JellyfinUserWithToken | null> {
     return authData.user || null;
   } catch {
     return null;
+  }
+}
+
+export async function changeUserPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const authData = await StoreAuthData.get();
+
+  if (!authData?.serverUrl || !authData.user) {
+    throw new Error("You must be signed in to update your password.");
+  }
+
+  const storedUser = authData.user as JellyfinUserWithToken;
+
+  if (!storedUser?.Id) {
+    throw new Error("We couldn't determine which user to update.");
+  }
+
+  if (!storedUser.AccessToken) {
+    throw new Error("Missing authentication token. Please sign in again.");
+  }
+
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(authData.serverUrl);
+  api.accessToken = storedUser.AccessToken;
+  const userApi = getUserApi(api);
+
+  try {
+    await userApi.updateUserPassword({
+      userId: storedUser.Id,
+      updateUserPassword: {
+        CurrentPw: currentPassword,
+        NewPw: newPassword,
+      },
+    });
+  } catch (error: any) {
+    console.error("Failed to update password:", error);
+
+    const serverMessage =
+      error?.response?.data?.Message ||
+      error?.response?.data?.ErrorMessage ||
+      error?.response?.data?.message;
+
+    throw new Error(
+      serverMessage || "Unable to update password. Please try again."
+    );
   }
 }
 

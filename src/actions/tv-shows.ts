@@ -131,6 +131,17 @@ export async function fetchEpisodeDetails(
     const { data } = await userLibraryApi.getItem({
       userId: user.Id,
       itemId: episodeId,
+      fields: [
+        ItemFields.MediaSources,
+        ItemFields.MediaStreams,
+        ItemFields.CanDownload,
+        ItemFields.PrimaryImageAspectRatio,
+        ItemFields.Overview,
+        ItemFields.Taglines,
+        ItemFields.Genres,
+        ItemFields.People,
+        ItemFields.Studios,
+      ],
     });
     return data;
   } catch (error) {

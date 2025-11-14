@@ -206,6 +206,17 @@ export async function fetchMediaDetails(
     const { data } = await userLibraryApi.getItem({
       userId: user.Id,
       itemId: mediaItemId,
+      fields: [
+        ItemFields.MediaSources,
+        ItemFields.MediaStreams,
+        ItemFields.CanDownload,
+        ItemFields.PrimaryImageAspectRatio,
+        ItemFields.Overview,
+        ItemFields.Taglines,
+        ItemFields.Genres,
+        ItemFields.People,
+        ItemFields.Studios,
+      ],
     });
     return data;
   } catch (error) {

@@ -17,7 +17,7 @@ import {
 } from "../components/ui/dialog";
 import { MediaInfoDialog } from "../components/media-info-dialog";
 import { ImageEditorDialog } from "../components/image-editor-dialog";
-import { Info, Download, Play, ArrowLeft } from "lucide-react";
+import { Info, Download, Play, ArrowLeft, Layers } from "lucide-react";
 import {
   getDownloadUrl,
   getStreamUrl,
@@ -128,6 +128,8 @@ export function MediaActions({
     return null;
   }
 
+  const hasMultipleVersions = media.MediaSources.length > 1;
+
   const download = async () => {
     window.open(await getDownloadUrl(selectedVersion.Id!), "_blank");
   };
@@ -147,6 +149,18 @@ export function MediaActions({
     }
 
     return detailsFromName;
+  };
+
+  const getVersionName = (source: MediaSourceInfo) => {
+    const name = source.Name?.trim();
+    if (name) {
+      const bracketMatch = name.match(/\[[^\]]+\]/);
+      if (bracketMatch) {
+        return bracketMatch[0];
+      }
+      return name;
+    }
+    return getMediaSourceDisplayName(source);
   };
 
   // Helper function to check if media has Dolby Digital audio
@@ -261,44 +275,42 @@ export function MediaActions({
           ) : null}
         </Button>
 
-        {media.MediaSources.length > 1 ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="truncate">
-              <Button
-                variant="outline"
-                className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
-              >
-                {getMediaSourceDisplayName(selectedVersion)}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {media.MediaSources.map((source: MediaSourceInfo) => (
-                <DropdownMenuItem
-                  key={source.Id}
-                  onSelect={() => {
-                    setSelectedVersion(source);
-                    // onStreamUrlChange(null); // Clear stream URL when changing version
-                  }}
-                  className="fill-foreground gap-3 flex justify-between"
-                >
-                  {cutOffText(source.Name!, 64)}
-                  <Badge variant="outline" className="bg-sidebar">
-                    {source.Size
-                      ? `${(source.Size / 1024 ** 3).toFixed(2)} GB`
-                      : "Unknown size"}
-                  </Badge>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5"
+            className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
           >
             {getMediaSourceDisplayName(selectedVersion)}
           </Button>
-        )}
+          {hasMultipleVersions && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild className="truncate">
+                <Button variant="outline" className="gap-1.5 px-4">
+                  Quality
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {media.MediaSources.map((source: MediaSourceInfo) => (
+                  <DropdownMenuItem
+                    key={source.Id}
+                    onSelect={() => {
+                      setSelectedVersion(source);
+                      // onStreamUrlChange(null); // Clear stream URL when changing version
+                    }}
+                    className="fill-foreground gap-3 flex justify-between"
+                  >
+                    {cutOffText(source.Name!, 64)}
+                    <Badge variant="outline" className="bg-sidebar">
+                      {source.Size
+                        ? `${(source.Size / 1024 ** 3).toFixed(2)} GB`
+                        : "Unknown size"}
+                    </Badge>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         <Button variant="outline" size="icon" onClick={download}>
           <Download className="h-4 w-4" />
@@ -325,6 +337,19 @@ export function MediaActions({
           />
         )}
       </div>
+      {hasMultipleVersions && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground ml-1">
+          <Layers className="h-3 w-3 text-primary" />
+          <span className="flex items-center gap-2">
+            {media.MediaSources.length} versions available — pick one from the dropdown
+            <Badge variant="secondary" className="text-[0.6rem] uppercase">
+              Current:{" "}
+              {getVersionName(selectedVersion)}
+            </Badge>
+          </span>
+        </div>
+      )}
+
       {(hasDolbyDigital(selectedVersion) ||
         hasDolbyTrueHD(selectedVersion) ||
         hasDolbyVision(selectedVersion) ||

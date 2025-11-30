@@ -92,7 +92,8 @@ export function AppSidebar({
           const librariesData = await getUserLibraries();
           setLibraries(librariesData);
           const userAvatarUrl = await getUserImageUrl(userData.Id!);
-          setAvatarUrl(userAvatarUrl);
+          // Add timestamp to bypass cache
+          setAvatarUrl(`${userAvatarUrl}&t=${Date.now()}`);
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -102,6 +103,30 @@ export function AppSidebar({
     };
 
     fetchData();
+
+    // Listen for avatar updates
+    const handleAvatarUpdate = async () => {
+      try {
+        const userData = await getUser();
+        if (userData) {
+          const userAvatarUrl = await getUserImageUrl(userData.Id!);
+          const timestamp = Date.now();
+          // Ensure we're using a new URL string to trigger re-render
+          setAvatarUrl(`${userAvatarUrl}&t=${timestamp}`);
+          
+          // Also update the user state if needed
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Failed to refresh avatar:", error);
+      }
+    };
+
+    window.addEventListener("user-avatar-updated", handleAvatarUpdate);
+
+    return () => {
+      window.removeEventListener("user-avatar-updated", handleAvatarUpdate);
+    };
   }, []);
 
   const handleLogout = async () => {

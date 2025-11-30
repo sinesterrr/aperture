@@ -157,6 +157,38 @@ export async function getUserImageUrl(itemId: string): Promise<string> {
   return `${serverUrl}/Users/${itemId}/Images/Primary?${params.toString()}`;
 }
 
+export async function uploadUserImage(
+  userId: string,
+  file: File
+): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+
+  // Convert file to base64
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      // Remove data URL prefix (e.g., "data:image/png;base64,")
+      const base64 = (reader.result as string).split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+
+  const response = await fetch(`${serverUrl}/Users/${userId}/Images/Primary`, {
+    method: "POST",
+    headers: {
+      Authorization: `MediaBrowser Token="${user.AccessToken}"`,
+      "Content-Type": file.type, // e.g., "image/png" or "image/jpeg"
+    },
+    body: base64Data,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload user image: ${response.statusText}`);
+  }
+}
+
 export async function getDownloadUrl(itemId: string): Promise<string> {
   const { serverUrl, user } = await getAuthData();
 

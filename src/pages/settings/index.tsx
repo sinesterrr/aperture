@@ -54,9 +54,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
-import { getUser, getUserImageUrl } from "../../actions";
+import { getUser, getUserImageUrl, uploadUserImage } from "../../actions";
 import type { JellyfinUserWithToken } from "../../types/jellyfin";
 import { Link } from "react-router-dom";
+
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -126,12 +128,95 @@ export default function SettingsPage() {
     [updateAvatarPreview]
   );
 
-  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setPendingAvatarFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    updateAvatarPreview(objectUrl);
+
+    try {
+      // Create image element to load the file
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      // Create canvas for 1:1 center crop
+      const canvas = document.createElement("canvas");
+      const size = Math.min(img.width, img.height);
+      canvas.width = size;
+      canvas.height = size;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Failed to get canvas context");
+
+      // Calculate crop position
+      const offsetX = (img.width - size) / 2;
+      const offsetY = (img.height - size) / 2;
+
+      // Draw cropped image
+      ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+
+      // Convert back to blob/file
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            console.error("Failed to create blob");
+            return;
+          }
+          const croppedFile = new File([blob], file.name, {
+            type: file.type,
+            lastModified: Date.now(),
+          });
+
+          setPendingAvatarFile(croppedFile);
+          const objectUrl = URL.createObjectURL(croppedFile);
+          updateAvatarPreview(objectUrl);
+
+          // Clean up original object URL
+          URL.revokeObjectURL(img.src);
+        },
+        file.type,
+        0.9
+      );
+    } catch (error) {
+      console.error("Failed to crop image:", error);
+      // Fallback to original file if cropping fails
+      setPendingAvatarFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      updateAvatarPreview(objectUrl);
+    }
+  };
+
+  const handleAvatarSave = async () => {
+    if (!user?.Id || !pendingAvatarFile) return;
+
+    try {
+      // Upload the new avatar
+      await uploadUserImage(user.Id, pendingAvatarFile);
+
+      // Show success message
+      toast.success("Profile picture updated successfully", {
+        duration: 2000,
+      });
+
+      // Dispatch custom event to update avatar everywhere
+      window.dispatchEvent(new Event("user-avatar-updated"));
+
+      // Update local state without refresh
+      if (avatarPreview) {
+        setAvatarUrl(avatarPreview);
+      }
+
+      // Close dialog
+      handleAvatarDialogToggle(false);
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      toast.error("Failed to update profile picture");
+    }
   };
 
   const displayAvatar = avatarPreview ?? avatarUrl ?? undefined;
@@ -530,8 +615,7 @@ export default function SettingsPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Your changes are only previewed for now. We&apos;ll enable
-                saving once account mutations are ready.
+                Your changes are only previewed for now. Save to apply.
               </p>
 
               <DialogFooter>
@@ -542,7 +626,11 @@ export default function SettingsPage() {
                 >
                   Close
                 </Button>
-                <Button type="button" disabled>
+                <Button
+                  type="button"
+                  disabled={!pendingAvatarFile}
+                  onClick={handleAvatarSave}
+                >
                   Save changes
                 </Button>
               </DialogFooter>

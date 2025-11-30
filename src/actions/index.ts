@@ -48,6 +48,7 @@ export { searchItems, searchPeople } from "./search";
 export {
   getImageUrl,
   getUserImageUrl,
+  uploadUserImage,
   getDownloadUrl,
   getStreamUrl,
   getDirectStreamUrl,

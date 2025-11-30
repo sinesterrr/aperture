@@ -56,6 +56,7 @@ import {
 } from "../../components/ui/dialog";
 import { getUser, getUserImageUrl } from "../../actions";
 import type { JellyfinUserWithToken } from "../../types/jellyfin";
+import { Link } from "react-router-dom";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -388,9 +389,8 @@ export default function SettingsPage() {
                   <LayoutDashboard className="h-5 w-5" />
                   Dashboard
                 </CardTitle>
-                <button
-                  type="button"
-                  aria-expanded={themesOpen}
+                <Link
+                  to={"/dashboard"}
                   className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
                 >
                   Open Dashboard
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                       themesOpen ? "rotate-180" : "rotate-0"
                     )}
                   />
-                </button>
+                </Link>
                 <CardDescription className="w-full">
                   Manage your Jellyfin server and system settings.
                 </CardDescription>

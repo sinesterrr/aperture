@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getThemeSongStreamUrl,
-  getThemeVideoStreamUrl,
-} from "../actions";
+import { getThemeSongStreamUrl, getThemeVideoStreamUrl } from "../actions";
 import { useMediaPlayer } from "../contexts/MediaPlayerContext";
 import { useSettings } from "../contexts/settings-context";
 
@@ -225,8 +222,7 @@ export function useThemeMedia(itemId?: string | null) {
     }
   }, []);
 
-  const showThemeVideo =
-    Boolean(themeVideoUrl) && videoReady && !videoFinished;
+  const showThemeVideo = Boolean(themeVideoUrl) && videoReady && !videoFinished;
   const shouldShowBackdropImage =
     !themeVideoUrl || !videoReady || videoFinished;
 

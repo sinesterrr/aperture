@@ -36,8 +36,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [videoBitrate, setVideoBitrateState] = useState<string>("auto");
-  const [playbackMode, setPlaybackModeState] =
-    useState<PlaybackMode>("direct");
+  const [playbackMode, setPlaybackModeState] = useState<PlaybackMode>("direct");
   const [enableThemeBackdrops, setEnableThemeBackdropsState] = useState(true);
   const [enableThemeSongs, setEnableThemeSongsState] = useState(true);
 

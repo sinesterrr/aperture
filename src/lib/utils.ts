@@ -22,7 +22,7 @@ export function createJellyfinInstance() {
 }
 
 export const getMediaDetailsFromName = (name: string) => {
-  const resolutionMatch = name.match(/(\d+p)/i);
+  const resolutionMatch = name.match(/(\d+p|4K|8K)/i);
   const hdrMatch = name.match(/(HDR|DV|Dolby Vision)/i);
   const audioMatch = name.match(
     /(DDP5[.\s]1|TrueHD|DTS-HD MA|DTS-HD|DTS|AAC|AC3|FLAC|Opus)/i

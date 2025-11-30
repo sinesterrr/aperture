@@ -286,7 +286,7 @@ export function MediaActions({
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="truncate">
                 <Button variant="outline" className="gap-1.5 px-4">
-                  Quality
+                  Version
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -299,7 +299,7 @@ export function MediaActions({
                     }}
                     className="fill-foreground gap-3 flex justify-between"
                   >
-                    {cutOffText(source.Name!, 64)}
+                    {cutOffText(getVersionName(source), 64)}
                     <Badge variant="outline" className="bg-sidebar">
                       {source.Size
                         ? `${(source.Size / 1024 ** 3).toFixed(2)} GB`
@@ -341,10 +341,10 @@ export function MediaActions({
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground ml-1">
           <Layers className="h-3 w-3 text-primary" />
           <span className="flex items-center gap-2">
-            {media.MediaSources.length} versions available — pick one from the dropdown
+            {media.MediaSources.length} versions available — pick one from the
+            dropdown
             <Badge variant="secondary" className="text-[0.6rem] uppercase">
-              Current:{" "}
-              {getVersionName(selectedVersion)}
+              Current: {getVersionName(selectedVersion)}
             </Badge>
           </span>
         </div>

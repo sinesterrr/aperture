@@ -28,6 +28,8 @@ import {
   QrCode,
   ImagePlus,
   Camera,
+  LayoutDashboard,
+  ChevronRight,
 } from "lucide-react";
 import { THEME_VARIANTS } from "../../data/theme-presets";
 import { cn } from "../../lib/utils";
@@ -59,15 +61,13 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useAtom(themeSelectionAtom);
-  const [profileOpen, setProfileOpen] = useState(true);
-  const [themesOpen, setThemesOpen] = useState(true);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(false);
   const [user, setUser] = useState<JellyfinUserWithToken | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
-  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(
-    null
-  );
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const updateAvatarPreview = useCallback((next: string | null) => {
@@ -145,8 +145,8 @@ export default function SettingsPage() {
   const membershipLabel = profileLoading
     ? "Loading profile..."
     : lastSeen
-      ? `Last active ${lastSeen}`
-      : "Profile details will appear here soon.";
+    ? `Last active ${lastSeen}`
+    : "Profile details will appear here soon.";
   const profileTiles = [
     {
       title: "Password",
@@ -381,12 +381,39 @@ export default function SettingsPage() {
             </Card>
           </Collapsible>
 
+          {user?.Policy?.IsAdministrator ? (
+            <Card className="bg-card/80 backdrop-blur ">
+              <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 font-poppins text-lg">
+                  <LayoutDashboard className="h-5 w-5" />
+                  Dashboard
+                </CardTitle>
+                <button
+                  type="button"
+                  aria-expanded={themesOpen}
+                  className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                >
+                  Open Dashboard
+                  <ChevronRight
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform duration-200",
+                      themesOpen ? "rotate-180" : "rotate-0"
+                    )}
+                  />
+                </button>
+                <CardDescription className="w-full">
+                  Manage your Jellyfin server and system settings.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          ) : null}
+
           <Collapsible open={themesOpen} onOpenChange={setThemesOpen}>
             <Card className="bg-card/80 backdrop-blur">
               <CardHeader className="flex flex-wrap items-start justify-between gap-3">
                 <CardTitle className="flex items-center gap-2 font-poppins text-lg">
                   <Palette className="h-5 w-5" />
-                  Dashboard Themes
+                  Themes
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-[11px]">
@@ -512,8 +539,8 @@ export default function SettingsPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Your changes are only previewed for now. We&apos;ll enable saving
-                once account mutations are ready.
+                Your changes are only previewed for now. We&apos;ll enable
+                saving once account mutations are ready.
               </p>
 
               <DialogFooter>
@@ -531,7 +558,6 @@ export default function SettingsPage() {
             </div>
           </DialogContent>
         </Dialog>
-
       </div>
     </div>
   );

@@ -48,7 +48,6 @@ import {
   ChevronRight,
   DiscAlbum,
   Antenna,
-  LayoutDashboard,
 } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { THEME_OPTIONS } from "../constants/theme-options";
@@ -214,14 +213,6 @@ export function AppSidebar({
                   ) : null}
                 </SidebarMenuItem>
               </DropdownMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/dashboard" onClick={() => setOpenMobile(false)}>
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link to="/settings" onClick={() => setOpenMobile(false)}>

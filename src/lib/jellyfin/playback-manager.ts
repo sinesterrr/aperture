@@ -50,6 +50,7 @@ export interface PlayOptions {
   ids?: string[];
   items?: any[];
   serverId?: string;
+  playbackMode?: "direct" | "transcode";
   [key: string]: any;
 }
 
@@ -353,7 +354,8 @@ export class PlaybackManager {
       item,
       mediaSource,
       playOptions.startPositionTicks,
-      player
+      player,
+      playOptions.playbackMode
     );
     streamInfo.fullscreen = playOptions.fullscreen;
 
@@ -536,23 +538,25 @@ export class PlaybackManager {
     item: any,
     mediaSource: any,
     startPosition: number,
-    player: any
+    player: any,
+    playbackMode?: string
   ) {
     let mediaUrl;
     let contentType;
     let transcodingOffsetTicks = 0;
     let playMethod = "Transcode";
     const mediaSourceContainer = (mediaSource.Container || "").toLowerCase();
+    const forceTranscode = playbackMode === "transcode";
 
     if (type === "Video" || type === "Audio") {
       contentType = getMimeType(type.toLowerCase(), mediaSourceContainer);
 
-      if (mediaSource.enableDirectPlay) {
+      if (!forceTranscode && mediaSource.enableDirectPlay) {
         mediaUrl = mediaSource.Path;
         playMethod = "DirectPlay";
       } else if (
-        mediaSource.SupportsDirectPlay ||
-        mediaSource.SupportsDirectStream
+        !forceTranscode &&
+        (mediaSource.SupportsDirectPlay || mediaSource.SupportsDirectStream)
       ) {
         const directOptions: any = {
           Static: true,

@@ -84,6 +84,24 @@ class AppSettings {
       // return a huge number so that it always direct plays
       return 150000000;
     } else {
+      // Check aperture setting first
+      const apertureBitrate = localStorage.getItem("aperture-video-bitrate");
+      if (apertureBitrate && apertureBitrate !== "auto") {
+        // Retrieve bitrate value from BITRATE_OPTIONS based on value
+        // Since BITRATE_OPTIONS is not imported here to avoid circular deps or context issues,
+        // we map the known string values from SettingsContext:
+        // "20000" -> 20000000
+        // "8000" -> 8000000
+        // ...
+        // Actually, the 'value' stored in aperture-video-bitrate is like "20000", which corresponds to kbps in the label,
+        // but the 'bitrate' property in BITRATE_OPTIONS is the actual bits per second.
+        // Let's reverse engineer or just use the logic: value * 1000 seems to be the pattern for 4000->4000000.
+        // Wait, 20000 * 1000 = 20,000,000. Correct.
+        // 1000 * 1000 = 1,000,000. Correct.
+
+        return parseInt(apertureBitrate, 10) * 1000;
+      }
+
       return parseInt(this.get(key) || "0", 10) || 1500000;
     }
   }

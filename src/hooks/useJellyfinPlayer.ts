@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuthContext } from "../contexts/AuthContext";
+import { useSettings } from "../contexts/settings-context";
 import playbackManager from "../lib/jellyfin/playback-manager";
 import { ApiClient } from "../lib/jellyfin/api-client";
 import Events from "../lib/jellyfin/events";
@@ -7,6 +8,7 @@ import { getDeviceId } from "../lib/device-id";
 
 export function useJellyfinPlayer() {
   const { serverUrl, user, isAuthenticated } = useAuthContext();
+  const { playbackMode, videoBitrate } = useSettings();
   const [paused, setPaused] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -74,9 +76,55 @@ export function useJellyfinPlayer() {
     };
   }, []);
 
-  const play = useCallback((options: any) => {
-    return playbackManager.play(options);
-  }, []);
+  // Effect to reload playback when settings change
+  useEffect(() => {
+    // Only reload if we are currently active (have a current item)
+    // and specifically if the settings that affect streaming URL change.
+    // We use a ref to track previous settings to avoid initial run or unnecessary reloads
+    // But since this is a fresh hook instance/render on context change, we can just check if playing.
+    
+    // Actually, simply checking if we have currentItem is enough to know we have an active session.
+    // However, we don't want to reload if paused? Or maybe we do.
+    // OG Jellyfin reloads immediately.
+    
+    if (currentItem && playbackManager) {
+       const player = playbackManager.getCurrentPlayer();
+       if (!player) return;
+
+       const currentTicks = (playbackManager.currentTime() || 0) * 10000;
+       
+       // We need to re-invoke play with the same item but new settings.
+       // We can retrieve the current playlist and index from queue manager.
+       const playQueueManager = playbackManager._playQueueManager;
+       const playlist = playQueueManager.getPlaylist();
+       const index = playQueueManager.getCurrentPlaylistIndex();
+       
+       if (playlist.length > 0 && index !== -1) {
+         // Stop current playback (optional, play() might handle it, but safer to be explicit or let manager handle)
+         // playbackManager.play() handles stopping previous player.
+         
+         console.debug("Reloading playback due to settings change", { playbackMode, videoBitrate });
+         
+         playbackManager.play({
+           items: playlist,
+           startIndex: index,
+           startPositionTicks: currentTicks,
+           playbackMode,
+           // videoBitrate is read directly from appSettings/localStorage by playbackManager
+         });
+       }
+    }
+  }, [playbackMode, videoBitrate]);
+
+  const play = useCallback(
+    (options: any) => {
+      return playbackManager.play({
+        ...options,
+        playbackMode,
+      });
+    },
+    [playbackMode]
+  );
 
   const pause = useCallback(() => {
     playbackManager.pause();

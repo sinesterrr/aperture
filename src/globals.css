@@ -90,9 +90,7 @@
       transform: scale(1.1);
     }
   }
-  .animate-ken-burns {
-    animation: zoom-in 20s ease-out forwards;
-  }
+  --animate-ken-burns: zoom-in 20s ease-out forwards;
 }
 
 :root,

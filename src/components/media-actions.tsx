@@ -253,13 +253,7 @@ export function MediaActions({
             if (media) {
               onBeforePlay?.();
               await playMedia({
-                id: media.Id!,
-                name: media.Name!,
-                type: media.Type as
-                  | "Movie"
-                  | "Series"
-                  | "Episode"
-                  | "TvChannel",
+                ...media,
                 resumePositionTicks: media.UserData?.PlaybackPositionTicks,
                 selectedVersion: selectedVersion,
               });

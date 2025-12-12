@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { JellyfinItem, MediaSourceInfo } from "../../types/jellyfin";
 import { Button } from "../ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,7 +6,6 @@ import {
   MediaPlayerControls,
   MediaPlayerControlsOverlay,
   MediaPlayerFullscreen,
-  MediaPlayerLoading,
   MediaPlayerPiP,
   MediaPlayerPlay,
   MediaPlayerSeek,
@@ -27,144 +25,53 @@ import {
   FastForward,
 } from "lucide-react";
 import { useMediaPlayer } from "../../contexts/MediaPlayerContext";
-import {
-  getStreamUrl,
-  getDirectStreamUrl,
-  getLiveTVStreamUrl,
-  getSubtitleTracks,
-  fetchMediaDetails,
-  reportPlaybackStart,
-  reportPlaybackProgress,
-  reportPlaybackStopped,
-  getAudioTracks,
-} from "../../actions";
-import { getSubtitleContent } from "../../actions/subtitles";
-import MuxVideo from "@mux/mux-video-react";
 import { formatRuntime } from "../../lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useAuth } from "../../hooks/useAuth";
-import { useSettings, BITRATE_OPTIONS } from "../../contexts/settings-context";
-import { fetchIntroOutro } from "../../actions/media";
 import { decode } from "blurhash";
 import DisplayEndTime from "../display-end-time";
-import { v4 as uuidv4 } from "uuid";
-import { PlayerLoadingOverlay } from "./player-loading-overlay";
 import { useTrickplay } from "../../hooks/useTrickplay";
+import { PlayerLoadingOverlay } from "./player-loading-overlay";
 
 interface GlobalMediaPlayerProps {}
 
 export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
-  const {
-    isPlayerVisible,
-    setIsPlayerVisible,
-    currentMedia,
-    skipTimestamp,
-    setCurrentMediaWithSource,
-    setCurrentTimestamp,
-  } = useMediaPlayer();
-  const { videoBitrate, playbackMode } = useSettings();
+  const { isPlayerVisible, setIsPlayerVisible, player } = useMediaPlayer();
+  const [isClosing, setIsClosing] = useState(false);
 
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
-  const [mediaDetails, setMediaDetails] = useState<JellyfinItem | null>(null);
-  const [selectedVersion, setSelectedVersion] =
-    useState<MediaSourceInfo | null>(null);
-  const [subtitleTracks, setSubtitleTracks] = useState<
-    Array<{
-      kind: string;
-      label: string;
-      language: string;
-      src: string;
-      default?: boolean;
-      active: boolean;
-    }>
-  >([]);
-  const [audioTracks, setAudioTracks] = useState<
-    Array<{
-      id: number | undefined;
-      label: string;
-      language: string;
-      codec: string | null | undefined;
-      channels: number | null | undefined;
-      default: boolean;
-    }>
-  >([]);
-  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [videoStarted, setVideoStarted] = useState(false);
-  const [fetchingSubtitles, setFetchingSubtitles] = useState(false);
+  // Reset closing state when player becomes visible again
+  useEffect(() => {
+    if (isPlayerVisible) {
+      setIsClosing(false);
+    }
+  }, [isPlayerVisible]);
+
+  const {
+    currentItem,
+    currentTime,
+    duration,
+    playbackManager,
+    paused,
+    isMuted,
+    volume,
+  } = player;
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Local state for UI that isn't fully in playbackManager yet or needs UI-specific handling
+  const [subtitleTracks, setSubtitleTracks] = useState<any[]>([]);
+  const [audioTracks, setAudioTracks] = useState<any[]>([]);
+  const [chapters, setChapters] = useState<any[]>([]);
 
   // Backdrop image state
   const [backdropImageLoaded, setBackdropImageLoaded] = useState(false);
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
-
-  const [currentSubtitle, setCurrentSubtitle] = useState<{
-    text: string;
-    positionTop: boolean;
-  } | null>(null);
-  const [subtitleData, setSubtitleData] = useState<
-    Array<{
-      timestamp: number;
-      timestampFormatted: string;
-      text: string;
-    }>
-  >([]);
 
   const {
     initializeTrickplay,
     resetTrickplay,
     renderThumbnail: renderTrickplayThumbnail,
   } = useTrickplay();
-
-  // Chapter state
-  const [chapters, setChapters] = useState<
-    Array<{
-      startTime: number;
-      endTime: number;
-      text: string;
-    }>
-  >([]);
-
-  // Intro/Outro segments state
-  const [mediaSegments, setMediaSegments] = useState<{
-    intro?: { startTime: number; endTime: number };
-    outro?: { startTime: number; endTime: number };
-  }>({});
-
-  // Progress tracking state
-  const [playSessionId, setPlaySessionId] = useState<string | null>(null);
-  const [hasStartedPlayback, setHasStartedPlayback] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  // Helper function to convert seconds to Jellyfin ticks (1 tick = 100 nanoseconds)
-  const secondsToTicks = (seconds: number) => Math.floor(seconds * 10000000);
-
-  // Helper function to convert Jellyfin ticks to seconds
-  const ticksToSeconds = (ticks: number) => ticks / 10000000;
-
-  // Helper function to convert Jellyfin chapters to expected format
-  const convertJellyfinChapters = useCallback(
-    (jellyfinChapters: any[]) => {
-      if (!jellyfinChapters || jellyfinChapters.length === 0) return [];
-
-      return jellyfinChapters.map((chapter, index) => {
-        const startTime = ticksToSeconds(chapter.StartPositionTicks);
-        const nextChapter = jellyfinChapters[index + 1];
-        const endTime = nextChapter
-          ? ticksToSeconds(nextChapter.StartPositionTicks)
-          : duration; // Use video duration for the last chapter
-
-        return {
-          startTime,
-          endTime,
-          text: chapter.Name || `Chapter ${index + 1}`,
-        };
-      });
-    },
-    [duration]
-  );
 
   const { serverUrl } = useAuth();
 
@@ -179,218 +86,38 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
     });
   };
 
-  // Start progress tracking
-  const startProgressTracking = useCallback(async () => {
-    if (!currentMedia || !selectedVersion || !videoRef.current) return;
-
-    // Skip progress tracking for test videos
-    if (currentMedia.id === "test-big-buck-bunny") {
-      console.log("🧪 Skipping progress tracking for test video");
-      setHasStartedPlayback(true);
-      return;
-    }
-
-    const sessionId = uuidv4();
-    setPlaySessionId(sessionId);
-
-    // Report playback start
-    await reportPlaybackStart(currentMedia.id, selectedVersion.Id!, sessionId);
-    setHasStartedPlayback(true);
-
-    // Set up progress reporting interval (every 10 seconds)
-    progressIntervalRef.current = setInterval(async () => {
-      if (videoRef.current && !videoRef.current.paused) {
-        const currentTime = videoRef.current.currentTime;
-        const positionTicks = secondsToTicks(currentTime);
-
-        await reportPlaybackProgress(
-          currentMedia.id,
-          selectedVersion.Id!,
-          sessionId,
-          positionTicks,
-          videoRef.current.paused
-        );
-      }
-    }, 10000); // Report every 10 seconds
-  }, [currentMedia, selectedVersion]);
-
-  // Stop progress tracking
-  const stopProgressTracking = useCallback(async () => {
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-      progressIntervalRef.current = null;
-    }
-
-    if (playSessionId && currentMedia && selectedVersion && videoRef.current) {
-      const currentTime = videoRef.current.currentTime;
-      const positionTicks = secondsToTicks(currentTime);
-
-      await reportPlaybackStopped(
-        currentMedia.id,
-        selectedVersion.Id!,
-        playSessionId,
-        positionTicks
-      );
-    }
-
-    setPlaySessionId(null);
-    setHasStartedPlayback(false);
-  }, [playSessionId, currentMedia, selectedVersion]);
-
-  // Handle video events
-  const handleVideoPlay = useCallback(() => {
-    setVideoStarted(true); // Mark that video has started playing
-    if (!hasStartedPlayback) {
-      startProgressTracking();
-    }
-  }, [hasStartedPlayback, startProgressTracking]);
-
-  const handleVideoPause = useCallback(async () => {
-    if (playSessionId && currentMedia && selectedVersion && videoRef.current) {
-      const currentTime = videoRef.current.currentTime;
-      const positionTicks = secondsToTicks(currentTime);
-
-      await reportPlaybackProgress(
-        currentMedia.id,
-        selectedVersion.Id!,
-        playSessionId,
-        positionTicks,
-        true // isPaused = true
-      );
-    }
-  }, [playSessionId, currentMedia, selectedVersion]);
-
-  // Handle video time updates
-  const handleTimeUpdate = useCallback(() => {
-    if (videoRef.current) {
-      const time = videoRef.current.currentTime;
-      setCurrentTime(time);
-      setCurrentTimestamp(time); // Update context with current time
-    }
-  }, [setCurrentTimestamp]);
-
-  // Handle duration change
-  const handleDurationChange = useCallback(() => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-
-      // Update chapters end times when duration is available
-      if (mediaDetails?.Chapters && mediaDetails.Chapters.length > 0) {
-        const convertedChapters = convertJellyfinChapters(
-          mediaDetails.Chapters
-        );
-        setChapters(convertedChapters);
-      }
-    }
-  }, [mediaDetails, convertJellyfinChapters]);
-
-  // Set video to resume position if provided
-  const handleVideoLoadedMetadata = useCallback(() => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-
-      if (currentMedia?.resumePositionTicks) {
-        const resumeTime = ticksToSeconds(currentMedia.resumePositionTicks);
-        videoRef.current.currentTime = resumeTime;
-        setCurrentTime(resumeTime);
-        // Only start playing after we've set the correct position
-        videoRef.current.play();
-      }
-    }
-  }, [currentMedia]);
-
-  // Define handleClose first to avoid circular dependency
-  const handleClose = useCallback(async () => {
-    await stopProgressTracking();
-    resetTrickplay();
-
-    setIsPlayerVisible(false);
-    setStreamUrl(null);
-    setMediaDetails(null);
-    setSelectedVersion(null);
-    setSubtitleTracks([]);
-    setCurrentTime(0);
-    setDuration(0);
-    setFetchingSubtitles(false);
-    setCurrentMediaWithSource(null);
-    setMediaSegments({});
-    setVideoStarted(false);
-    setBackdropImageLoaded(false);
-    setBlurDataUrl(null);
-  }, [resetTrickplay, setIsPlayerVisible, stopProgressTracking]);
-
-  const handleVideoEnded = useCallback(async () => {
-    await stopProgressTracking();
-    handleClose();
-  }, [stopProgressTracking, handleClose]);
-
-  // Helper function to process subtitle text for HTML rendering
-  const processSubtitleText = useCallback((text: string) => {
-    // Check if subtitle should be positioned at top (an8)
-    const shouldPositionTop = /\{\\an8\}/.test(text);
-    // Remove ASS/SSA positioning tags like {\an8}
-    let processedText = text.replace(/\{\\an\d+\}/g, "");
-    // Convert \n to <br> tags for line breaks
-    processedText = processedText.replace(/\n/g, "<br>");
-
-    return {
-      text: processedText,
-      positionTop: shouldPositionTop,
-    };
-  }, []);
-
-  // Find current subtitle based on video time
-  const findCurrentSubtitle = useCallback(
-    (currentTimeSeconds: number) => {
-      if (subtitleData.length === 0) return null;
-
-      // Find subtitle that should be displayed at current time
-      // For now, we'll use a simple approach - find the subtitle with the closest timestamp that's <= current time
-      let currentSub = null;
-      for (let i = 0; i < subtitleData.length; i++) {
-        const subtitle = subtitleData[i];
-        if (subtitle.timestamp <= currentTimeSeconds) {
-          currentSub = subtitle;
-        } else {
-          break;
-        }
-      }
-
-      // Only show subtitle if we're within a reasonable time window (e.g., 5 seconds)
-      if (currentSub && currentTimeSeconds - currentSub.timestamp <= 5) {
-        return processSubtitleText(currentSub.text);
-      }
-
-      return null;
-    },
-    [subtitleData, processSubtitleText]
-  );
-
+  // Provide video element to playbackManager
   useEffect(() => {
-    if (currentMedia && isPlayerVisible) {
-      setVideoStarted(false); // Reset video started state when loading new media
-      setBackdropImageLoaded(false); // Reset blur data URL
-      setBlurDataUrl(null); // Reset blur data URL
-      loadMedia();
+    if (videoRef.current && playbackManager) {
+      // Find the HTML video player instance
+      const players = playbackManager.getPlayers();
+      const htmlPlayer = players.find(
+        (p: any) => p.name === "Html Video Player" || p.id === "htmlvideoplayer"
+      );
+
+      if (htmlPlayer && htmlPlayer.setMediaElement) {
+        htmlPlayer.setMediaElement(videoRef.current);
+      }
     }
-  }, [
-    currentMedia,
-    isPlayerVisible,
-    videoBitrate,
-    selectedAudioTrackId,
-    playbackMode,
-  ]);
+  }, [videoRef.current, playbackManager]);
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    playbackManager.stop();
+    setIsPlayerVisible(false);
+    resetTrickplay();
+  }, [playbackManager, setIsPlayerVisible, resetTrickplay]);
 
   // Decode blur hash for backdrop image
   useEffect(() => {
-    if (mediaDetails && !blurDataUrl) {
+    if (currentItem && !blurDataUrl) {
       // Get blur hash for backdrop
       const backdropImageTag =
-        mediaDetails.Type === "Episode"
-          ? mediaDetails.ParentBackdropImageTags?.[0]
-          : mediaDetails.BackdropImageTags?.[0];
+        currentItem.Type === "Episode"
+          ? currentItem.ParentBackdropImageTags?.[0]
+          : currentItem.BackdropImageTags?.[0];
       const blurHash =
-        mediaDetails.ImageBlurHashes?.["Backdrop"]?.[backdropImageTag!] || "";
+        currentItem.ImageBlurHashes?.["Backdrop"]?.[backdropImageTag!] || "";
 
       if (blurHash) {
         try {
@@ -410,339 +137,90 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
         }
       }
     }
-  }, [mediaDetails, blurDataUrl]);
+  }, [currentItem, blurDataUrl]);
 
-  const loadMedia = async () => {
-    if (!currentMedia) return;
-
-    console.log("Current media:", currentMedia);
-
-    setLoading(true);
-    try {
-      // Regular Jellyfin media handling
-      const details = await fetchMediaDetails(currentMedia.id);
-      if (!details) {
-        console.error("Failed to fetch media details");
-        return;
-      }
-
-      setMediaDetails(details);
-      console.log(details);
-
-      // Use selected version from MediaActions or fallback to first source
-      if (details.MediaSources && details.MediaSources.length > 0) {
-        let sourceToUse = details.MediaSources[0]; // fallback
-
-        // If a version was selected in MediaActions, try to find it in the fetched details
-        if (currentMedia.selectedVersion) {
-          const matchingSource = details.MediaSources.find(
-            (source) => source.Id === currentMedia.selectedVersion!.Id
-          );
-          if (matchingSource) {
-            sourceToUse = matchingSource;
-          }
-        }
-
-        setSelectedVersion(sourceToUse);
-
-        // Update the current media with source information for the AI chat context
-        setCurrentMediaWithSource({
-          id: currentMedia.id,
-          name: currentMedia.name,
-          type: currentMedia.type,
-          mediaSourceId: sourceToUse.Id || null,
-        });
-
-        // Prepare trickplay metadata for this item/version
-        initializeTrickplay(details, sourceToUse, currentMedia.id);
-
-        // Generate stream URL based on playback mode
-        const bitrateOption = BITRATE_OPTIONS.find(
-          (option) => option.value === videoBitrate
-        );
-        const bitrate = bitrateOption?.bitrate || 0; // 0 means auto/no limit
-        if (details.Type == "TvChannel" && details.Id) {
-          const url = await getLiveTVStreamUrl(details.Id);
-          if (url) setStreamUrl(url);
-        } else {
-          let resolvedStreamUrl: string | null = null;
-          const canAttemptDirectPlay = playbackMode === "direct";
-
-          if (canAttemptDirectPlay) {
-            try {
-              resolvedStreamUrl = await getDirectStreamUrl(
-                currentMedia.id,
-                sourceToUse,
-                selectedAudioTrackId
-              );
-              console.info("Using direct play stream");
-            } catch (error) {
-              console.warn(
-                "Direct play failed, falling back to transcoding:",
-                error
-              );
-            }
-          }
-
-          if (!resolvedStreamUrl) {
-            resolvedStreamUrl = await getStreamUrl(
-              currentMedia.id,
-              sourceToUse.Id!,
-              undefined,
-              bitrate,
-              selectedAudioTrackId
-            );
-          }
-          setStreamUrl(resolvedStreamUrl);
-        }
-
-        // Start fetching subtitle data asynchronously without blocking playback
-        const subtitleTracksList = await getSubtitleTracks(
-          currentMedia.id,
-          sourceToUse.Id!
-        );
-        // Mark all subtitle tracks as inactive initially
-        const tracksWithActiveState = subtitleTracksList.map((track) => ({
-          ...track,
-          active: false,
-        }));
-        setSubtitleTracks(tracksWithActiveState);
-
-        // Don't load any subtitle by default - let user choose
-        setSubtitleData([]);
-        setCurrentSubtitle(null);
-
-        // Start fetching alternate audio tracks data asynchronously without blocking playback
-        const audioTracksList = await getAudioTracks(
-          currentMedia.id,
-          sourceToUse.Id!
-        );
-        // Mark all audio tracks as inactive initially
-        setAudioTracks(audioTracksList);
-
-        // Process chapters if available
-        if (details.Chapters && details.Chapters.length > 0) {
-          const convertedChapters = convertJellyfinChapters(details.Chapters);
-          setChapters(convertedChapters);
-        } else {
-          setChapters([]);
-        }
-
-        // Fetch intro/outro segments asynchronously
-        try {
-          const segments = await fetchIntroOutro(
-            currentMedia.selectedVersion?.Id || sourceToUse.Id!
-          );
-          console.log("Fetched intro/outro segments:", segments);
-          if (segments && segments.Items) {
-            const processedSegments: {
-              intro?: { startTime: number; endTime: number };
-              outro?: { startTime: number; endTime: number };
-            } = {};
-
-            segments.Items.forEach((segment) => {
-              const startTime = ticksToSeconds(segment.StartTicks);
-              const endTime = ticksToSeconds(segment.EndTicks);
-              if (segment.Type === "Intro") {
-                processedSegments.intro = { startTime, endTime };
-              } else if (segment.Type === "Outro") {
-                processedSegments.outro = { startTime, endTime };
-              }
-            });
-
-            setMediaSegments(processedSegments);
-            console.log("Media segments loaded:", processedSegments);
-          }
-        } catch (error) {
-          console.error("Failed to fetch intro/outro segments:", error);
-          setMediaSegments({});
-        }
-      } else {
-        resetTrickplay();
-      }
-    } catch (error) {
-      console.error("Failed to load media:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update current subtitle based on video time
+  // Sync chapters
   useEffect(() => {
-    const subtitle = findCurrentSubtitle(currentTime);
-    console.log(subtitle);
-    setCurrentSubtitle(subtitle);
-  }, [currentTime, findCurrentSubtitle]);
-
-  // Handle skip timestamp
-  useEffect(() => {
-    if (skipTimestamp !== null && videoRef.current) {
-      console.log(`Skipping to timestamp: ${skipTimestamp} seconds`);
-      videoRef.current.currentTime = skipTimestamp;
-      setCurrentTime(skipTimestamp);
+    if (currentItem?.Chapters) {
+      const newChapters = currentItem.Chapters.map(
+        (chapter: any, index: number) => {
+          const startTime = chapter.StartPositionTicks / 10000000;
+          const nextChapter = currentItem.Chapters[index + 1];
+          const endTime = nextChapter
+            ? nextChapter.StartPositionTicks / 10000000
+            : duration;
+          return {
+            startTime,
+            endTime,
+            text: chapter.Name || `Chapter ${index + 1}`,
+          };
+        }
+      );
+      setChapters(newChapters);
+    } else {
+      setChapters([]);
     }
-  }, [skipTimestamp]);
+  }, [currentItem, duration]);
 
-  // Skip intro handler
-  const handleSkipIntro = useCallback(() => {
-    if (mediaSegments.intro && videoRef.current) {
-      const skipToTime = mediaSegments.intro.endTime;
-      console.log(`Skipping intro to: ${skipToTime} seconds`);
-      videoRef.current.currentTime = skipToTime;
-      setCurrentTime(skipToTime);
-    }
-  }, [mediaSegments.intro]);
+  // if (!isPlayerVisible) {
+  //   return null;
+  // }
 
-  // Check if skip intro button should be shown
-  const shouldShowSkipIntro = useCallback(() => {
-    if (!mediaSegments.intro) return false;
-
-    const { startTime, endTime } = mediaSegments.intro;
-    // Show skip button 2 seconds before the intro starts and during the intro
-    return currentTime >= startTime && currentTime < endTime;
-  }, [mediaSegments.intro, currentTime]);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-      resetTrickplay();
-    };
-  }, [resetTrickplay]);
-
-  if (!isPlayerVisible || !currentMedia) {
-    return null;
-  }
+  // Simplified UI rendering reusing components
+  const showPlayer = isPlayerVisible && !isClosing;
 
   return (
-    <div className="fixed inset-0 z-[999999] bg-black flex items-center justify-center w-screen">
+    <div
+      className={`fixed inset-0 z-[999999] bg-black flex items-center justify-center w-screen ${
+        !showPlayer ? "hidden" : ""
+      }`}
+    >
       <MediaPlayer
         autoHide
         onEnded={handleClose}
-        onMediaError={(error) => {
-          console.warn("Media player error caught:", error);
-        }}
         className="w-screen"
+        // Pass dummy tracks for now or wire up real ones from playbackManager
         customSubtitleTracks={subtitleTracks}
         audioTracks={audioTracks}
-        selectedAudioTrackId={selectedAudioTrackId}
-        onAudioTrackChange={(trackId: number) =>
-          setSelectedAudioTrackId(trackId)
-        }
-        customSubtitlesEnabled={subtitleTracks.length > 0}
+        selectedAudioTrackId={1}
+        customSubtitlesEnabled={false} // Handled by Jellyfin player logic mostly
         chapters={chapters}
-        onCustomSubtitleChange={(subtitleTrack) => {
-          if (!subtitleTrack) {
-            // Turn off subtitles
-            setSubtitleData([]);
-            setCurrentSubtitle(null);
-            // Update all tracks to inactive
-            setSubtitleTracks((prev) =>
-              prev.map((track) => ({ ...track, active: false }))
-            );
-            return;
-          }
-
-          const trackIndex = subtitleTracks.findIndex(
-            (track) => track.label === subtitleTrack.label
-          );
-          if (trackIndex !== -1) {
-            setFetchingSubtitles(true);
-            getSubtitleContent(
-              currentMedia.id,
-              selectedVersion?.Id!,
-              trackIndex
-            ).then((result) => {
-              setFetchingSubtitles(false);
-              if (result.success) {
-                setSubtitleData(result.subtitles);
-                setCurrentSubtitle(null); // Reset current subtitle to show from data
-                // Update track states - mark selected as active, others as inactive
-                setSubtitleTracks((prev) =>
-                  prev.map((track, idx) => ({
-                    ...track,
-                    active: idx === trackIndex,
-                  }))
-                );
-              }
-            });
-          }
-        }}
+        // Force media state updates if needed, though MediaPlayer usually watches the video element
+        // Since we pass the video element as child, MediaPlayer (if using media-chrome) should attach to it.
       >
-        {/* Always render the video component so it can load in the background */}
-        {streamUrl && mediaDetails && (
-          <MediaPlayerVideo asChild>
-            <MuxVideo
-              // @ts-ignore
-              ref={videoRef}
-              src={streamUrl}
-              crossOrigin=""
-              playsInline
-              preload="auto"
-              autoPlay={!currentMedia?.resumePositionTicks}
-              className="h-screen bg-black w-screen"
-              onPlay={handleVideoPlay}
-              onPause={handleVideoPause}
-              onEnded={handleVideoEnded}
-              onLoadedMetadata={handleVideoLoadedMetadata}
-              onTimeUpdate={handleTimeUpdate}
-              onDurationChange={handleDurationChange}
-              onError={(event) => {
-                console.warn("Video error caught:", event);
-              }}
-            />
-          </MediaPlayerVideo>
-        )}
+        <MediaPlayerVideo asChild>
+          <video
+            ref={videoRef}
+            className="h-screen bg-black w-screen htmlvideoplayer"
+            crossOrigin="anonymous"
+            playsInline
+            autoPlay
+          />
+        </MediaPlayerVideo>
 
+        {/* Loading Overlay */}
         <PlayerLoadingOverlay
-          isVisible={loading || !streamUrl || !mediaDetails || !videoStarted}
-          mediaDetails={mediaDetails}
-          currentMedia={currentMedia}
+          isVisible={!currentItem && isPlayerVisible} // Simple check
+          mediaDetails={currentItem}
+          currentMedia={
+            currentItem
+              ? {
+                  id: currentItem.Id,
+                  name: currentItem.Name,
+                  type: currentItem.Type,
+                }
+              : null
+          }
           serverUrl={serverUrl ?? ""}
           blurDataUrl={blurDataUrl}
           backdropImageLoaded={backdropImageLoaded}
           onBackdropLoaded={() => setBackdropImageLoaded(true)}
           onClose={handleClose}
           formatEndTime={formatEndTime}
-          ticksToSeconds={ticksToSeconds}
+          ticksToSeconds={(t) => t / 10000000}
         />
-        {/* Current Subtitle */}
-        {currentSubtitle && (
-          <div
-            className={`fixed left-1/2 transform -translate-x-1/2 z-[100] text-white text-center bg-black/20 px-4 py-2 rounded text-3xl font-medium shadow-xl backdrop-blur-md ${
-              currentSubtitle.positionTop ? "top-[15%]" : "bottom-[10%]"
-            }`}
-            dangerouslySetInnerHTML={{ __html: currentSubtitle.text }}
-          />
-        )}
 
-        {/* Skip Intro Button */}
-        <AnimatePresence>
-          {shouldShowSkipIntro() && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.8 }}
-              transition={{
-                type: "spring",
-                damping: 20,
-                stiffness: 100,
-                duration: 0.8,
-              }}
-              className="fixed bottom-24 right-6 z-[1000000] backdrop-blur-md rounded-lg"
-            >
-              <Button
-                onClick={handleSkipIntro}
-                className="text-white text-center bg-black/30 rounded-lg text-lg py-6 px-6! font-medium shadow-xl hover:bg-black/40 transition"
-              >
-                <FastForward className="w-4 h-4 fill-white scale-110 mr-1.5" />
-                Skip Intro
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Controls */}
         <MediaPlayerControls className="flex-col items-start gap-2.5 px-6 pb-4 z-[9999]">
           <Button
             variant="ghost"
@@ -753,64 +231,54 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
             Go Back
           </Button>
 
-          {/* Fetching subtitles indicator */}
-          {fetchingSubtitles && (
-            <div className="fixed right-4 top-16 z-10 bg-black/50 backdrop-blur-sm rounded-md px-3 py-2 text-white text-sm flex items-center gap-2">
-              <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
-              Fetching subtitles
-            </div>
-          )}
           <MediaPlayerControlsOverlay />
+
           <div className="flex flex-col w-full gap-1.5 pb-2">
-            {/* Show name for episodes */}
-            {mediaDetails?.SeriesName && (
+            {currentItem?.SeriesName && (
               <div className="text-sm text-white/70 truncate font-medium">
-                {mediaDetails.SeriesName}
+                {currentItem.SeriesName}
               </div>
             )}
 
-            {/* Episode/Movie title with episode number */}
             <div className="flex items-center justify-between w-full">
               <h2 className="text-3xl font-semibold text-white truncate font-poppins">
-                {mediaDetails?.Type === "Episode" && mediaDetails?.IndexNumber
-                  ? `${mediaDetails.IndexNumber}. ${
-                      mediaDetails.Name || currentMedia.name
-                    }`
-                  : mediaDetails?.Name || currentMedia.name}
+                {currentItem?.Type === "Episode" && currentItem?.IndexNumber
+                  ? `${currentItem.IndexNumber}. ${currentItem.Name}`
+                  : currentItem?.Name}
               </h2>
 
-              {/* End time display */}
               {duration > 0 && currentTime >= 0 && (
                 <DisplayEndTime time={formatEndTime(currentTime, duration)} />
               )}
             </div>
 
-            {/* Season and episode info + runtime */}
             <div className="flex items-center gap-3 text-sm text-white/60">
-              {mediaDetails?.Type === "Episode" && (
+              {currentItem?.Type === "Episode" && (
                 <div className="space-x-1">
-                  {mediaDetails?.ParentIndexNumber && (
-                    <span>S{mediaDetails.ParentIndexNumber}</span>
+                  {currentItem?.ParentIndexNumber && (
+                    <span>S{currentItem.ParentIndexNumber}</span>
                   )}
                   <span>•</span>
-                  {mediaDetails?.IndexNumber && (
-                    <span>E{mediaDetails.IndexNumber}</span>
+                  {currentItem?.IndexNumber && (
+                    <span>E{currentItem.IndexNumber}</span>
                   )}
                 </div>
               )}
 
-              {mediaDetails?.RunTimeTicks && (
-                <span>{formatRuntime(mediaDetails.RunTimeTicks)}</span>
+              {currentItem?.RunTimeTicks && (
+                <span>{formatRuntime(currentItem.RunTimeTicks)}</span>
               )}
 
-              {mediaDetails?.ProductionYear && (
-                <span>{mediaDetails.ProductionYear}</span>
+              {currentItem?.ProductionYear && (
+                <span>{currentItem.ProductionYear}</span>
               )}
             </div>
           </div>
+
           <MediaPlayerSeek
             tooltipThumbnailRenderer={renderTrickplayThumbnail}
           />
+
           <div className="flex w-full items-center gap-2">
             <div className="flex flex-1 items-center gap-2">
               <MediaPlayerPlay />
@@ -824,8 +292,8 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
               <MediaPlayerTime />
             </div>
             <div className="flex items-center gap-2">
-              {/* People button with cast and crew popover */}
-              {mediaDetails?.People && mediaDetails.People.length > 0 && (
+              {/* Simplified Cast & Crew for now - similar to previous but using currentItem */}
+              {currentItem?.People && currentItem.People.length > 0 && (
                 <Popover>
                   <PopoverTrigger asChild>
                     <MediaPlayerTooltip tooltip="Cast & Crew">
@@ -845,46 +313,49 @@ export function GlobalMediaPlayer({}: GlobalMediaPlayerProps) {
                     <div className="space-y-3">
                       <h3 className="font-semibold text-lg">Cast & Crew</h3>
                       <div className="max-h-64 overflow-y-auto space-y-2">
-                        {mediaDetails.People.map((person, index) => (
-                          <div
-                            key={`${person.Id}-${index}`}
-                            className="flex items-center space-x-3 p-2 rounded hover:bg-white/10"
-                          >
-                            <div className="flex-shrink-0">
-                              {person.PrimaryImageTag ? (
-                                <img
-                                  src={`${serverUrl}/Items/${person.Id}/Images/Primary?fillHeight=759&fillWidth=506&quality=96`}
-                                  alt={person.Name!}
-                                  className="w-8 h-8 rounded-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = "none";
-                                    target.nextElementSibling!.classList.remove(
-                                      "hidden"
-                                    );
-                                  }}
-                                />
-                              ) : null}
-                              <div
-                                className={`w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs ${
-                                  person.PrimaryImageTag ? "hidden" : ""
-                                }`}
-                              >
-                                {person.Name?.charAt(0) || "?"}
+                        {currentItem.People.map(
+                          (person: any, index: number) => (
+                            <div
+                              key={`${person.Id}-${index}`}
+                              className="flex items-center space-x-3 p-2 rounded hover:bg-white/10"
+                            >
+                              <div className="flex-shrink-0">
+                                {person.PrimaryImageTag ? (
+                                  <img
+                                    src={`${serverUrl}/Items/${person.Id}/Images/Primary?fillHeight=759&fillWidth=506&quality=96`}
+                                    alt={person.Name!}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                    onError={(e) => {
+                                      const target =
+                                        e.target as HTMLImageElement;
+                                      target.style.display = "none";
+                                      target.nextElementSibling!.classList.remove(
+                                        "hidden"
+                                      );
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className={`w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs ${
+                                    person.PrimaryImageTag ? "hidden" : ""
+                                  }`}
+                                >
+                                  {person.Name?.charAt(0) || "?"}
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">
+                                  {person.Name}
+                                </p>
+                                {person.Role && (
+                                  <p className="text-xs text-white/70 truncate">
+                                    {person.Role}
+                                  </p>
+                                )}
                               </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
-                                {person.Name}
-                              </p>
-                              {person.Role && (
-                                <p className="text-xs text-white/70 truncate">
-                                  {person.Role}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
                     </div>
                   </PopoverContent>

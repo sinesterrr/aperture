@@ -10,7 +10,7 @@ import { formatRuntime } from "../../lib/utils";
 interface PlayerLoadingOverlayProps {
   isVisible: boolean;
   mediaDetails: JellyfinItem | null;
-  currentMedia: MediaToPlay;
+  currentMedia: MediaToPlay | null;
   serverUrl: string;
   blurDataUrl: string | null;
   backdropImageLoaded: boolean;
@@ -71,7 +71,7 @@ export function PlayerLoadingOverlay({
             src={`${serverUrl}/Items/${
               mediaDetails?.Type === "Episode" && mediaDetails?.SeriesId
                 ? mediaDetails.SeriesId
-                : currentMedia.id
+                : currentMedia?.id
             }/Images/Backdrop?maxHeight=1080&maxWidth=1920&quality=95`}
             alt={currentMedia?.name}
             className={`w-full h-full object-cover brightness-50 transition-opacity duration-300 ${
@@ -132,9 +132,9 @@ export function PlayerLoadingOverlay({
             >
               {mediaDetails?.Type === "Episode" && mediaDetails?.IndexNumber
                 ? `${mediaDetails.IndexNumber}. ${
-                    mediaDetails.Name || currentMedia.name
+                    mediaDetails.Name || currentMedia?.name
                   }`
-                : mediaDetails?.Name || currentMedia.name}
+                : mediaDetails?.Name || currentMedia?.name}
             </motion.h2>
 
             {mediaDetails?.RunTimeTicks && (

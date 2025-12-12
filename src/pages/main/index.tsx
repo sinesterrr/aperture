@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/loading-spinner";
 
+import { HeroSection } from "../../components/hero/hero-section";
+
 export default function Home() {
   const navigate = useNavigate();
 
@@ -89,7 +91,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative z-10 mb-8">
+        <div className="relative z-10 mb-4">
           <h2 className="text-3xl font-semibold text-foreground mb-2 font-poppins">
             Welcome back, {user?.Name}
           </h2>
@@ -97,6 +99,8 @@ export default function Home() {
             Continue watching or discover something new
           </p>
         </div>
+
+        <HeroSection serverUrl={serverUrl} />
 
         {resumeItems.length > 0 && (
           <MediaSection

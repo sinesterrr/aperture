@@ -86,13 +86,6 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(({
                  hlsRef.current = hls;
 
                  hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                     console.log('[HTMLVideoPlayer] Manifest Parsed. Subtitle Tracks:', hls.subtitleTracks);
-                     if (hls.subtitleTracks.length > 0) {
-                         // Force enable if tracks exist
-                         hls.subtitleDisplay = true;
-                         console.log('[HTMLVideoPlayer] Enabled hls.subtitleDisplay');
-                     }
-
                      if (videoRef.current) {
                          videoRef.current.currentTime = seconds;
                          videoRef.current.play().catch(e => onError?.(e));

@@ -130,7 +130,15 @@ export function usePlaybackManager(): PlaybackContextValue {
                  const subs = await getSubtitleTracks(itemToPlay!.Id!, mediaSource.Id);
                  
                  // Apply selection logic
-                 const targetIndex = options.subtitleStreamIndex; 
+                 let targetIndex = options.subtitleStreamIndex; 
+                 
+                 if (targetIndex === undefined) {
+                     const defaultSub = subs.find(s => s.default);
+                     if (defaultSub) {
+                         targetIndex = defaultSub.index;
+                         options.subtitleStreamIndex = targetIndex;
+                     }
+                 }
                  
                  if (targetIndex !== undefined) {
                      options.textTracks = subs.map(t => ({
@@ -177,7 +185,8 @@ export function usePlaybackManager(): PlaybackContextValue {
             paused: false, 
             isEnded: false, 
             currentTime: 0, 
-            duration: (itemToPlay!.RunTimeTicks || 0) / 10000000
+            duration: (itemToPlay!.RunTimeTicks || 0) / 10000000,
+            subtitleStreamIndex: options.subtitleStreamIndex
         });
 
         try {

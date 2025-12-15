@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { BaseItemDto, MediaSourceInfo } from "@jellyfin/sdk/lib/generated-client/models";
-import { markFavorite, unmarkFavorite, getStreamUrl, fetchMediaDetails, getSubtitleTracks } from '../../actions';
+import { markFavorite, unmarkFavorite, getStreamUrl, fetchMediaDetails, getSubtitleTracks, reportPlaybackStart, reportPlaybackProgress, reportPlaybackStopped } from '../../actions';
 import { PlaybackState, Player, PlayOptions, PlayerType } from '../types';
 import { PlayQueueManager } from '../utils/playQueueManager';
 
@@ -59,6 +59,10 @@ export function usePlaybackManager(): PlaybackContextValue {
     });
 
     const activePlayerRef = useRef<Player | null>(null);
+    const playSessionIdRef = useRef<string>("");
+    // Track latest state for reporting interval
+    const latestStateRef = useRef(playbackState);
+    useEffect(() => { latestStateRef.current = playbackState; }, [playbackState]);
 
     const updateState = useCallback((updates: Partial<PlaybackState>) => {
         setPlaybackState(prev => {
@@ -221,6 +225,9 @@ export function usePlaybackManager(): PlaybackContextValue {
              }
         }
 
+        // Generate Session ID
+        playSessionIdRef.current = crypto.randomUUID();
+
         activePlayerRef.current = player;
         updateState({ 
             currentItem: itemToPlay!, 
@@ -233,6 +240,15 @@ export function usePlaybackManager(): PlaybackContextValue {
             audioStreamIndex: options.audioStreamIndex,
             isLoading: true
         });
+
+        // Report Start
+        if (itemToPlay!.Id && mediaSource && mediaSource.Id) {
+             reportPlaybackStart(
+                 itemToPlay!.Id, 
+                 mediaSource.Id, 
+                 playSessionIdRef.current
+             ).catch(e => console.error("Failed to report playback start", e));
+        }
 
         try {
             await player.play(itemToPlay!, options);
@@ -248,16 +264,50 @@ export function usePlaybackManager(): PlaybackContextValue {
     const pause = useCallback(() => {
         activePlayerRef.current?.pause();
         updateState({ paused: true });
+
+        const item = latestStateRef.current.currentItem;
+        const mediaSource = latestStateRef.current.currentMediaSource;
+        const sessionId = playSessionIdRef.current;
+        if (item?.Id && mediaSource?.Id && sessionId) {
+            reportPlaybackProgress(
+                item.Id, mediaSource.Id, sessionId, 
+                Math.floor(latestStateRef.current.currentTime * 10000000), 
+                true
+            ).catch(e => console.error("Failed to report pause", e));
+        }
     }, [updateState]);
 
     const unpause = useCallback(() => {
         activePlayerRef.current?.unpause();
         updateState({ paused: false });
+
+        const item = latestStateRef.current.currentItem;
+        const mediaSource = latestStateRef.current.currentMediaSource;
+        const sessionId = playSessionIdRef.current;
+        if (item?.Id && mediaSource?.Id && sessionId) {
+            reportPlaybackProgress(
+                item.Id, mediaSource.Id, sessionId, 
+                Math.floor(latestStateRef.current.currentTime * 10000000), 
+                false
+            ).catch(e => console.error("Failed to report unpause", e));
+        }
     }, [updateState]);
 
     const stop = useCallback(() => {
+        // Report stop
+        const item = latestStateRef.current.currentItem;
+        const mediaSource = latestStateRef.current.currentMediaSource;
+        const sessionId = playSessionIdRef.current;
+        const ticks = Math.floor(latestStateRef.current.currentTime * 10000000);
+        
+        if (item?.Id && mediaSource?.Id && sessionId) {
+             reportPlaybackStopped(item.Id, mediaSource.Id, sessionId, ticks)
+                .catch(e => console.error("Failed to report playback stopped", e));
+        }
+
         activePlayerRef.current?.stop(true);
         activePlayerRef.current = null;
+        playSessionIdRef.current = "";
         updateState({ paused: false, currentTime: 0, currentItem: null, isEnded: false });
     }, [updateState]);
 
@@ -413,6 +463,29 @@ export function usePlaybackManager(): PlaybackContextValue {
     const setPreferredQuality = useCallback((quality: string) => {
         updateState({ preferredQuality: quality });
     }, [updateState]);
+
+    // Progress Reporting Effect
+    useEffect(() => {
+        const report = async () => {
+            const state = latestStateRef.current;
+            const item = state.currentItem;
+            const mediaSource = state.currentMediaSource;
+            const sessionId = playSessionIdRef.current;
+            
+            if (!item?.Id || !mediaSource?.Id || !sessionId || state.paused) return;
+
+            await reportPlaybackProgress(
+                item.Id,
+                mediaSource.Id,
+                sessionId,
+                Math.floor(state.currentTime * 10000000),
+                state.paused
+            ).catch(e => console.error("Failed to report progress", e));
+        };
+
+        const interval = setInterval(report, 10000); // 10s interval
+        return () => clearInterval(interval);
+    }, []);
 
     const toggleMiniPlayer = useCallback(() => {
         setPlaybackState(prev => ({ ...prev, isMiniPlayer: !prev.isMiniPlayer }));

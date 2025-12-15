@@ -52,7 +52,6 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(({
 
     const playInternal = async (url: string, options: PlayOptions) => {
         if (!videoRef.current) return;
-        console.log(`[HTMLVideoPlayer] Playing URL: ${url}`, options);
 
         if (!url) {
             console.error("HTMLVideoPlayer: No URL provided for playback");

@@ -452,8 +452,6 @@ export async function getAudioTracks(
         return (a.language || "").localeCompare(b.language || "");
     });
 
-    console.log("Audio tracks:", audioTracks);
-
     return audioTracks;
   } catch (error) {
     console.error("Failed to fetch audio tracks:", error);

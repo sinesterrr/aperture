@@ -15,7 +15,6 @@ export function usePlayback() {
 
   const play = async (options: PlayOptions) => {
     try {
-        console.log("usePlayback play called with:", options);
         
         let selectedVersion = options.selectedVersion;
 

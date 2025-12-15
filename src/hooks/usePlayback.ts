@@ -31,22 +31,16 @@ export function usePlayback() {
             }
         }
 
-        let streamUrl = '';
-        if (selectedVersion && selectedVersion.Id) {
-             streamUrl = await getStreamUrl(options.id, selectedVersion.Id);
-        } else {
-             throw new Error("Invalid media source selected.");
-        }
-
+        // Delegate URL generation to manager to handle default audio/subtitle selection
         const item: BaseItemDto = {
             Id: options.id,
             Name: options.name,
             MediaType: options.type as any,
-            RunTimeTicks: selectedVersion?.RunTimeTicks
+            RunTimeTicks: selectedVersion?.RunTimeTicks,
+            MediaSources: selectedVersion ? [selectedVersion] : []
         };
 
         await manager.play(item, {
-            url: streamUrl,
             startPositionTicks: options.resumePositionTicks,
             mediaSourceId: selectedVersion?.Id
         });

@@ -155,8 +155,22 @@ export function usePlaybackManager(): PlaybackContextValue {
 
         // Determine Default Audio Stream
         if (options.audioStreamIndex === undefined && mediaSource?.MediaStreams) {
-             const defaultAudio = mediaSource.MediaStreams.find(s => s.Type === 'Audio' && s.IsDefault);
-             options.audioStreamIndex = defaultAudio ? defaultAudio.Index : (mediaSource.MediaStreams.find(s => s.Type === 'Audio')?.Index ?? 1);
+             const audioStreams = mediaSource.MediaStreams.filter(s => s.Type === 'Audio');
+             
+             // Sort: Default first, then Language
+             audioStreams.sort((a, b) => {
+                 const defA = a.IsDefault || false;
+                 const defB = b.IsDefault || false;
+                 if (defA && !defB) return -1;
+                 if (!defA && defB) return 1;
+                 return (a.Language || "").localeCompare(b.Language || "");
+             });
+             
+             if (audioStreams.length > 0) {
+                 options.audioStreamIndex = audioStreams[0].Index;
+             } else {
+                 options.audioStreamIndex = 1;
+             }
         }
 
         // Generate URL if missing

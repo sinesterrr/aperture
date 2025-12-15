@@ -445,6 +445,13 @@ export async function getAudioTracks(
       default: stream.IsDefault || false,
     }));
 
+    // Sort: Default first, then Language
+    audioTracks.sort((a, b) => {
+        if (a.default && !b.default) return -1;
+        if (!a.default && b.default) return 1;
+        return (a.language || "").localeCompare(b.language || "");
+    });
+
     console.log("Audio tracks:", audioTracks);
 
     return audioTracks;

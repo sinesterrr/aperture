@@ -105,8 +105,11 @@ export function usePlaybackManager(): PlaybackContextValue {
             activePlayerRef.current.stop(true);
         }
 
-        // Ensure we have full item details (MediaSources)
-        if (!itemToPlay.MediaSources || itemToPlay.MediaSources.length === 0) {
+        // Ensure we have full item details (MediaSources and Trickplay)
+        const hasMediaSources = itemToPlay.MediaSources && itemToPlay.MediaSources.length > 0;
+        const hasTrickplay = !!(itemToPlay as any).Trickplay;
+        
+        if (!hasMediaSources || !hasTrickplay) {
             try {
                 const fullItem = await fetchMediaDetails(itemToPlay.Id!);
                 if (fullItem) {

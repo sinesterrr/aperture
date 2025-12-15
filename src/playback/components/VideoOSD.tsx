@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { isFullscreenAtom } from '../../lib/atoms';
 import { PlaybackContextValue } from '../hooks/usePlaybackManager';
 import { Slider } from '../../components/ui/slider';
+import { useTrickplay } from '../../hooks/useTrickplay';
 import { Button } from '../../components/ui/button';
 import { 
     Play, Pause, Volume2, VolumeX, 
@@ -20,7 +21,15 @@ interface VideoOSDProps {
 
 export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
     const { playbackState } = manager;
-    const { paused, currentTime, duration, currentItem, volume, muted } = playbackState;
+    const { paused, currentTime, duration, currentItem, currentMediaSource, volume, muted } = playbackState;
+    const { initializeTrickplay, renderThumbnail } = useTrickplay();
+
+    useEffect(() => {
+        if (currentItem) {
+            initializeTrickplay(currentItem as any, currentMediaSource || null);
+        }
+    }, [currentItem, currentMediaSource, initializeTrickplay]);
+
     const [isHovering, setIsHovering] = useState(false);
     const [lastActivity, setLastActivity] = useState(Date.now());
     const navigate = useNavigate();
@@ -41,10 +50,24 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
     };
 
     const [scrubbingValue, setScrubbingValue] = useState<number | null>(null);
+    const [hoverTime, setHoverTime] = useState<number | null>(null);
+    const [timelineWidth, setTimelineWidth] = useState(0);
 
     const handleSeek = (value: number[]) => {
         setScrubbingValue(null);
         manager.seek(value[0] * 10000000); // convert seconds to ticks
+    };
+
+    const handleTimelineHover = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setTimelineWidth(rect.width);
+        const x = e.clientX - rect.left;
+        const percentage = Math.max(0, Math.min(1, x / rect.width));
+        setHoverTime(percentage * duration);
+    };
+
+    const handleTimelineLeave = () => {
+        setHoverTime(null);
     };
     
     // Convert ticks to seconds for slider
@@ -52,6 +75,30 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
     const durationSeconds = duration;   // playbackState.duration is in seconds
     
     const displayTime = scrubbingValue !== null ? scrubbingValue : currentSeconds;
+    const activeThumbTime = scrubbingValue !== null ? scrubbingValue : hoverTime;
+    const thumbnail = activeThumbTime !== null ? renderThumbnail(activeThumbTime) : null;
+
+    let thumbStyle: React.CSSProperties = {};
+    if (thumbnail) {
+        thumbStyle = {
+            width: thumbnail.coords[2],
+            height: thumbnail.coords[3],
+            backgroundImage: `url(${thumbnail.src})`,
+            backgroundPosition: `-${thumbnail.coords[0]}px -${thumbnail.coords[1]}px`,
+        };
+        
+        if (timelineWidth > 0 && durationSeconds > 0 && activeThumbTime !== null) {
+            const ratio = activeThumbTime / durationSeconds;
+            const centerPx = ratio * timelineWidth;
+            const halfWidth = thumbnail.coords[2] / 2;
+            const clampedCenter = Math.max(halfWidth, Math.min(timelineWidth - halfWidth, centerPx));
+            thumbStyle.left = `${clampedCenter}px`;
+            thumbStyle.transform = 'translateX(-50%)';
+        } else if (durationSeconds > 0 && activeThumbTime !== null) {
+             thumbStyle.left = `${(activeThumbTime / durationSeconds) * 100}%`;
+             thumbStyle.transform = 'translateX(-50%)';
+        }
+    }
 
     const isVisible = isHovering || paused;
 
@@ -75,6 +122,8 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
         e.stopPropagation();
         handleMouseMove();
     };
+
+
 
     return (
         <div 
@@ -130,20 +179,40 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
                 onClick={handleControlsClick}
             >
                 {/* Timeline */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4 relative z-10">
                     <span className="text-xs font-mono text-gray-300">
                         {formatVideoTime(displayTime * 10000000, durationSeconds * 10000000)}
                     </span>
-                    <Slider 
-                        value={[displayTime]} 
-                        max={durationSeconds > 0 ? durationSeconds : 100} 
-                        step={1}
-                        onValueChange={(val) => {
-                             setScrubbingValue(val[0]);
-                        }}
-                        onValueCommit={handleSeek}
-                        className="flex-1 cursor-pointer"
-                    />
+                    
+                    <div 
+                        className="flex-1 relative flex items-center h-8 group/slider cursor-pointer"
+                        onMouseMove={handleTimelineHover}
+                        onMouseLeave={handleTimelineLeave}
+                    >
+                         {/* Trickplay Thumbnail */}
+                         {thumbnail && activeThumbTime !== null && durationSeconds > 0 && (
+                             <div 
+                                className="absolute bottom-10 border-2 border-white rounded-md overflow-hidden shadow-lg bg-black z-30 pointer-events-none transition-opacity duration-200"
+                                style={thumbStyle}
+                            >
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 px-1 rounded text-[10px] text-white font-mono">
+                                    {formatVideoTime(activeThumbTime * 10000000, durationSeconds * 10000000).split(' / ')[0]}
+                                </div>
+                            </div>
+                        )}
+
+                        <Slider 
+                            value={[displayTime]} 
+                            max={durationSeconds > 0 ? durationSeconds : 100} 
+                            step={1}
+                            onValueChange={(val) => {
+                                 setScrubbingValue(val[0]);
+                            }}
+                            onValueCommit={handleSeek}
+                            className="w-full"
+                        />
+                    </div>
+
                     <span className="text-xs font-mono text-gray-300">
                         {formatVideoTime(durationSeconds * 10000000, durationSeconds * 10000000)}
                     </span>

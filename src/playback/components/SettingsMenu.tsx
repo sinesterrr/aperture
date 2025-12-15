@@ -98,9 +98,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ manager }) => {
         manager.reportState({ aspectRatio: val });
     };
 
-    const handleRepeatModeChange = (val: string) => {
-        manager.reportState({ repeatMode: val as any });
-    };
+
 
     const adjustSubtitleOffset = (deltaMs: number) => {
         const newOffset = (playbackState.subtitleOffset || 0) + deltaMs;
@@ -225,25 +223,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ manager }) => {
                     </DropdownMenuSubContent>
                 </DropdownMenuSub>
 
-                {/* Repeat Mode */}
-                <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                         <span className="flex-1">Repeat Mode</span>
-                         <span className="text-xs text-gray-400 ml-2">{playbackState.repeatMode}</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="bg-black/90 text-white border-gray-800">
-                        <DropdownMenuRadioGroup value={playbackState.repeatMode} onValueChange={handleRepeatModeChange}>
-                            <DropdownMenuRadioItem value="Off">Off</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="All">Repeat All</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="One">Repeat One</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                    </DropdownMenuSubContent>
-                </DropdownMenuSub>
 
-                <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem onClick={() => alert("Playback Info\nStream Protocol: HLS\nTranscoding: No")}>
-                    Playback Info
-                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

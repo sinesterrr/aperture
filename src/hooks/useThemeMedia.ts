@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getThemeSongStreamUrl, getThemeVideoStreamUrl } from "../actions";
-
+import { usePlaybackContext } from "../playback/context/PlaybackContext";
 import { useSettings } from "../contexts/settings-context";
 
 export function useThemeMedia(itemId?: string | null) {
@@ -12,10 +12,10 @@ export function useThemeMedia(itemId?: string | null) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
  
-  const isPlayerVisible = false; // Hardcode to false since player is gone
+  const { playbackState } = usePlaybackContext();
+  const isPlayerActive = !!playbackState.currentItem;
+
   const { enableThemeBackdrops, enableThemeSongs } = useSettings();
-  const shouldResumeAudioRef = useRef(false);
-  const shouldResumeVideoRef = useRef(false);
   const currentItemIdRef = useRef<string | null>(null);
 
   const cleanupAudio = useCallback(() => {
@@ -28,7 +28,6 @@ export function useThemeMedia(itemId?: string | null) {
       audioRef.current.src = "";
       audioRef.current = null;
     }
-    shouldResumeAudioRef.current = false;
   }, []);
 
   const cleanupVideoElement = useCallback(() => {
@@ -42,7 +41,6 @@ export function useThemeMedia(itemId?: string | null) {
       video.removeAttribute("src");
       video.load();
     }
-    shouldResumeVideoRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -54,7 +52,7 @@ export function useThemeMedia(itemId?: string | null) {
     setVideoReady(false);
     setVideoFinished(false);
 
-    if (!itemId) {
+    if (!itemId || isPlayerActive) {
       currentItemIdRef.current = null;
       return;
     }
@@ -103,11 +101,11 @@ export function useThemeMedia(itemId?: string | null) {
       cleanupAudio();
       cleanupVideoElement();
     };
-  }, [itemId, cleanupAudio, cleanupVideoElement]);
+  }, [itemId, cleanupAudio, cleanupVideoElement, isPlayerActive]);
 
   useEffect(() => {
     cleanupAudio();
-    if (!themeSongUrl) return;
+    if (!themeSongUrl || isPlayerActive) return;
 
     const audio = new Audio(themeSongUrl);
     audio.loop = true;
@@ -116,6 +114,8 @@ export function useThemeMedia(itemId?: string | null) {
 
     const startPlayback = async () => {
       try {
+        // Ensure this audio instance is still the active one
+        if (audioRef.current !== audio) return;
         await audio.play();
       } catch (error) {
         console.warn("Theme song autoplay was blocked:", error);
@@ -127,7 +127,7 @@ export function useThemeMedia(itemId?: string | null) {
     return () => {
       cleanupAudio();
     };
-  }, [themeSongUrl, cleanupAudio]);
+  }, [themeSongUrl, cleanupAudio, isPlayerActive]);
 
   useEffect(() => {
     if (!themeVideoUrl) return;
@@ -152,32 +152,15 @@ export function useThemeMedia(itemId?: string | null) {
     }
   }, [videoReady, videoFinished, themeVideoUrl, tryPlayVideo]);
 
+  // If player becomes active, we want to "unmount" (logically) the video state
+  // so that when we return, we wait for readiness again.
   useEffect(() => {
-    const video = videoRef.current;
-    const audio = audioRef.current;
-
-    if (isPlayerVisible) {
-      if (video && !video.paused && !videoFinished) {
-        shouldResumeVideoRef.current = true;
-        video.pause();
-      }
-      if (audio && !audio.paused) {
-        shouldResumeAudioRef.current = true;
-        audio.pause();
-      }
-    } else {
-      if (shouldResumeVideoRef.current && video && !videoFinished) {
-        tryPlayVideo();
-        shouldResumeVideoRef.current = false;
-      }
-      if (shouldResumeAudioRef.current && audio) {
-        audio.play().catch((error) => {
-          console.warn("Failed to resume theme song:", error);
-        });
-        shouldResumeAudioRef.current = false;
-      }
+    if (isPlayerActive) {
+        setVideoReady(false);
     }
-  }, [isPlayerVisible, videoFinished, tryPlayVideo]);
+  }, [isPlayerActive]);
+
+  // Removed complex pause/resume logic as we now unmount video when player is active
 
   const handleVideoCanPlay = useCallback(() => {
     setVideoReady(true);
@@ -194,12 +177,10 @@ export function useThemeMedia(itemId?: string | null) {
   const pauseThemeMedia = useCallback(() => {
     const video = videoRef.current;
     if (video && !video.paused && !videoFinished) {
-      shouldResumeVideoRef.current = true;
       video.pause();
     }
     const audio = audioRef.current;
     if (audio && !audio.paused) {
-      shouldResumeAudioRef.current = true;
       audio.pause();
     }
   }, [videoFinished]);
@@ -207,7 +188,6 @@ export function useThemeMedia(itemId?: string | null) {
   const stopThemeMedia = useCallback(() => {
     const video = videoRef.current;
     if (video) {
-      shouldResumeVideoRef.current = false;
       video.pause();
       try {
         video.currentTime = 0;
@@ -217,15 +197,14 @@ export function useThemeMedia(itemId?: string | null) {
     }
     const audio = audioRef.current;
     if (audio) {
-      shouldResumeAudioRef.current = false;
       audio.pause();
       audio.currentTime = 0;
     }
   }, []);
 
-  const showThemeVideo = Boolean(themeVideoUrl) && videoReady && !videoFinished;
+  const showThemeVideo = !isPlayerActive && Boolean(themeVideoUrl) && videoReady && !videoFinished;
   const shouldShowBackdropImage =
-    !themeVideoUrl || !videoReady || videoFinished;
+    isPlayerActive || !themeVideoUrl || !videoReady || videoFinished;
 
   return {
     themeVideoUrl,

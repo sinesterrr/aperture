@@ -38,13 +38,18 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
         setIsHovering(true);
     };
 
+    const [scrubbingValue, setScrubbingValue] = useState<number | null>(null);
+
     const handleSeek = (value: number[]) => {
+        setScrubbingValue(null);
         manager.seek(value[0] * 10000000); // convert seconds to ticks
     };
     
     // Convert ticks to seconds for slider
     const currentSeconds = currentTime; // playbackState.currentTime is in seconds
     const durationSeconds = duration;   // playbackState.duration is in seconds
+    
+    const displayTime = scrubbingValue !== null ? scrubbingValue : currentSeconds;
 
     const isVisible = isHovering || paused;
 
@@ -88,14 +93,14 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
                 {/* Timeline */}
                 <div className="flex items-center gap-4 mb-4">
                     <span className="text-xs font-mono text-gray-300">
-                        {formatRuntime(currentSeconds * 10000000)}
+                        {formatRuntime(displayTime * 10000000)}
                     </span>
                     <Slider 
-                        value={[currentSeconds]} 
+                        value={[displayTime]} 
                         max={durationSeconds > 0 ? durationSeconds : 100} 
                         step={1}
                         onValueChange={(val) => {
-                             // Dragging logic if needed (optimistic update)
+                             setScrubbingValue(val[0]);
                         }}
                         onValueCommit={handleSeek}
                         className="flex-1 cursor-pointer"

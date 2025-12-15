@@ -176,8 +176,13 @@ export function usePlaybackManager(): PlaybackContextValue {
     }, [updateState]);
 
     const seek = useCallback((ticks: number) => {
-        activePlayerRef.current?.seek(ticks);
-    }, []);
+        const player = activePlayerRef.current;
+        if (player) {
+             player.seek(ticks);
+             // Optimistic update to prevent UI jump-back
+             updateState({ currentTime: ticks / 10000000 });
+        }
+    }, [activePlayerRef, updateState]);
 
     const next = useCallback(() => {
         const nextInfo = playQueueManager.getNextItemInfo();

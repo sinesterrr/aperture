@@ -7,7 +7,7 @@ import {
     Settings, Maximize, Minimize, ArrowLeft,
     RotateCcw, RotateCw, Heart 
 } from 'lucide-react';
-import { formatRuntime } from '../../lib/utils';
+import { formatVideoTime } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { SettingsMenu } from './SettingsMenu';
 
@@ -53,14 +53,28 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
 
     const isVisible = isHovering || paused;
 
+    const handleOverlayClick = () => {
+        handleMouseMove();
+        paused ? manager.unpause() : manager.pause();
+    };
+    
+    // Stop propagation for controls so they don't trigger the overlay click
+    const handleControlsClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleMouseMove();
+    };
+
     return (
         <div 
             className={`absolute inset-0 z-50 flex flex-col justify-between p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0 cursor-none'}`}
             onMouseMove={handleMouseMove}
-            onClick={handleMouseMove}
+            onClick={handleOverlayClick}
         >
             {/* Top Bar */}
-            <div className={`flex items-center justify-between transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            <div 
+                className={`flex items-center justify-between transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+                onClick={handleControlsClick}
+            >
                 <Button variant="ghost" size="icon" onClick={() => manager.stop()}>
                     <ArrowLeft className="w-8 h-8 text-white" />
                 </Button>
@@ -89,11 +103,14 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
             </div>
 
             {/* Bottom Controls */}
-            <div className={`bg-gradient-to-t from-black/90 to-transparent p-4 pb-8 rounded-xl transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div 
+                className={`bg-gradient-to-t from-black/90 to-transparent p-4 pb-8 rounded-xl transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                onClick={handleControlsClick}
+            >
                 {/* Timeline */}
                 <div className="flex items-center gap-4 mb-4">
                     <span className="text-xs font-mono text-gray-300">
-                        {formatRuntime(displayTime * 10000000)}
+                        {formatVideoTime(displayTime * 10000000, durationSeconds * 10000000)}
                     </span>
                     <Slider 
                         value={[displayTime]} 
@@ -106,7 +123,7 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
                         className="flex-1 cursor-pointer"
                     />
                     <span className="text-xs font-mono text-gray-300">
-                        {formatRuntime(durationSeconds * 10000000)}
+                        {formatVideoTime(durationSeconds * 10000000, durationSeconds * 10000000)}
                     </span>
                 </div>
 

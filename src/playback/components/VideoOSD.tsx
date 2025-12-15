@@ -84,23 +84,33 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager, className }) => {
         >
             {/* Top Bar */}
             <div 
-                className={`flex items-center justify-between transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+                className={`relative flex items-center justify-between transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
                 onClick={handleControlsClick}
             >
-                <Button variant="ghost" size="icon" onClick={() => manager.stop()}>
-                    <ArrowLeft className="w-8 h-8 text-white" />
-                </Button>
-                <div className="text-center">
-                    <h2 className="text-xl font-bold text-white drop-shadow-md">
+                <div className="flex items-center gap-4 z-10">
+                     <Button variant="ghost" size="icon" onClick={() => manager.stop()}>
+                        <ArrowLeft className="w-8 h-8 text-white" />
+                    </Button>
+                </div>
+
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-[60%] pointer-events-none">
+                    <h2 className="text-xl font-bold text-white drop-shadow-md truncate">
                         {currentItem?.Name}
                     </h2>
                     {currentItem?.SeriesName && (
-                        <p className="text-sm text-gray-300 drop-shadow-md">
+                        <p className="text-sm text-gray-300 drop-shadow-md truncate">
                             {currentItem.SeriesName}
                         </p>
                     )}
                 </div>
-                <div className="w-10" /> {/* Spacer */}
+
+                <div className="min-w-[40px] flex justify-end z-10">
+                     {durationSeconds > 0 && (
+                        <span className="text-sm font-medium text-white/80 drop-shadow-md whitespace-nowrap">
+                            Ends at {new Date(Date.now() + (durationSeconds - currentSeconds) * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </span>
+                     )}
+                </div>
             </div>
 
             {/* Center Play/Pause (optional, large icon) */}

@@ -17,7 +17,7 @@ import {
 } from "../components/ui/dialog";
 import { MediaInfoDialog } from "../components/media-info-dialog";
 import { ImageEditorDialog } from "../components/image-editor-dialog";
-import { Info, Download, Play, ArrowLeft, Layers } from "lucide-react";
+import { Info, Download, Play, ArrowLeft, Layers, ChevronDown } from "lucide-react";
 import {
   getDownloadUrl,
   getStreamUrl,
@@ -163,6 +163,37 @@ export function MediaActions({
     return getMediaSourceDisplayName(source);
   };
 
+  const renderSourceLabel = (source: MediaSourceInfo, isDropdown = false) => {
+    const techName = getMediaSourceDisplayName(source);
+    const verName = getVersionName(source);
+    
+    const isBracketed = verName.startsWith('[') && verName.endsWith(']');
+    const cleanVerName = isBracketed ? verName.replace(/[\[\]]/g, '') : verName;
+    
+    const isRedundant = !isBracketed && (verName === techName || techName.toLowerCase().includes(verName.toLowerCase()));
+
+    if (isRedundant) {
+        return techName;
+    }
+
+    if (isDropdown) {
+        return (
+            <div className="flex flex-col items-start gap-0.5 leading-tight">
+                <span className="font-medium text-[0.8rem] text-primary">{cleanVerName}</span>
+                <span className="text-xs text-muted-foreground font-normal">{techName}</span>
+            </div>
+        );
+    }
+
+    return (
+        <span className="flex items-center gap-1.5">
+            <span className="font-semibold text-primary opacity-90">{cleanVerName}</span>
+            <span className="opacity-50">•</span>
+            <span>{techName}</span>
+        </span>
+    );
+  };
+
   // Helper function to check if media has Dolby Digital audio
   const hasDolbyDigital = (source: MediaSourceInfo) => {
     if (!source.MediaStreams) {
@@ -274,17 +305,15 @@ export function MediaActions({
         </Button>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
-          >
-            {getMediaSourceDisplayName(selectedVersion)}
-          </Button>
-          {hasMultipleVersions && (
+          {hasMultipleVersions ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="truncate">
-                <Button variant="outline" className="gap-1.5 px-4">
-                  Version
+                <Button
+                  variant="outline"
+                  className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
+                >
+                  {renderSourceLabel(selectedVersion)}
+                  <ChevronDown className="h-4 w-4 opacity-50 ml-1 flex-shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -297,7 +326,7 @@ export function MediaActions({
                     }}
                     className="fill-foreground gap-3 flex justify-between"
                   >
-                    {cutOffText(getVersionName(source), 64)}
+                    {renderSourceLabel(source, true)}
                     <Badge variant="outline" className="bg-sidebar">
                       {source.Size
                         ? `${(source.Size / 1024 ** 3).toFixed(2)} GB`
@@ -307,6 +336,13 @@ export function MediaActions({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <Button
+              variant="outline"
+              className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
+            >
+              {getMediaSourceDisplayName(selectedVersion)}
+            </Button>
           )}
         </div>
 
@@ -342,7 +378,7 @@ export function MediaActions({
             {media.MediaSources.length} versions available — pick one from the
             dropdown
             <Badge variant="secondary" className="text-[0.6rem] uppercase">
-              Current: {getVersionName(selectedVersion)}
+              Current: {renderSourceLabel(selectedVersion)}
             </Badge>
           </span>
         </div>

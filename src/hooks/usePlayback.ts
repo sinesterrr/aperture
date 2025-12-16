@@ -8,6 +8,7 @@ export interface PlayOptions {
   type: "Movie" | "Series" | "Episode" | "TvChannel";
   resumePositionTicks?: number;
   selectedVersion?: any; 
+  audioStreamIndex?: number;
 }
 
 export function usePlayback() {
@@ -41,7 +42,8 @@ export function usePlayback() {
 
         await manager.play(item, {
             startPositionTicks: options.resumePositionTicks,
-            mediaSourceId: selectedVersion?.Id
+            mediaSourceId: selectedVersion?.Id,
+            audioStreamIndex: options.audioStreamIndex
         });
 
     } catch (e) {

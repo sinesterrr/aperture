@@ -15,7 +15,6 @@ export function LiveChannelCard({
 }) {
   const { play } = usePlayback();
 
-
   // WIP - Link logic for TV channels
   let linkHref = "/livetv/" + item.Id;
 
@@ -73,14 +72,6 @@ export function LiveChannelCard({
     }
   };
 
-  // const lightSpeedUrl = imageUrl
-  //   ? imageUrl?.includes("192.168.")
-  //     ? imageUrl
-  //     : "https://lightspeed.ac/?url=" + imageUrl
-  //   : null;
-
-  const lightSpeedUrl = imageUrl ?? "";
-
   return (
     <div
       className={`cursor-pointer group overflow-hidden transition select-none w-36`}
@@ -104,9 +95,9 @@ export function LiveChannelCard({
                 />
               )}
               {/* Actual image */}
-              {lightSpeedUrl ? (
+              {imageUrl ? (
                 <img
-                  src={lightSpeedUrl}
+                  src={imageUrl}
                   alt={item.Name || ""}
                   className={`w-full h-full object-cover transition-opacity duration-300 shadow-lg group-hover:shadow-md rounded-md opacity-100`}
                   onLoad={(e) => {

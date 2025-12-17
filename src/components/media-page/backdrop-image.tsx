@@ -29,12 +29,6 @@ export function BackdropImage({
   const blurHash =
     movie.ImageBlurHashes?.["Backdrop"]?.[backdropImageTag!] || "";
 
-  // const lightSpeedUrl = backdropImage?.includes("192.168.")
-  //   ? backdropImage
-  //   : "https://lightspeed.ac/?url=" + backdropImage;
-
-  const lightSpeedUrl = backdropImage ?? "";
-
   // Decode blur hash
   useEffect(() => {
     if (blurHash && !blurDataUrl) {
@@ -82,7 +76,7 @@ export function BackdropImage({
         className={`${className} transition-opacity duration-300 ${
           imageLoaded ? "opacity-100" : "opacity-0"
         }`}
-        src={lightSpeedUrl}
+        src={backdropImage}
         alt={`${movie.Name} backdrop`}
         width={width}
         height={height}

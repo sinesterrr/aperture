@@ -113,7 +113,7 @@ export function AppSidebar({
           const timestamp = Date.now();
           // Ensure we're using a new URL string to trigger re-render
           setAvatarUrl(`${userAvatarUrl}&t=${timestamp}`);
-          
+
           // Also update the user state if needed
           setUser(userData);
         }
@@ -148,12 +148,6 @@ export function AppSidebar({
         return <Film className="h-4 w-4" />; // Default to film icon for any edge cases
     }
   };
-
-  // const lightSpeedUrl = avatarUrl?.includes("192.168.")
-  //   ? avatarUrl
-  //   : "https://lightspeed.ac/?url=" + avatarUrl;
-
-  const lightSpeedUrl = avatarUrl ?? "";
 
   return (
     <Sidebar
@@ -264,7 +258,7 @@ export function AppSidebar({
                 >
                   {avatarUrl ? (
                     <img
-                      src={lightSpeedUrl}
+                      src={avatarUrl}
                       alt="Avatar"
                       className="aspect-square object-cover size-8 rounded-lg border-[1px] border-[#f84d49]"
                     />

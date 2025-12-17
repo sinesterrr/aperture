@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { Vibrant } from "node-vibrant/browser";
 
 interface VibrantLogoProps {
@@ -19,12 +19,6 @@ export function VibrantLogo({
   height = 96,
 }: VibrantLogoProps) {
   const [shadowColor, setShadowColor] = useState<string>("");
-
-  // const lightSpeedUrl = src?.includes("192.168.")
-  //   ? src
-  //   : "https://lightspeed.ac/?url=" + src;
-
-  const lightSpeedUrl = src ?? "";
 
   useEffect(() => {
     const extractColors = async () => {
@@ -48,21 +42,29 @@ export function VibrantLogo({
     }
   }, [src]);
 
-  const dynamicStyle = shadowColor
-    ? {
-        filter: `drop-shadow(0 8px 60px ${shadowColor}80) drop-shadow(0 16px 120px ${shadowColor}60) drop-shadow(0 32px 200px ${shadowColor}40)`,
-        transition: "filter 0.3s ease-in-out",
-      }
-    : {};
+  // memoized style object to prevent unnecessary re-renders
+  const dynamicStyle = useMemo(() => {
+    return shadowColor
+      ? {
+          filter: `drop-shadow(0 8px 60px ${shadowColor}80) drop-shadow(0 16px 120px ${shadowColor}60) drop-shadow(0 32px 200px ${shadowColor}40)`,
+          transition: "filter 0.3s ease-in-out",
+        }
+      : {};
+  }, [shadowColor]);
+
+  function handleImageLoadError(e: SyntheticEvent<HTMLImageElement, Event>) {
+    e.currentTarget.style.display = "none";
+  }
 
   return (
     <img
       className={className}
-      src={lightSpeedUrl}
+      src={src}
       alt={alt}
       width={width}
       height={height}
       style={dynamicStyle}
+      onError={handleImageLoadError}
       onLoad={() => {
         // Re-extract colors when image loads to ensure accuracy
         if (!shadowColor) {

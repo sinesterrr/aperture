@@ -1,335 +1,148 @@
-import { fetchEpisodeDetails } from "../../actions/tv-shows";
-import { getImageUrl, fetchSimilarItems, getServerUrl } from "../../actions";
+import {
+  fetchMediaDetails,
+  getImageUrl,
+  getServerUrl,
+} from "../../actions";
 import { MediaActions } from "../../components/media-actions";
-import { SearchBar } from "../../components/search-component";
-import { Badge } from "../../components/ui/badge";
-import { CastScrollArea } from "../../components/cast-scrollarea";
-import { SeasonEpisodes } from "../../components/season-episodes";
-import { MediaSection } from "../../components/media-section";
-import { VibrantAuroraBackground } from "../../components/vibrant-aurora-background";
-import { VibrantLogo } from "../../components/vibrant-logo";
-import { RottenTomatoesIcon } from "../../components/icons/rotten-tomatoes";
-import { TextAnimate } from "../../components/magicui/text-animate";
-import { Star, Play, TvIcon } from "lucide-react";
+import { Star } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
-import { TextScramble } from "../../components/motion-primitives/text-scramble";
-import { BackdropImage } from "../../components/media-page/backdrop-image";
-import { PosterImage } from "../../components/media-page/poster-image";
+import { RottenTomatoesIcon } from "../../components/icons/rotten-tomatoes";
+import { Badge } from "../../components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
 import LoadingSpinner from "../../components/loading-spinner";
-import { useThemeMedia } from "../../hooks/useThemeMedia";
-import { ThemeMediaControls } from "../../components/media-page/ThemeMediaControls";
-import { motion } from "framer-motion";
+import { MediaDetail } from "../../components/media-page/MediaDetail";
 
 export default function Episode() {
   const { id } = useParams<{ id: string }>();
-  const [episode, setEpisode] = useState<BaseItemDto | null>();
+  const navigate = useNavigate();
+  const [episode, setEpisode] = useState<BaseItemDto | null>(null);
   const [primaryImage, setPrimaryImage] = useState<string>("");
   const [backdropImage, setBackdropImage] = useState<string>("");
   const [logoImage, setLogoImage] = useState<string>("");
-  const [similarItems, setSimilarItems] = useState<BaseItemDto[]>([]);
-  const [serverUrl, setServerUrl] = useState<string | null>();
-  const navigate = useNavigate();
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const {
-    themeVideoUrl,
-    videoRef,
-    showThemeVideo,
-    shouldShowBackdropImage,
-    handleVideoCanPlay,
-    handleVideoEnded,
-    handleVideoError,
-    pauseThemeMedia,
-    isMuted,
-    isPlaying,
-    isPlayerActive,
-    toggleMute,
-    togglePlay,
-    hasThemeMedia,
-  } = useThemeMedia(episode?.Id ?? null);
 
   useEffect(() => {
     async function fetchData() {
-      if (!id?.trim()) return;
+      if (!id) return;
       try {
-        const ep = await fetchEpisodeDetails(id);
-        if (!ep) return;
+        const episodeDetails = await fetchMediaDetails(id);
+        if (!episodeDetails) return;
 
-        setEpisode(ep);
+        setEpisode(episodeDetails);
 
-        const su = await getServerUrl();
-
-        setServerUrl(su);
-
-        const [pi, bi, li, simItems] = await Promise.all([
+        const [pi, bi, li, server] = await Promise.all([
           getImageUrl(id, "Primary"),
-          getImageUrl(ep.ParentBackdropItemId!, "Backdrop"),
-          getImageUrl(ep.SeriesId!, "Logo"),
-          fetchSimilarItems(ep.SeriesId!, 12),
+          getImageUrl(id, "Backdrop"),
+          getImageUrl(episodeDetails.SeriesId || id, "Logo"),
+          getServerUrl(),
         ]);
 
         setPrimaryImage(pi);
-        setBackdropImage(bi);
+        setBackdropImage(bi || pi); // Episode backdrop is often missing, fallback to primary (landscape thumb)
         setLogoImage(li);
-        setSimilarItems(simItems);
-
-        // Fetch similar items and server URL for the More Like This section
+        setServerUrl(server);
       } catch (err: any) {
         console.error(err);
         if (err.message?.includes("Authentication expired")) {
-          // use React Router navigate
           navigate("/login", { replace: true });
         }
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
-  }, [id]);
+  }, [id, navigate]);
+
+  const episodeBadges = useMemo(() => {
+    if (!episode) return null;
+    return (
+      <div className="flex flex-wrap items-center gap-2 mb-2 justify-center md:justify-start md:pl-8">
+        {episode.ProductionYear && (
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-sm">
+            {episode.ProductionYear}
+          </Badge>
+        )}
+        {episode.OfficialRating && (
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-sm">
+            {episode.OfficialRating}
+          </Badge>
+        )}
+        {episode.RunTimeTicks && (
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-sm">
+            {Math.round(episode.RunTimeTicks / 600000000)} min
+          </Badge>
+        )}
+        {episode.CommunityRating && (
+          <Badge
+            variant="outline"
+            className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
+          >
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            {episode.CommunityRating.toFixed(1)}
+          </Badge>
+        )}
+        {episode.CriticRating && (
+          <Badge
+            variant="outline"
+            className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
+          >
+            <RottenTomatoesIcon size={12} />
+            {episode.CriticRating}%
+          </Badge>
+        )}
+      </div>
+    );
+  }, [episode]);
 
   if (loading) return <LoadingSpinner />;
-
-  if (episode == null || id == null)
+  if (!episode || !id || !serverUrl)
     return <div className="p-4">Error loading Episode. Please try again.</div>;
 
   return (
-    <div className="min-h-screen overflow-hidden md:pr-1 pb-8">
-      {/* Aurora background based on backdrop image */}
-      <VibrantAuroraBackground
-        posterUrl={backdropImage}
-        className="fixed inset-0 z-10 pointer-events-none opacity-50"
-      />
-
-      {/* Backdrop section */}
-      <div className="relative">
-        {/* Backdrop video/image with gradient overlay */}
-        <div className="relative h-[50vh] md:h-[70vh] overflow-hidden md:rounded-xl md:mt-2.5">
-          <div className="absolute inset-0 z-0">
-            {themeVideoUrl && (
-              <video
-                key={themeVideoUrl}
-                ref={videoRef}
-                src={themeVideoUrl}
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                  showThemeVideo ? "opacity-100" : "opacity-0"
-                }`}
-                playsInline
-                autoPlay
-                onCanPlay={handleVideoCanPlay}
-                onEnded={handleVideoEnded}
-                onError={handleVideoError}
-              />
-            )}
-            <div
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                shouldShowBackdropImage ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <BackdropImage
-                movie={episode}
-                backdropImage={backdropImage}
-                className="w-full h-full object-cover"
-                width={1920}
-                height={1080}
-              />
-            </div>
-          </div>
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-transparent via-black/30 to-black/90 md:rounded-xl" />
-          <div className="absolute bottom-0 left-0 right-0 z-10 h-32 bg-gradient-to-t from-black to-transparent md:rounded-xl" />
-          <VibrantLogo
-            src={logoImage}
-            alt={`${episode.SeriesName} logo`}
-            movieName={episode.SeriesName || ""}
-            width={300}
-            height={96}
-            className="absolute md:top-5/12 top-4/12 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 max-h-20 md:max-h-24 w-auto object-contain max-w-2/3 invisible md:visible"
-          />
-        </div>
-
-        {/* Search bar positioned over backdrop */}
-        <ThemeMediaControls
-          isMuted={isMuted}
-          isPlaying={isPlaying}
-          toggleMute={toggleMute}
-          togglePlay={togglePlay}
-          isVisible={hasThemeMedia && !isPlayerActive}
-        />
-        <div className="absolute top-8 left-0 right-0 z-20 px-6">
-          <SearchBar />
-        </div>
-      </div>
-
-      {/* Content section */}
-      <motion.div
-        className="relative z-10 md:pl-6 bg-background/95 dark:bg-background/50 backdrop-blur-xl rounded-2xl mx-4 pb-6 shadow-2xl"
-        initial={{ marginTop: "-13.5rem" }}
-        animate={{
-          marginTop: showThemeVideo ? "-7.5rem" : "-13.5rem",
-        }}
-        transition={{ duration: 0.85, ease: [0.7, 0.1, 0.1, 1] }}
-      >
-        <div className="flex flex-col md:flex-row mx-auto">
-          {/* Episode Image */}
-          <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 justify-center flex md:block z-50 mt-6">
-            <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl bg-muted max-w-1/2 md:max-w-full mt-16">
-              {primaryImage ? (
-                <PosterImage
-                  movie={episode}
-                  posterImage={primaryImage}
-                  className="w-full h-full object-cover"
-                  width={480}
-                  height={270}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  <Play className="h-12 w-12" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Episode Info */}
-          <div className="w-full md:w-2/3 lg:w-3/4 pt-10 md:pt-8 text-center md:text-start mt-8">
-            {/* TV Show Name and Season */}
-            <div className="mb-4 flex justify-center md:justify-start">
-              <h2 className="text-sm font-medium text-muted-foreground md:pl-8 inline-flex items-center">
-                <TvIcon className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-                <Link
-                  to={`/series/${episode.SeriesId}`}
-                  className="hover:underline"
-                >
-                  {episode.SeriesName}
-                </Link>
-                {episode.ParentIndexNumber && (
-                  <span className="inline-flex items-center">
-                    <span className="mx-2">•</span>
-                    <Link
-                      to={`/season/${episode.SeasonId}`}
-                      className="hover:underline"
-                    >
-                      {`Season ${episode.ParentIndexNumber}`}
-                    </Link>
-                  </span>
-                )}
+    <MediaDetail.Root
+      media={episode}
+      primaryImage={primaryImage}
+      backdropImage={backdropImage}
+      logoImage={logoImage}
+      serverUrl={serverUrl}
+    >
+      <MediaDetail.Backdrop />
+      <MediaDetail.Main>
+        <MediaDetail.Poster />
+        <MediaDetail.Content>
+          <MediaDetail.Info>
+            <div className="flex flex-col">
+              <h2 className="text-xl md:text-2xl font-medium text-muted-foreground md:pl-8 mb-1">
+                {episode.SeriesName} — S{episode.ParentIndexNumber} E{episode.IndexNumber}
               </h2>
+              <h1 className="text-4xl md:text-5xl font-semibold font-poppins text-foreground md:pl-8 drop-shadow-xl mb-4">
+                {episode.Name}
+              </h1>
+              {episodeBadges}
             </div>
+          </MediaDetail.Info>
 
-            <div className="mb-4 flex justify-center md:justify-start">
-              <TextAnimate
-                as="h1"
-                className="text-4xl md:text-5xl font-semibold font-poppins text-foreground md:pl-8 drop-shadow-xl"
-                animation="blurInUp"
-                by="character"
-                once
-              >
-                {`${episode.IndexNumber ? `${episode.IndexNumber}. ` : ""}${
-                  episode.Name || "Untitled Episode"
-                }`}
-              </TextAnimate>
-            </div>
+          <MediaDetail.Actions>
+            <MediaActions movie={episode} onBeforePlay={() => {}} />
+            <MediaDetail.Overview />
 
-            {/* Episode badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-2 justify-center md:justify-start md:pl-8">
-              <Badge
-                variant="outline"
-                className="bg-background/90 backdrop-blur-sm"
-              >
-                S{episode.ParentIndexNumber || 1} • E{episode.IndexNumber || 1}
-              </Badge>
-
-              {episode.ProductionYear && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm"
-                >
-                  {episode.ProductionYear}
-                </Badge>
+            <MediaDetail.Metadata>
+              {episode.Studios && episode.Studios.length > 0 && (
+                <MediaDetail.MetadataItem label="Studio">
+                  <span className="text-sm">
+                    {episode.Studios.map((s: any) => s.Name || s).join(", ")}
+                  </span>
+                </MediaDetail.MetadataItem>
               )}
-
-              {episode.OfficialRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm"
-                >
-                  {episode.OfficialRating}
-                </Badge>
-              )}
-
-              {episode.RunTimeTicks && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm"
-                >
-                  {Math.round(episode.RunTimeTicks / 600000000)} min
-                </Badge>
-              )}
-
-              {episode.CommunityRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
-                >
-                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  {episode.CommunityRating.toFixed(1)}
-                </Badge>
-              )}
-
-              {episode.CriticRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
-                >
-                  <RottenTomatoesIcon size={12} />
-                  {episode.CriticRating}%
-                </Badge>
-              )}
-            </div>
-
-            <div className="px-8 md:pl-8 pt-4 md:pr-16 flex flex-col justify-center md:items-start items-center">
-              <MediaActions
-                episode={episode}
-                onBeforePlay={pauseThemeMedia}
-              />
-
-              {episode.Taglines && (
-                <TextScramble
-                  className="text-lg text-muted-foreground mb-4 max-w-4xl text-center md:text-left font-poppins drop-shadow-md"
-                  duration={1.2}
-                >
-                  {episode.Taglines[0]}
-                </TextScramble>
-              )}
-
-              {episode.Overview && (
-                <p className="text-md leading-relaxed mb-8 max-w-4xl">
-                  {episode.Overview}
-                </p>
-              )}
-              {/* Media actions */}
-            </div>
-          </div>
-        </div>
-        {/* Season Episodes section */}
-        <SeasonEpisodes showId={episode.SeriesId!} />
-      </motion.div>
-
-      {/* Cast section */}
-      <div className="mt-12 px-6">
-        <CastScrollArea people={episode.People!} mediaId={id} />
-      </div>
-
-      {similarItems && (
-        <div className="mt-8 px-6">
-          <MediaSection
-            sectionName="More Like This"
-            mediaItems={similarItems as BaseItemDto[]}
-            serverUrl={serverUrl!}
-          />
-        </div>
-      )}
-      {/* More Like This section */}
-    </div>
+            </MediaDetail.Metadata>
+          </MediaDetail.Actions>
+        </MediaDetail.Content>
+      </MediaDetail.Main>
+      
+      <MediaDetail.Cast />
+    </MediaDetail.Root>
   );
 }

@@ -44,12 +44,19 @@ export function VibrantLogo({
 
   // memoized style object to prevent unnecessary re-renders
   const dynamicStyle = useMemo(() => {
-    return shadowColor
-      ? {
-          filter: `drop-shadow(0 8px 60px ${shadowColor}80) drop-shadow(0 16px 120px ${shadowColor}60) drop-shadow(0 32px 200px ${shadowColor}40)`,
-          transition: "filter 0.3s ease-in-out",
-        }
-      : {};
+    if (!shadowColor) return {};
+
+    // Detect if the browser is Safari to avoid the drop-shadow "boxed" clipping effect
+    const isSafari =
+      typeof navigator !== "undefined" &&
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isSafari) return {};
+
+    return {
+      filter: `drop-shadow(0 8px 60px ${shadowColor}80) drop-shadow(0 16px 120px ${shadowColor}60) drop-shadow(0 32px 200px ${shadowColor}40)`,
+      transition: "filter 0.3s ease-in-out",
+    };
   }, [shadowColor]);
 
   function handleImageLoadError(e: SyntheticEvent<HTMLImageElement, Event>) {

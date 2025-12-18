@@ -41,6 +41,7 @@ function App() {
         "peach-sorbet",
         "lilac-dream",
         "deep-velvet",
+        "glassmorphism",
       ]}
     >
       <Toaster />

@@ -505,42 +505,76 @@
 }
 
 .glassmorphism {
-  --background: oklch(0.141 0.005 285.823);
+  /* Use a deep background to contrast the white glass */
+  --background: oklch(0.12 0.01 285);
   --foreground: oklch(0.985 0 0);
-  --card: rgba(255, 255, 255, 0.08);
+  
+  /* Pixel-perfect match with ThemeMediaControls (bg-white/10) */
+  --card: rgba(255, 255, 255, 0.1);
   --card-foreground: oklch(0.985 0 0);
   --popover: rgba(255, 255, 255, 0.1);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.705 0.15 220);
+  --sidebar: rgba(255, 255, 255, 0.1);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-accent: rgba(255, 255, 255, 0.15);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+
+  --primary: oklch(0.75 0.12 215);
   --primary-foreground: #f8fafc;
   --secondary: rgba(255, 255, 255, 0.05);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: rgba(255, 255, 255, 0.05);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: rgba(255, 255, 255, 0.12);
+  /* High contrast for placeholders and secondary text */
+  --muted-foreground: oklch(0.95 0 0);
+  --accent: rgba(255, 255, 255, 0.1);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: #fb7185;
-  --border: rgba(255, 255, 255, 0.15);
+  
+  /* Pixel-to-pixel match with ThemeMediaControls (border-white/10) */
+  --border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.15);
   --input: rgba(255, 255, 255, 0.1);
-  --ring: oklch(0.705 0.15 220);
-  --sidebar: rgba(15, 10, 30, 0.2);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --color-1: oklch(0.705 0.15 220);
+  
+  --ring: oklch(0.75 0.12 215);
+  --color-1: oklch(0.75 0.12 215);
   --color-2: oklch(0.65 0.2 280);
   --color-3: oklch(0.75 0.15 190);
   --color-4: oklch(0.8 0.1 150);
   --color-5: oklch(0.85 0.1 120);
 }
 
+/* Ensure sidebar and search bar are unequivocally on top of aurora backgrounds */
+.glassmorphism [data-slot="sidebar-container"],
+.glassmorphism [data-slot="sidebar"] {
+  z-index: 100 !important;
+}
+
+/* Primary glass containers - Avoid nested blur targets */
 .glassmorphism [data-slot="card"],
 .glassmorphism .bg-card,
 .glassmorphism [data-slot="popover"],
 .glassmorphism .bg-popover,
 .glassmorphism [data-slot="sidebar"],
-.glassmorphism .bg-sidebar {
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+.glassmorphism .bg-sidebar,
+.glassmorphism [data-slot="input"],
+.glassmorphism .bg-input {
+  /* Match backdrop-blur-md from ThemeMediaControls */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* Match shadow-lg from ThemeMediaControls */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  isolation: isolate;
+}
+
+/* Override search bar background with transparent glass in Glassmorphism theme */
+.glassmorphism input[type="text"] {
+  background: var(--input) !important;
+}
+
+/* Ensure children like icons and text are not inherited with filters or unusual blend modes */
+.glassmorphism [data-slot="sidebar"] *,
+.glassmorphism [data-slot="card"] * {
+  filter: none !important;
+  backdrop-filter: none !important;
 }
 
 @layer base {

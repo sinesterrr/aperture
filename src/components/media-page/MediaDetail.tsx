@@ -158,7 +158,7 @@ function Backdrop() {
         togglePlay={togglePlay}
         isVisible={hasThemeMedia && !isPlayerActive}
       />
-      <div className="absolute top-8 left-0 right-0 z-20 px-6">
+      <div className="absolute top-8 left-0 right-0 z-30 px-6">
         <SearchBar />
       </div>
     </div>

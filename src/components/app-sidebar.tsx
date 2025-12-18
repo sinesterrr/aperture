@@ -260,7 +260,7 @@ export function AppSidebar({
                     <img
                       src={avatarUrl}
                       alt="Avatar"
-                      className="aspect-square object-cover size-8 rounded-lg border-[1px] border-[#f84d49]"
+                      className="aspect-square object-cover size-8 rounded-lg border-[1px]"
                     />
                   ) : (
                     <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg bg-primary p-2">

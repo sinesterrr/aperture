@@ -124,9 +124,14 @@ const buildTrickplayConfig = (
 
 export const useTrickplay = () => {
   const [config, setConfig] = useState<TrickplayConfig | null>(null);
+  const configRef = useRef<TrickplayConfig | null>(null);
   const [cacheBuster, setCacheBuster] = useState(0);
   const spriteCacheRef = useRef<Map<number, string>>(new Map());
   const pendingTilesRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   const clearSprites = useCallback(() => {
     pendingTilesRef.current.clear();
@@ -157,7 +162,7 @@ export const useTrickplay = () => {
 
   const queueTile = useCallback(
     (tileIndex: number, overrideConfig?: TrickplayConfig | null) => {
-      const activeConfig = overrideConfig ?? config;
+      const activeConfig = overrideConfig ?? configRef.current;
       if (!activeConfig) return;
       if (
         spriteCacheRef.current.has(tileIndex) ||
@@ -191,7 +196,7 @@ export const useTrickplay = () => {
           pendingTilesRef.current.delete(tileIndex);
         });
     },
-    [config]
+    []
   );
 
   const initializeTrickplay = useCallback(

@@ -31,6 +31,8 @@ export {
   fetchSimilarItems,
   fetchMovieByCollection,
   scanLibrary,
+  markFavorite,
+  unmarkFavorite,
 } from "./media";
 
 // TV show actions
@@ -70,6 +72,7 @@ export {
   fetchSystemInfo,
   restartServer,
   shutdownServer,
+  canBrowserDirectPlayHevc,
 } from "./utils";
 export { discoverLocalServer } from "./discovery";
 

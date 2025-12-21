@@ -6,27 +6,16 @@ import {
 } from "../../actions";
 import { MediaActions } from "../../components/media-actions";
 import { SeriesPlayButton } from "../../components/series-play-button";
-import { SearchBar } from "../../components/search-component";
-import { Badge } from "../../components/ui/badge";
-import { CastScrollArea } from "../../components/cast-scrollarea";
-import { fetchSeasons } from "../../actions/tv-shows";
-import { MediaCard } from "../../components/media-card";
-import { MediaSection } from "../../components/media-section";
-import { VibrantAuroraBackground } from "../../components/vibrant-aurora-background";
-import { VibrantLogo } from "../../components/vibrant-logo";
-import { RottenTomatoesIcon } from "../../components/icons/rotten-tomatoes";
-import { TextAnimate } from "../../components/magicui/text-animate";
 import { Star } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
-import { TextScramble } from "../../components/motion-primitives/text-scramble";
-import { BackdropImage } from "../../components/media-page/backdrop-image";
-import { PosterImage } from "../../components/media-page/poster-image";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { RottenTomatoesIcon } from "../../components/icons/rotten-tomatoes";
+import { Badge } from "../../components/ui/badge";
+import { fetchSeasons } from "../../actions/tv-shows";
+import { MediaCard } from "../../components/media-card";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
 import LoadingSpinner from "../../components/loading-spinner";
-import { useThemeMedia } from "../../hooks/useThemeMedia";
-import { motion } from "framer-motion";
+import { MediaDetail } from "../../components/media-page/MediaDetail";
 
 export default function Show() {
   const { id } = useParams<{ id: string }>();
@@ -39,16 +28,6 @@ export default function Show() {
   const [similarItems, setSimilarItems] = useState<BaseItemDto[]>([]);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const {
-    themeVideoUrl,
-    videoRef,
-    showThemeVideo,
-    shouldShowBackdropImage,
-    handleVideoCanPlay,
-    handleVideoEnded,
-    handleVideoError,
-    pauseThemeMedia,
-  } = useThemeMedia(show?.Id ?? null);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,9 +39,7 @@ export default function Show() {
         const showData = await fetchMediaDetails(id);
         const seasonsData = await fetchSeasons(id);
 
-        if (!showData || !seasonsData) {
-          return;
-        }
+        if (!showData || !seasonsData) return;
 
         setShow(showData);
         setSeasons(seasonsData);
@@ -90,269 +67,138 @@ export default function Show() {
     fetchData();
   }, [id, navigate]);
 
-  if (loading) return <LoadingSpinner />;
+  const showBadges = useMemo(() => {
+    if (!show) return null;
+    return (
+      <div className="flex flex-wrap items-center gap-2 mb-2 justify-center md:justify-start md:pl-8">
+        {show.ProductionYear && (
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-sm">
+            {show.ProductionYear}
+          </Badge>
+        )}
+        {show.OfficialRating && (
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-sm">
+            {show.OfficialRating}
+          </Badge>
+        )}
+        {show.CommunityRating && (
+          <Badge
+            variant="outline"
+            className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
+          >
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            {show.CommunityRating.toFixed(1)}
+          </Badge>
+        )}
+        {show.CriticRating && (
+          <Badge
+            variant="outline"
+            className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
+          >
+            <RottenTomatoesIcon size={12} />
+            {show.CriticRating}%
+          </Badge>
+        )}
+      </div>
+    );
+  }, [show]);
 
-  if (show == null || id == null || serverUrl == null)
+  if (loading) return <LoadingSpinner />;
+  if (!show || !id || !serverUrl)
     return <div className="p-4">Error loading Series. Please try again.</div>;
 
   return (
-    <div className="min-h-screen overflow-hidden md:pr-1 pb-8">
-      {/* Aurora background based on backdrop image */}
-      <VibrantAuroraBackground
-        posterUrl={backdropImage}
-        className="fixed inset-0 z-10 pointer-events-none opacity-50"
-      />
-
-      {/* Backdrop section */}
-      <div className="relative">
-        {/* Backdrop video/image with gradient overlay */}
-        <div className="relative h-[50vh] md:h-[70vh] overflow-hidden md:rounded-xl md:mt-2.5">
-          <div className="absolute inset-0 z-0">
-            {themeVideoUrl && (
-              <video
-                key={themeVideoUrl}
-                ref={videoRef}
-                src={themeVideoUrl}
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                  showThemeVideo ? "opacity-100" : "opacity-0"
-                }`}
-                playsInline
-                autoPlay
-                onCanPlay={handleVideoCanPlay}
-                onEnded={handleVideoEnded}
-                onError={handleVideoError}
-              />
-            )}
-            <div
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                shouldShowBackdropImage ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <BackdropImage
-                movie={show}
-                backdropImage={backdropImage}
-                className="w-full h-full object-cover"
-                width={1920}
-                height={1080}
-              />
+    <MediaDetail.Root
+      media={show}
+      primaryImage={primaryImage}
+      backdropImage={backdropImage}
+      logoImage={logoImage}
+      serverUrl={serverUrl}
+    >
+      <MediaDetail.Backdrop />
+      <MediaDetail.Main>
+        <MediaDetail.Poster />
+        <MediaDetail.Content>
+          <MediaDetail.Info>
+            <div className="flex flex-col">
+              <h1 className="text-4xl md:text-5xl font-semibold font-poppins text-foreground md:pl-8 drop-shadow-xl mb-4">
+                {show.Name}
+              </h1>
+              {showBadges}
             </div>
-          </div>
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-transparent via-black/30 to-black/90 md:rounded-xl" />
-          <div className="absolute bottom-0 left-0 right-0 z-10 h-32 bg-gradient-to-t from-black to-transparent md:rounded-xl" />
-          <VibrantLogo
-            src={logoImage}
-            alt={`${show.Name} logo`}
-            movieName={show.Name || ""}
-            width={300}
-            height={96}
-            className="absolute md:top-5/12 top-4/12 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 max-h-20 md:max-h-24 w-auto object-contain max-w-2/3 invisible md:visible"
-          />
-        </div>
+          </MediaDetail.Info>
 
-        {/* Search bar positioned over backdrop */}
-        <div className="absolute top-8 left-0 right-0 z-20 px-6">
-          <SearchBar />
-        </div>
-      </div>
-
-      {/* Content section */}
-      <motion.div
-        className="relative z-10 md:pl-6 bg-background/95 dark:bg-background/50 backdrop-blur-xl rounded-2xl mx-4 pb-6 shadow-2xl"
-        initial={{ marginTop: "-13.5rem" }}
-        animate={{
-          marginTop: showThemeVideo ? "-7.5rem" : "-13.5rem",
-        }}
-        transition={{ duration: 0.85, ease: [0.7, 0.1, 0.1, 1] }}
-      >
-        <div className="flex flex-col md:flex-row mx-auto">
-          {/* Show poster */}
-          <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 justify-center flex md:block z-50 mt-6">
-            <PosterImage
-              movie={show}
-              posterImage={primaryImage}
-              className="w-full h-auto rounded-lg shadow-2xl max-w-1/2 md:max-w-full"
-              width={500}
-              height={750}
-            />
-          </div>
-
-          {/* Show information */}
-          {/* <div className="h-screen absolute left-0 right-0 bg-white backdrop-blur-3xl -z-10 mt-4 invisible md:visible"></div> */}
-          <div className="w-full md:w-2/3 lg:w-3/4 pt-10 md:pt-8 text-center md:text-start mt-8">
-            <div className="mb-4 flex justify-center md:justify-start">
-              <TextAnimate
-                as="h1"
-                className="text-4xl md:text-5xl font-semibold font-poppins text-foreground md:pl-8 drop-shadow-xl"
-                animation="blurInUp"
-                by="character"
-                once
-              >
-                {show.Name || ""}
-              </TextAnimate>
+          <MediaDetail.Actions>
+            <div className="flex items-center gap-2 mb-4 w-full justify-center md:justify-start">
+              <SeriesPlayButton series={show} onBeforePlay={() => {}} />
             </div>
+            <MediaActions movie={show} onBeforePlay={() => {}} />
+            <MediaDetail.Overview />
 
-            {/* Show badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-2 justify-center md:justify-start md:pl-8">
-              {show.ProductionYear && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm"
-                >
-                  {show.ProductionYear}
-                </Badge>
-              )}
-              {show.OfficialRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm"
-                >
-                  {show.OfficialRating}
-                </Badge>
-              )}
-              {show.CommunityRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
-                >
-                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  {show.CommunityRating.toFixed(1)}
-                </Badge>
-              )}
-              {show.CriticRating && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/90 backdrop-blur-sm flex items-center gap-1"
-                >
-                  <RottenTomatoesIcon size={12} />
-                  {show.CriticRating}%
-                </Badge>
-              )}
-            </div>
-
-            <div className="px-8 md:pl-8 md:pt-4 md:pr-16 flex flex-col justify-center md:items-start items-center">
-              {/* Series play/resume button and media actions */}
-              <div className="flex items-center gap-2 mb-4">
-                <SeriesPlayButton
-                  series={show}
-                  onBeforePlay={pauseThemeMedia}
-                />
-              </div>
-              <MediaActions movie={show} onBeforePlay={pauseThemeMedia} />
-
-              {show.Taglines &&
-                show.Taglines.length > 0 &&
-                show.Taglines[0] && (
-                  <TextScramble
-                    className="text-lg text-muted-foreground mb-4 max-w-4xl text-center md:text-left font-poppins drop-shadow-md"
-                    duration={1.2}
-                  >
-                    {show.Taglines[0]}
-                  </TextScramble>
-                )}
-
-              <p className="text-md leading-relaxed mb-6 max-w-4xl">
-                {show.Overview}
-              </p>
-
-              {/* Additional show information */}
-              <div className="space-y-3 mb-6 max-w-4xl">
-                {/* Genres */}
-                {show.Genres && show.Genres.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground min-w-fit">
-                      Genres:
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {show.Genres.map((genre, index) => (
-                        <Badge
-                          key={genre}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {genre}
-                        </Badge>
-                      ))}
-                    </div>
+            <MediaDetail.Metadata>
+              {show.Genres && show.Genres.length > 0 && (
+                <MediaDetail.MetadataItem label="Genres">
+                  <div className="flex flex-wrap gap-1">
+                    {show.Genres.map((genre) => (
+                      <Badge key={genre} variant="secondary" className="text-xs">
+                        {genre}
+                      </Badge>
+                    ))}
                   </div>
-                )}
+                </MediaDetail.MetadataItem>
+              )}
 
-                {/* Director */}
-                {show.People &&
-                  show.People.filter((person) => person.Type === "Director")
-                    .length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground min-w-fit">
-                        Director:
-                      </span>
+              {show.People && (
+                <>
+                  {show.People.filter((p) => p.Type === "Director").length > 0 && (
+                    <MediaDetail.MetadataItem label="Director">
                       <div className="flex flex-wrap gap-1">
-                        {show.People.filter(
-                          (person) => person.Type === "Director"
-                        ).map((director, index, array) => (
+                        {show.People.filter((p) => p.Type === "Director").map((director, i, arr) => (
                           <span key={director.Id} className="text-sm">
-                            <Link
-                              to={`/person/${director.Id}`}
-                              className="hover:underline cursor-pointer"
-                            >
+                            <Link to={`/person/${director.Id}`} className="hover:underline cursor-pointer">
                               {director.Name}
                             </Link>
-                            {index < array.length - 1 && ", "}
+                            {i < arr.length - 1 && ", "}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </MediaDetail.MetadataItem>
                   )}
 
-                {/* Writers */}
-                {show.People &&
-                  show.People.filter((person) => person.Type === "Writer")
-                    .length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground min-w-fit">
-                        Writers:
-                      </span>
+                  {show.People.filter((p) => p.Type === "Writer").length > 0 && (
+                    <MediaDetail.MetadataItem label="Writers">
                       <div className="flex flex-wrap gap-1">
-                        {show.People.filter(
-                          (person) => person.Type === "Writer"
-                        ).map((writer, index, array) => (
+                        {show.People.filter((p) => p.Type === "Writer").map((writer, i, arr) => (
                           <span key={writer.Id} className="text-sm">
-                            <Link
-                              to={`/person/${writer.Id}`}
-                              className="hover:underline cursor-pointer"
-                            >
+                            <Link to={`/person/${writer.Id}`} className="hover:underline cursor-pointer">
                               {writer.Name}
                             </Link>
-                            {index < array.length - 1 && ", "}
+                            {i < arr.length - 1 && ", "}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </MediaDetail.MetadataItem>
                   )}
+                </>
+              )}
 
-                {/* Studios */}
-                {show.Studios && show.Studios.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground min-w-fit">
-                      Studio:
-                    </span>
-                    <span className="text-sm">
-                      {show.Studios.map(
-                        (studio: any) => studio.Name || studio
-                      ).join(", ")}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {/* Media actions */}
-            </div>
-          </div>
-        </div>
+              {show.Studios && show.Studios.length > 0 && (
+                <MediaDetail.MetadataItem label="Studio">
+                  <span className="text-sm">
+                    {show.Studios.map((s: any) => s.Name || s).join(", ")}
+                  </span>
+                </MediaDetail.MetadataItem>
+              )}
+            </MediaDetail.Metadata>
+          </MediaDetail.Actions>
+        </MediaDetail.Content>
+      </MediaDetail.Main>
 
-        <h2 className="text-3xl font-semibold font-poppins text-foreground mt-12 mb-6 text-center md:text-left mx-auto">
+      <div className="px-6 mx-auto">
+        <h2 className="text-3xl font-semibold font-poppins text-foreground mt-12 mb-6 text-center md:text-left">
           Seasons
         </h2>
-
-        {/* Seasons section */}
-        <div className="mt-8 mx-auto md:px-0 px-6 flex flex-row flex-wrap gap-8">
+        <div className="mt-8 flex flex-row flex-wrap gap-8 justify-center md:justify-start">
           {seasons.map((season) => (
             <MediaCard
               key={season.Id}
@@ -362,26 +208,14 @@ export default function Show() {
                 Type: "Season",
                 ProductionYear: season.ProductionYear,
               }}
-              serverUrl={serverUrl!}
+              serverUrl={serverUrl}
             />
           ))}
         </div>
-      </motion.div>
-      {/* Cast section */}
-      <div className="mt-12 px-6">
-        <CastScrollArea people={show.People!} mediaId={id} />
       </div>
 
-      {similarItems && (
-        <div className="mt-8 px-6">
-          <MediaSection
-            sectionName="More Like This"
-            mediaItems={similarItems as BaseItemDto[]}
-            serverUrl={serverUrl!}
-          />
-        </div>
-      )}
-      {/* More Like This section */}
-    </div>
+      <MediaDetail.Cast />
+      <MediaDetail.Similar items={similarItems} />
+    </MediaDetail.Root>
   );
 }

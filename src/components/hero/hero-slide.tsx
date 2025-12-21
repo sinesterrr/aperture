@@ -1,7 +1,7 @@
 
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models/base-item-dto";
 import { Play, Info } from "lucide-react";
-import { useMediaPlayer } from "../../contexts/MediaPlayerContext";
+import { usePlayback } from "../../hooks/usePlayback";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { decode } from "blurhash";
 import { AmbientLight } from "./ambient-light";
 import { CinematicParticles } from "./cinematic-particles";
+import { OptimizedImage } from "../optimized-image";
 
 interface HeroSlideProps {
   item: BaseItemDto;
@@ -16,7 +17,7 @@ interface HeroSlideProps {
 }
 
 export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
-  const { playMedia, setIsPlayerVisible } = useMediaPlayer();
+  const { play } = usePlayback();
   const navigate = useNavigate();
   const [blurDataUrl, setBlurDataUrl] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -62,13 +63,12 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
 
   const handlePlay = async () => {
      if (item && item.Type !== "BoxSet") {
-      await playMedia({
+      play({
         id: item.Id!,
         name: item.Name!,
         type: item.Type as "Movie" | "Series" | "Episode",
         resumePositionTicks: item.UserData?.PlaybackPositionTicks,
       });
-      setIsPlayerVisible(true);
     }
   };
 
@@ -90,17 +90,17 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
        <div className="absolute inset-0 overflow-hidden rounded-xl z-0">
           {blurDataUrl && !imageLoaded && (
             <div 
-              className="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000"
+              className="absolute inset-0 w-full h-full bg-cover bg-top transition-opacity duration-1000"
               style={{ backgroundImage: `url(${blurDataUrl})` }}
             />
           )}
 
           {/* Wrapper for Ken Burns Effect */}
           <div className="w-full h-full animate-ken-burns">
-              <img
+              <OptimizedImage
                 src={imageUrl}
                 alt={item.Name || "Hero Background"}
-                className={`w-full h-full object-cover transition-opacity duration-1000 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`w-full h-full object-cover object-top transition-opacity duration-1000 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                 onLoad={() => setImageLoaded(true)}
                 draggable={false}
               />
@@ -119,7 +119,7 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
              
              {/* Logo or Title */}
              {logoUrl ? (
-                 <img 
+                 <OptimizedImage
                     src={logoUrl} 
                     alt={item.Name || "Logo"}
                     className={`h-20 md:h-28 lg:h-32 w-auto object-contain object-left-bottom drop-shadow-2xl transition-opacity duration-700 ${logoLoaded ? "opacity-100" : "opacity-0"}`}

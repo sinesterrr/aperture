@@ -30,6 +30,12 @@ export const THEME_VARIANTS: ThemeVariantEntry = {
       themeId: "dark",
     },
     {
+      name: "Glassmorphism",
+      description: "Frosty transparency with soft blurs.",
+      gradient: ["#60a5fa", "#38bdf8", "#818cf8"],
+      themeId: "glassmorphism",
+    },
+    {
       name: "Cinematic Theatre Black",
       description: "Pitch black canvas with ember highlights.",
       gradient: ["#010103", "#0b0b0f", "#f97316"],
@@ -77,5 +83,6 @@ export const THEME_VARIANTS: ThemeVariantEntry = {
       gradient: ["#312e81", "#4c1d95", "#64748b"],
       themeId: "deep-velvet",
     },
+    
   ],
 };

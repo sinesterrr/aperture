@@ -128,3 +128,21 @@ export const formatPlaybackPosition = (ticks: number): string => {
   }
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
+
+// Consistent video time formatting based on total duration
+export const formatVideoTime = (ticks: number, totalTicks: number): string => {
+  const totalSeconds = Math.floor(ticks / 10000000);
+  const totalDurationSeconds = Math.floor(totalTicks / 10000000);
+  
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const hasHours = totalDurationSeconds >= 3600;
+
+  if (hasHours) {
+      // Always show hours if the video is long enough to have them
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};

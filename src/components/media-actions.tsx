@@ -17,7 +17,7 @@ import {
 } from "../components/ui/dialog";
 import { MediaInfoDialog } from "../components/media-info-dialog";
 import { ImageEditorDialog } from "../components/image-editor-dialog";
-import { Info, Download, Play, ArrowLeft, Layers } from "lucide-react";
+import { Info, Download, Play, ArrowLeft, Layers, ChevronDown, Music } from "lucide-react";
 import {
   getDownloadUrl,
   getStreamUrl,
@@ -32,7 +32,7 @@ import {
   formatPlaybackPosition,
   formatRuntime,
 } from "../lib/utils";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+import { usePlayback } from "../hooks/usePlayback";
 import { DolbyDigital, DolbyTrueHd, DolbyVision, DtsHd } from "./icons/codecs";
 
 interface MediaActionsProps {
@@ -49,9 +49,10 @@ export function MediaActions({
   onBeforePlay,
 }: MediaActionsProps) {
   const media = movie || show || episode;
-  const { isPlayerVisible, setIsPlayerVisible, playMedia } = useMediaPlayer();
+  const { play } = usePlayback();
   const [selectedVersion, setSelectedVersion] =
     useState<MediaSourceInfo | null>(null);
+  const [selectedAudioStreamIndex, setSelectedAudioStreamIndex] = useState<number | undefined>(undefined);
   const [userPolicy, setUserPolicy] = useState<UserPolicy | null>(null);
 
   // Determine if this is a resume or new play
@@ -64,12 +65,38 @@ export function MediaActions({
   const timeLeftTicks = totalRuntimeTicks - resumePositionTicks;
   const timeLeft = formatRuntime(timeLeftTicks);
 
-  // Initialize selectedVersion when media changes
+  // Initialize selectedVersion and Audio Stream when media changes
   useEffect(() => {
     if (media?.MediaSources && media.MediaSources.length > 0) {
-      setSelectedVersion(media.MediaSources[0]);
+      const defaultSource = media.MediaSources[0];
+      setSelectedVersion(defaultSource);
+      
+      // Select default audio stream
+      if (defaultSource.MediaStreams) {
+          const defaultAudio = defaultSource.MediaStreams.find(s => s.Type === 'Audio' && s.IsDefault);
+          if (defaultAudio) {
+              setSelectedAudioStreamIndex(defaultAudio.Index);
+          } else {
+              // Fallback to first audio stream
+              const firstAudio = defaultSource.MediaStreams.find(s => s.Type === 'Audio');
+              setSelectedAudioStreamIndex(firstAudio?.Index);
+          }
+      }
     }
   }, [media]);
+
+  // Update selected audio when version changes
+  useEffect(() => {
+      if (selectedVersion?.MediaStreams) {
+          const defaultAudio = selectedVersion.MediaStreams.find(s => s.Type === 'Audio' && s.IsDefault);
+          if (defaultAudio) {
+              setSelectedAudioStreamIndex(defaultAudio.Index);
+          } else {
+               const firstAudio = selectedVersion.MediaStreams.find(s => s.Type === 'Audio');
+               setSelectedAudioStreamIndex(firstAudio?.Index);
+          }
+      }
+  }, [selectedVersion]);
 
   // Fetch user policy when component mounts
   useEffect(() => {
@@ -163,6 +190,37 @@ export function MediaActions({
     return getMediaSourceDisplayName(source);
   };
 
+  const renderSourceLabel = (source: MediaSourceInfo, isDropdown = false) => {
+    const techName = getMediaSourceDisplayName(source);
+    const verName = getVersionName(source);
+    
+    const isBracketed = verName.startsWith('[') && verName.endsWith(']');
+    const cleanVerName = isBracketed ? verName.replace(/[\[\]]/g, '') : verName;
+    
+    const isRedundant = !isBracketed && (verName === techName || techName.toLowerCase().includes(verName.toLowerCase()));
+
+    if (isRedundant) {
+        return techName;
+    }
+
+    if (isDropdown) {
+        return (
+            <div className="flex flex-col items-start gap-0.5 leading-tight">
+                <span className="font-medium text-[0.8rem] text-primary">{cleanVerName}</span>
+                <span className="text-xs text-muted-foreground font-normal">{techName}</span>
+            </div>
+        );
+    }
+
+    return (
+        <span className="flex items-center gap-1.5">
+            <span className="font-semibold text-primary opacity-90">{cleanVerName}</span>
+            <span className="opacity-50">•</span>
+            <span>{techName}</span>
+        </span>
+    );
+  };
+
   // Helper function to check if media has Dolby Digital audio
   const hasDolbyDigital = (source: MediaSourceInfo) => {
     if (!source.MediaStreams) {
@@ -225,6 +283,44 @@ export function MediaActions({
     return result;
   };
 
+  const getAudioStreamDisplayName = (stream: any, includeTitle = true) => {
+      // 1. codec cleaning
+      const codecMap: Record<string, string> = {
+          'ac3': 'Dolby Digital',
+          'eac3': 'Dolby Digital Plus',
+          'dca': 'DTS',
+          'dts': 'DTS',
+          'dtshd': 'DTS-HD',
+          'truehd': 'TrueHD',
+          'aac': 'AAC',
+          'mp3': 'MP3',
+          'flac': 'FLAC',
+          'opus': 'Opus',
+          'vorbis': 'Vorbis',
+          'pcm': 'PCM'
+      };
+      
+      const rawCodec = (stream.Codec || '').toLowerCase();
+      const codec = codecMap[rawCodec] || stream.Codec?.toUpperCase() || 'Unknown';
+
+      // 2. channel cleaning
+      const channels = stream.ChannelLayout || (stream.Channels ? `${stream.Channels}ch` : '');
+
+      // 3. title/commentary extraction
+      const explicitTitle = stream.Title;
+      
+      const parts = [codec];
+      if (channels) parts.push(channels);
+      
+      const techLabel = parts.join(' ');
+      
+      if (includeTitle && explicitTitle) {
+          return `${explicitTitle} (${techLabel})`;
+      }
+      
+      return techLabel;
+  };
+
   const hasDtsHd = (source: MediaSourceInfo) => {
     if (!source.MediaStreams) {
       return false;
@@ -248,11 +344,10 @@ export function MediaActions({
       <div className="flex items-center gap-2">
         <Button
           variant="default"
-          onClick={async () => {
-            // Set the current media in context, GlobalMediaPlayer will handle the rest
+          onClick={() => {
             if (media) {
               onBeforePlay?.();
-              await playMedia({
+              play({
                 id: media.Id!,
                 name: media.Name!,
                 type: media.Type as
@@ -262,8 +357,8 @@ export function MediaActions({
                   | "TvChannel",
                 resumePositionTicks: media.UserData?.PlaybackPositionTicks,
                 selectedVersion: selectedVersion,
+                audioStreamIndex: selectedAudioStreamIndex,
               });
-              setIsPlayerVisible(true);
             }
           }}
           className="gap-2"
@@ -276,17 +371,15 @@ export function MediaActions({
         </Button>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
-          >
-            {getMediaSourceDisplayName(selectedVersion)}
-          </Button>
-          {hasMultipleVersions && (
+          {hasMultipleVersions ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="truncate">
-                <Button variant="outline" className="gap-1.5 px-4">
-                  Version
+                <Button
+                  variant="outline"
+                  className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
+                >
+                  {renderSourceLabel(selectedVersion)}
+                  <ChevronDown className="h-4 w-4 opacity-50 ml-1 flex-shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -299,7 +392,7 @@ export function MediaActions({
                     }}
                     className="fill-foreground gap-3 flex justify-between"
                   >
-                    {cutOffText(getVersionName(source), 64)}
+                    {renderSourceLabel(source, true)}
                     <Badge variant="outline" className="bg-sidebar">
                       {source.Size
                         ? `${(source.Size / 1024 ** 3).toFixed(2)} GB`
@@ -309,8 +402,57 @@ export function MediaActions({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <Button
+              variant="outline"
+              className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4"
+            >
+              {getMediaSourceDisplayName(selectedVersion)}
+            </Button>
           )}
         </div>
+        
+        {/* Audio Stream Selector */}
+        {selectedVersion?.MediaStreams && (
+            (() => {
+                const audioStreams = selectedVersion.MediaStreams?.filter(s => s.Type === 'Audio');
+                if (audioStreams && audioStreams.length > 1) {
+                    const currentAudio = audioStreams.find(s => s.Index === selectedAudioStreamIndex);
+                    return (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4 max-w-[200px]">
+                                    <Music className="h-4 w-4 opacity-70" />
+                                    <span className="truncate">
+                                        {currentAudio ? getAudioStreamDisplayName(currentAudio) : 'Audio'}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 opacity-50 ml-1 flex-shrink-0" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                {audioStreams.map(stream => (
+                                    <DropdownMenuItem
+                                        key={stream.Index}
+                                        onSelect={() => setSelectedAudioStreamIndex(stream.Index)}
+                                        className="fill-foreground gap-3 flex justify-between"
+                                    >
+                                        <div className="flex flex-col">
+                                            <span>{stream.DisplayTitle || stream.Language || `Track ${stream.Index}`}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {stream.Language && <span className="mr-1">[{stream.Language.toUpperCase()}]</span>}
+                                                {getAudioStreamDisplayName(stream, false)}
+                                            </span>
+                                        </div>
+                                        {stream.IsDefault && <Badge variant="secondary" className="text-[0.6rem]">Default</Badge>}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    );
+                }
+                return null;
+            })()
+        )}
 
         <Button variant="outline" size="icon" onClick={download}>
           <Download className="h-4 w-4" />
@@ -344,7 +486,7 @@ export function MediaActions({
             {media.MediaSources.length} versions available — pick one from the
             dropdown
             <Badge variant="secondary" className="text-[0.6rem] uppercase">
-              Current: {getVersionName(selectedVersion)}
+              Current: {renderSourceLabel(selectedVersion)}
             </Badge>
           </span>
         </div>

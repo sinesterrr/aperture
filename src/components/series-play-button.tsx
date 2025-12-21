@@ -3,7 +3,7 @@ import { JellyfinItem } from "../types/jellyfin";
 import { Button } from "../components/ui/button";
 import { Play, Loader2 } from "lucide-react";
 import { getNextEpisodeForSeries } from "../actions/tv-shows";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+import { usePlayback } from "../hooks/usePlayback";
 import { Skeleton } from "./ui/skeleton";
 
 interface SeriesPlayButtonProps {
@@ -17,7 +17,7 @@ export function SeriesPlayButton({
 }: SeriesPlayButtonProps) {
   const [nextEpisode, setNextEpisode] = useState<JellyfinItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const { playMedia, setIsPlayerVisible } = useMediaPlayer();
+  const { play } = usePlayback();
 
   useEffect(() => {
     async function fetchNextEpisode() {
@@ -42,14 +42,13 @@ export function SeriesPlayButton({
 
     try {
       onBeforePlay?.();
-      await playMedia({
+      play({
         id: nextEpisode.Id!,
         name: nextEpisode.Name!,
         type: "Episode",
         resumePositionTicks: nextEpisode.UserData?.PlaybackPositionTicks,
         selectedVersion: nextEpisode.MediaSources?.[0] || undefined,
       });
-      setIsPlayerVisible(true);
     } catch (error) {
       console.error("Failed to play episode:", error);
     }

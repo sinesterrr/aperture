@@ -1,7 +1,6 @@
 import { useAtom } from "jotai";
 import { SidebarInset, SidebarProvider } from "../components/ui/sidebar";
 import { AppSidebar } from "../components/app-sidebar";
-import { GlobalMediaPlayer } from "../components/global-media-player/index";
 import {
   isTauriMacAtom,
   isTauriFullscreenAtom,
@@ -55,8 +54,6 @@ export function LayoutContent({ children }: LayoutContentProps) {
           <div className="flex-1 overflow-y-auto no-scrollbar">{children}</div>
         </SidebarInset>
       </SidebarProvider>
-
-      <GlobalMediaPlayer />
     </div>
   );
 }

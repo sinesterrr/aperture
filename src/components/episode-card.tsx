@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Skeleton } from "../components/ui/skeleton";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { Play } from "lucide-react";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+import { usePlayback } from "../hooks/usePlayback";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "./optimized-image";
 
 export function EpisodeCard({
   item,
@@ -18,7 +19,7 @@ export function EpisodeCard({
   showProgress?: boolean;
   resumePosition?: number;
 }) {
-  const { playMedia, setIsPlayerVisible } = useMediaPlayer();
+  const { play } = usePlayback();
 
   const linkHref = `/episode/${item.Id}`;
 
@@ -37,14 +38,13 @@ export function EpisodeCard({
     e.stopPropagation();
 
     if (item) {
-      await playMedia({
+      play({
         id: item.Id!,
         name: item.Name!,
         type: "Episode",
         resumePositionTicks:
           resumePosition || item.UserData?.PlaybackPositionTicks,
       });
-      setIsPlayerVisible(true);
     }
   };
 
@@ -53,15 +53,12 @@ export function EpisodeCard({
       <div className="relative w-full border rounded-md overflow-hidden active:scale-[0.98] transition aspect-video">
         <Link to={linkHref} draggable={false} className="block w-full h-full">
           {serverUrl ? (
-            <img
+            <OptimizedImage
               src={imageUrl}
               className={`w-full h-full object-cover transition duration-200 shadow-lg hover:brightness-85 group-hover:shadow-md ${
                 progressPercentage > 0 ? "rounded-t-md" : "rounded-md"
               }`}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-              draggable="false"
+              draggable={false}
               alt={item.Name || "Episode"}
             />
           ) : (

@@ -63,6 +63,11 @@ const AURORA_THEME_PRESETS: Record<
     background:
       "radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.45), transparent 60%), radial-gradient(circle at 80% 5%, rgba(14, 165, 233, 0.35), transparent 45%), linear-gradient(135deg, rgba(7, 4, 20, 0.95), rgba(15, 10, 35, 0.9))",
   },
+  glassmorphism: {
+    colors: ["#60a5fa", "#a78bfa", "#38bdf8"],
+    background:
+      "radial-gradient(circle at 20% 25%, rgba(96, 165, 250, 0.15), transparent 50%), radial-gradient(circle at 75% 10%, rgba(167, 139, 250, 0.12), transparent 45%), linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.8))",
+  },
 };
 
 const AURORA_ENABLED_THEMES = new Set<string>([
@@ -76,6 +81,7 @@ const AURORA_ENABLED_THEMES = new Set<string>([
   "peach-sorbet",
   "lilac-dream",
   "deep-velvet",
+  "glassmorphism",
 ]);
 
 const arraysEqual = (a: string[], b: string[]) =>

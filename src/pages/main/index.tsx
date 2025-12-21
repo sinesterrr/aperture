@@ -85,7 +85,7 @@ export default function Home() {
       <div className="relative px-4 py-6 max-w-full overflow-hidden">
         <AuroraBackground />
 
-        <div className="relative z-[9999] mb-8">
+        <div className="relative z-[99] mb-8">
           <div className="mb-6">
             <SearchBar />
           </div>

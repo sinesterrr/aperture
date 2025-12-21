@@ -83,7 +83,7 @@ export default function Search() {
     <div className="relative px-4 py-6 max-w-full">
       <VibrantAuroraBackground amplitude={0.8} blend={0.4} />
 
-      <div className="relative z-[9999] mb-8">
+      <div className="relative z-[99] mb-8">
         <div className="mb-6">
           <SearchBar />
         </div>

@@ -7,7 +7,7 @@ import { searchItems } from "../actions";
 import { Badge } from "./ui/badge";
 import { SearchSuggestionItem } from "./search-suggestion-item";
 import { TextShimmerWave } from "./ui/text-shimmer-wave";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+
 import * as Kbd from "../components/ui/kbd";
 import { TextShimmer } from "./motion-primitives/text-shimmer";
 import { useAuth } from "../hooks/useAuth";
@@ -24,7 +24,8 @@ export function SearchBar({ className = "" }: SearchBarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
-  const { isPlayerVisible } = useMediaPlayer();
+  // const { isPlayerVisible } = useMediaPlayer(); 
+  const isPlayerVisible = false;
   // Server actions are imported directly
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -186,17 +187,17 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
   return (
     <div
-      className={`relative z-[9999] md:max-w-xl ${className}`}
+      className={`relative z-[99] md:max-w-xl ${className}`}
       ref={suggestionsRef}
     >
       <form onSubmit={handleSearch} className="flex gap-2">
         {/* Mobile Navigation Trigger - Only visible on mobile */}
         <div className="md:hidden">
-          <SidebarTrigger className="dark:bg-background/70! bg-background/90 border-border border text-foreground hover:bg-accent rounded-2xl h-11 w-11 p-0 backdrop-blur-sm" />
+          <SidebarTrigger className="bg-card border-border border text-foreground hover:bg-accent rounded-2xl h-11 w-11 p-0" />
         </div>
 
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground z-10" />
           <Input
             ref={inputRef}
             type="text"
@@ -209,7 +210,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
                 setShowSuggestions(true);
               }
             }}
-            className="pl-10 pr-16 border-border text-foreground placeholder:text-muted-foreground h-11 rounded-2xl md:rounded-xl backdrop-blur-md dark:bg-background/70! bg-background/90"
+            className="pl-10 pr-16 border-border text-foreground placeholder:text-muted-foreground h-11 rounded-2xl md:rounded-xl dark:bg-background/70 bg-background/90 backdrop-blur-md"
           />
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
             <Kbd.Root variant="outline" size="lg">
@@ -221,7 +222,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
       {/* Search Suggestions Dropdown */}
       {(showSuggestions || isLoading) && (
-        <div className="absolute top-full left-0 right-0 mt-2 dark:bg-background/70! bg-background/90 backdrop-blur-md rounded-xl border shadow-xl shadow-accent/30 z-[9999] max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl border z-[99] max-h-96 overflow-y-auto">
           {isLoading && loadingComponent}
 
           {!isLoading && suggestions.length > 0 && (

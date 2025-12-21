@@ -23,7 +23,7 @@ const HEVC_MEDIA_TYPES = [
 
 let cachedHevcSupport: boolean | null = null;
 
-function canBrowserDirectPlayHevc(): boolean {
+export function canBrowserDirectPlayHevc(): boolean {
   if (cachedHevcSupport !== null) return cachedHevcSupport;
 
   if (typeof navigator === "undefined") {
@@ -201,18 +201,23 @@ export async function getStreamUrl(
   mediaSourceId: string,
   quality?: string,
   videoBitrate?: number,
-  audioStreamIndex: number = 1
+  audioStreamIndex: number = 1,
+  subtitleStreamIndex?: number
 ): Promise<string> {
   const { serverUrl, user } = await getAuthData();
   const supportsHevc = canBrowserDirectPlayHevc();
   const preferredVideoCodecs = supportsHevc ? "h264,hevc" : "h264";
   const requireAvc = (!supportsHevc).toString();
-  const allowVideoStreamCopy = supportsHevc.toString();
+  const allowVideoStreamCopy = "true";
 
   // Generate a unique PlaySessionId for each stream request
   const playSessionId = uuidv4();
 
-  let url = `${serverUrl}/Videos/${itemId}/master.m3u8?api_key=${user.AccessToken}&MediaSourceId=${mediaSourceId}&PlaySessionId=${playSessionId}&VideoCodec=${preferredVideoCodecs}&AudioCodec=aac,mp3&TranscodingProtocol=hls&RequireAvc=${requireAvc}&AllowVideoStreamCopy=${allowVideoStreamCopy}&AudioStreamIndex=${audioStreamIndex}`;
+  let url = `${serverUrl}/Videos/${itemId}/master.m3u8?api_key=${user.AccessToken}&MediaSourceId=${mediaSourceId}&PlaySessionId=${playSessionId}&VideoCodec=${preferredVideoCodecs}&AudioCodec=aac&TranscodingProtocol=hls&RequireAvc=${requireAvc}&AllowVideoStreamCopy=${allowVideoStreamCopy}&AudioStreamIndex=${audioStreamIndex}&SegmentContainer=mp4&BreakOnNonKeyFrames=True&MinSegments=2&MaxFramerate=60`;
+
+  if (subtitleStreamIndex !== undefined) {
+    url += `&SubtitleStreamIndex=${subtitleStreamIndex}`;
+  }
 
   // Apply custom bitrate if specified (takes precedence over quality presets)
   if (videoBitrate && videoBitrate > 0) {
@@ -230,6 +235,10 @@ export async function getStreamUrl(
         url += "&width=1280&height=720&videoBitRate=4000000";
         break;
     }
+  } else {
+    // Default cap: 10 Mbps (High efficiency, good performance)
+    // This prevents "Auto" (undefined) from requesting unlimited bitrate which causes lag
+    url += "&videoBitRate=10000000";
   }
 
   return url;
@@ -347,6 +356,7 @@ export async function getSubtitleTracks(
     language: string;
     src: string;
     default?: boolean;
+    index: number;
   }>
 > {
   const { serverUrl, user } = await getAuthData();
@@ -369,10 +379,10 @@ export async function getSubtitleTracks(
     );
     const subtitleStreams =
       mediaSource?.MediaStreams?.filter(
-        (stream) => stream.Type === "Subtitle"
+        (stream) => stream.Type === "Subtitle" && (stream.Codec || '').toLowerCase() !== 'pgssub'
       ) || [];
     const subtitleTracks = subtitleStreams.map((stream) => {
-      const src = `${serverUrl}/Videos/${itemId}/${mediaSourceId}/Subtitles/${stream.Index}/Stream.js?api_key=${user.AccessToken}`;
+      const src = `${serverUrl}/Videos/${itemId}/${mediaSourceId}/Subtitles/${stream.Index}/Stream.vtt?api_key=${user.AccessToken}`;
       return {
         kind: "subtitles",
         label:
@@ -380,10 +390,9 @@ export async function getSubtitleTracks(
         language: stream.Language || "unknown",
         src: src,
         default: stream.IsDefault || false,
+        index: stream.Index ?? -1,
       };
     });
-
-    console.log("Subtitle tracks:", subtitleTracks);
 
     return subtitleTracks;
   } catch (error) {
@@ -440,7 +449,12 @@ export async function getAudioTracks(
       default: stream.IsDefault || false,
     }));
 
-    console.log("Audio tracks:", audioTracks);
+    // Sort: Default first, then Language
+    audioTracks.sort((a, b) => {
+        if (a.default && !b.default) return -1;
+        if (!a.default && b.default) return 1;
+        return (a.language || "").localeCompare(b.language || "");
+    });
 
     return audioTracks;
   } catch (error) {

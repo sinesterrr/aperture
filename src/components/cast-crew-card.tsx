@@ -1,6 +1,8 @@
 import { useAuth } from "../hooks/useAuth";
 import { BaseItemPerson } from "@jellyfin/sdk/lib/generated-client/models";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "./optimized-image";
 
 // Utility function to format role names by adding spaces before capital letters
 function formatRole(role: string): string {
@@ -10,21 +12,20 @@ function formatRole(role: string): string {
 export function CastCrewCard({ person }: { person: BaseItemPerson }) {
   const { serverUrl } = useAuth();
 
-  const imageUrl = `${serverUrl}/Items/${person.Id}/Images/Primary?maxWidth=250&maxHeight=250&quality=60&tag=${person.PrimaryImageTag}`;
-
-  // const lightSpeedUrl = imageUrl?.includes("192.168.")
-  //   ? imageUrl
-  //   : "https://lightspeed.ac/?url=" + imageUrl;
-
-  const lightSpeedUrl = imageUrl ?? "";
+  const imageUrl = useMemo(() => {
+    if (person.PrimaryImageTag && serverUrl && person.Id) {
+      return `${serverUrl}/Items/${person.Id}/Images/Primary?maxWidth=250&maxHeight=250&quality=60&tag=${person.PrimaryImageTag}`;
+    }
+    return undefined;
+  }, [person, serverUrl]);
 
   return (
     <Link to={`/person/${person.Id}`} className="shrink-0 group">
       <figure className="cursor-pointer transition-transform">
         <div className="overflow-hidden rounded-full shadow-lg group-hover:brightness-75 transition">
           {person.PrimaryImageTag ? (
-            <img
-              src={lightSpeedUrl}
+            <OptimizedImage
+              src={imageUrl}
               alt={person.Name || "Cast member"}
               className="aspect-square h-fit w-24 object-cover"
             />

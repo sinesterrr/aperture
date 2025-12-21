@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { Antenna, Play } from "lucide-react";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+import { usePlayback } from "../hooks/usePlayback";
 
 import { decode } from "blurhash";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "./optimized-image";
 
 export function LiveChannelCard({
   item,
@@ -13,7 +14,7 @@ export function LiveChannelCard({
   item: BaseItemDto;
   serverUrl: string;
 }) {
-  const { playMedia, setIsPlayerVisible } = useMediaPlayer();
+  const { play } = usePlayback();
 
   // WIP - Link logic for TV channels
   let linkHref = "/livetv/" + item.Id;
@@ -63,23 +64,14 @@ export function LiveChannelCard({
     e.stopPropagation();
 
     if (item && item.Type !== "BoxSet") {
-      await playMedia({
+      play({
         id: item.Id!,
         name: item.Name!,
         type: item.Type as "Movie" | "Series" | "Episode",
         resumePositionTicks: item.UserData?.PlaybackPositionTicks,
       });
-      setIsPlayerVisible(true);
     }
   };
-
-  // const lightSpeedUrl = imageUrl
-  //   ? imageUrl?.includes("192.168.")
-  //     ? imageUrl
-  //     : "https://lightspeed.ac/?url=" + imageUrl
-  //   : null;
-
-  const lightSpeedUrl = imageUrl ?? "";
 
   return (
     <div
@@ -104,21 +96,15 @@ export function LiveChannelCard({
                 />
               )}
               {/* Actual image */}
-              {lightSpeedUrl ? (
-                <img
-                  src={lightSpeedUrl}
+              {imageUrl ? (
+                <OptimizedImage
+                  src={imageUrl}
                   alt={item.Name || ""}
                   className={`w-full h-full object-cover transition-opacity duration-300 shadow-lg group-hover:shadow-md rounded-md opacity-100`}
                   onLoad={(e) => {
                     setImageLoaded(true);
                   }}
                   draggable={false}
-                  ref={(img) => {
-                    // Check if image is already loaded (cached)
-                    if (img && img.complete && img.naturalHeight !== 0) {
-                      setImageLoaded(true);
-                    }
-                  }}
                 />
               ) : (
                 <div className="w-full h-full bg-gray-800 flex items-center justify-center rounded-lg shadow-lg p-8">

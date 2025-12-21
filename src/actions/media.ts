@@ -217,6 +217,7 @@ export async function fetchMediaDetails(
         ItemFields.People,
         ItemFields.Studios,
         ItemFields.Trickplay,
+        ItemFields.Chapters,
       ],
     });
     return data.Items?.[0] ?? null;
@@ -912,5 +913,51 @@ export async function fetchHeroItems(): Promise<JellyfinItem[]> {
       throw authError;
     }
     return [];
+  }
+}
+// ... existing code ...
+
+export async function markFavorite(itemId: string): Promise<boolean> {
+  try {
+    const { serverUrl, user } = await getAuthData();
+    if (!user.AccessToken) throw new Error("No access token found");
+
+    const response = await fetch(
+      `${serverUrl}/Users/${user.Id}/FavoriteItems/${itemId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `MediaBrowser Token="${user.AccessToken}"`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("Failed to mark favorite:", error);
+    return false;
+  }
+}
+
+export async function unmarkFavorite(itemId: string): Promise<boolean> {
+  try {
+    const { serverUrl, user } = await getAuthData();
+    if (!user.AccessToken) throw new Error("No access token found");
+
+    const response = await fetch(
+      `${serverUrl}/Users/${user.Id}/FavoriteItems/${itemId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `MediaBrowser Token="${user.AccessToken}"`,
+        },
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("Failed to unmark favorite:", error);
+    return false;
   }
 }

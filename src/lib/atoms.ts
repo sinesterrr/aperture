@@ -13,42 +13,8 @@ export const isTauriFullscreenAtom = atom((get) => {
   return isElectronMac && isFullscreen;
 });
 
-// Media Player state
-export interface MediaToPlay {
-  id: string;
-  name: string;
-  type: "Movie" | "Series" | "Episode" | "TvChannel";
-  resumePositionTicks?: number;
-  selectedVersion?: MediaSourceInfo;
-}
+// Media Player state - REMOVED
 
-export interface CurrentMediaWithSource {
-  id: string;
-  name: string;
-  type: "Movie" | "Series" | "Episode" | "TvChannel";
-  mediaSourceId?: string | null;
-}
-
-export const isPlayerVisibleAtom = atom(false);
-export const currentMediaAtom = atom<MediaToPlay | null>(null);
-export const currentMediaWithSourceAtom = atom<CurrentMediaWithSource | null>(
-  null
-);
-export const skipTimestampAtom = atom<number | null>(null);
-export const currentTimestampAtom = atom(0);
-
-// Derived atom for playing media
-export const playMediaAtom = atom(null, (get, set, media: MediaToPlay) => {
-  set(currentMediaAtom, media);
-  set(isPlayerVisibleAtom, true);
-});
-
-// Derived atom for skipping to timestamp
-export const skipToTimestampAtom = atom(null, (get, set, timestamp: number) => {
-  set(skipTimestampAtom, timestamp);
-  // Clear the timestamp after a short delay to allow the player to consume it
-  setTimeout(() => set(skipTimestampAtom, null), 100);
-});
 
 // Aurora background colors with transition support
 export const auroraColorsAtom = atom<string[]>([

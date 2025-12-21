@@ -282,7 +282,7 @@ export const SeasonEpisodes = React.memo(function SeasonEpisodes({
   return (
     <div className="mt-8">
       <div className="flex items-center gap-4 mb-6">
-        <div className="relative z-[9999]">
+        <div className="relative z-[99]">
           <Select
             value={selectedSeasonId}
             onValueChange={(seasonId) => {
@@ -298,7 +298,7 @@ export const SeasonEpisodes = React.memo(function SeasonEpisodes({
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Select season" />
             </SelectTrigger>
-            <SelectContent className="z-[9999]">
+            <SelectContent className="z-[99]">
               {seasons.map((season) => (
                 <SelectItem key={season.Id} value={season.Id}>
                   {season.Name || `Season ${season.IndexNumber || 1}`}

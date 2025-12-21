@@ -1,6 +1,6 @@
 import React from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
-import { useMediaPlayer } from "../contexts/MediaPlayerContext";
+import { usePlayback } from "../hooks/usePlayback";
 
 interface ContinueWatchingCardProps {
   item: BaseItemDto;
@@ -11,7 +11,7 @@ export function ContinueWatchingCard({
   item,
   serverUrl,
 }: ContinueWatchingCardProps) {
-  const { playMedia, setIsPlayerVisible } = useMediaPlayer();
+  const { play } = usePlayback();
 
   // Calculate progress percentage from resume position
   let progressPercentage = 0;
@@ -26,13 +26,12 @@ export function ContinueWatchingCard({
 
   const handlePlayResume = async () => {
     if (item) {
-      await playMedia({
+      play({
         id: item.Id!,
         name: item.Name!,
         type: item.Type as "Movie" | "Series" | "Episode",
         resumePositionTicks: item.UserData?.PlaybackPositionTicks,
       });
-      setIsPlayerVisible(true);
     }
   };
 

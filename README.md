@@ -7,9 +7,7 @@
 </h1>
 <h4 align="center">A Modern, Streamlined Jellyfin Client built with Vite+React+Tauri</h4>
 
-https://github.com/user-attachments/assets/ebd8c289-658d-471d-98d3-c7fb3ae51d8e
-
-https://github.com/user-attachments/assets/5f536de2-de3f-4b2e-83bc-331ab88880ad
+https://github.com/user-attachments/assets/a35d71e2-14bf-475f-9e54-a0cf2c7bc044
 
 <div align="center">
   <table>
@@ -35,6 +33,14 @@ https://github.com/user-attachments/assets/5f536de2-de3f-4b2e-83bc-331ab88880ad
       </td>
       <td align="center">
         <img src="screenshots/series/player.png" alt="Dark Theme" width="500">
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="screenshots/series/details.png" alt="Dark Theme" width="500">
+      </td>
+      <td align="center">
+        <img src="screenshots/series/profile.png" alt="Dark Theme" width="500">
       </td>
     </tr>
   </table>

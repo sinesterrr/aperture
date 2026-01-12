@@ -85,7 +85,7 @@ export function MediaSection({
           {!hideViewAll ? (
             <Link
               to={href}
-              className="border-border flex items-center justify-center text-foreground hover:bg-accent border bg-background shadow-xs  hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+              className="border-border flex items-center whitespace-nowrap justify-center text-foreground hover:bg-accent border bg-background/10 shadow-xs  hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
             >
               View All
             </Link>

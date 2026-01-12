@@ -504,15 +504,13 @@ export function MediaActions({
         </div>
       </div>
       {hasMultipleVersions && (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground ml-1">
-          <Layers className="h-3 w-3 text-primary" />
-          <span className="flex items-center gap-2">
-            {media.MediaSources.length} versions available — pick one from the
-            dropdown
-            <Badge variant="secondary" className="text-[0.6rem] uppercase">
-              Current: {renderSourceLabel(selectedVersion)}
-            </Badge>
-          </span>
+        <div className="ml-1 flex flex-col gap-1.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex items-center gap-2">
+            <Layers className="h-3 w-3 text-primary" />
+            <span className="font-medium">
+              {media.MediaSources.length} versions available
+            </span>
+          </div>
         </div>
       )}
 

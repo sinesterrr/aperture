@@ -6,7 +6,7 @@ import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { LiveChannelCard } from "./live-channel-card";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface MediaSectionProps {
   sectionName: string;
@@ -27,6 +27,7 @@ export function MediaSection({
 }: MediaSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  let navigate = useNavigate();
 
   useEffect(() => {
     // Find the ScrollArea viewport after component mounts
@@ -82,13 +83,15 @@ export function MediaSection({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          {!hideViewAll ? (
-            <Link
-              to={href}
-              className="border-border flex items-center whitespace-nowrap justify-center text-foreground hover:bg-accent border bg-background/10 shadow-xs  hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+          {!hideViewAll && href && href !== "#" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-background/10 border-border text-foreground hover:bg-accent p-2"
+              onClick={() => navigate(href)}
             >
               View All
-            </Link>
+            </Button>
           ) : null}
         </div>
       </div>

@@ -51,6 +51,7 @@ import {
   LayoutDashboard,
   Users,
   Wrench,
+  CalendarClock,
   Activity,
 } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
@@ -298,6 +299,16 @@ export function AppSidebar({
                         >
                           <Activity className="h-4 w-4" />
                           <span>Activity</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/dashboard/tasks"
+                          className="flex items-center gap-2"
+                          onClick={() => setOpenMobile(false)}
+                        >
+                          <CalendarClock className="h-4 w-4" />
+                          <span>Scheduled tasks</span>
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

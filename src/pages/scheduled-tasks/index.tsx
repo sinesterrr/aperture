@@ -1,19 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchScheduledTasksList } from "../../actions";
+import { fetchScheduledTasksList, startScheduledTask } from "../../actions";
 import type { TaskInfo } from "@jellyfin/sdk/lib/generated-client/models";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
+import { toast } from "sonner";
+import { Activity } from "lucide-react";
+import { ScheduledTaskCard } from "../../components/scheduled-task-card";
 
 export default function ScheduledTasksPage() {
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -37,73 +33,85 @@ export default function ScheduledTasksPage() {
     };
   }, []);
 
-  const rows = useMemo(() => {
-    return tasks.slice().sort((a, b) => {
-      const aName = a.Name ?? "";
-      const bName = b.Name ?? "";
-      return aName.localeCompare(bName);
+  const sections = useMemo(() => {
+    const grouped = new Map<string, TaskInfo[]>();
+    tasks.forEach((task) => {
+      const category = task.Category || "Other";
+      const current = grouped.get(category) ?? [];
+      current.push(task);
+      grouped.set(category, current);
     });
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, items]) => ({
+        category,
+        items: items.slice().sort((a, b) => {
+          const aName = a.Name ?? "";
+          const bName = b.Name ?? "";
+          return aName.localeCompare(bName);
+        }),
+      }));
   }, [tasks]);
+
+  const handleStartTask = async (taskId?: string | null) => {
+    if (!taskId || startingTaskId) return;
+    try {
+      setStartingTaskId(taskId);
+      await startScheduledTask(taskId);
+      toast.success("Task started.");
+      const data = await fetchScheduledTasksList(false);
+      setTasks(data);
+    } catch (error) {
+      console.error("Failed to start task:", error);
+      toast.error("Failed to start task.");
+    } finally {
+      setStartingTaskId(null);
+    }
+  };
+
+  const handleOpenTask = (taskName?: string | null) => {
+    if (!taskName) return;
+    toast.message(`Open task "${taskName}" not implemented yet.`);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Scheduled Tasks
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              View all scheduled tasks configured on the server.
-            </p>
+      <div className="space-y-6">
+        {isLoading ? (
+          <div className="rounded-2xl border border-border/70 bg-background/70 p-6 text-sm text-muted-foreground">
+            Loading scheduled tasks...
           </div>
-          <Badge variant="secondary">
-            {rows.length} tasks
-          </Badge>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Progress</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-muted-foreground">
-                  Loading scheduled tasks...
-                </TableCell>
-              </TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-muted-foreground">
-                  No scheduled tasks found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((task) => (
-                <TableRow key={task.Id || task.Name}>
-                  <TableCell className="font-medium">
-                    {task.Name}
-                  </TableCell>
-                  <TableCell>{task.Category || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{task.State || "Unknown"}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {task.CurrentProgressPercentage ?? 0}%
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+        ) : sections.length === 0 ? (
+          <div className="rounded-2xl border border-border/70 bg-background/70 p-6 text-sm text-muted-foreground">
+            No scheduled tasks found.
+          </div>
+        ) : (
+          sections.map((section) => (
+            <div key={section.category} className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {section.category}
+                </span>
+                <Badge variant="secondary" className="text-xs">
+                  {section.items.length}
+                </Badge>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {section.items.map((task) => {
+                  return (
+                    <ScheduledTaskCard
+                      key={task.Id || task.Name}
+                      task={task}
+                      startingTaskId={startingTaskId}
+                      onStart={handleStartTask}
+                      onOpen={handleOpenTask}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

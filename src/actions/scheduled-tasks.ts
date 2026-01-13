@@ -20,3 +20,18 @@ export async function fetchScheduledTasksList(
   const { data } = await scheduledTasksApi.getTasks({ isHidden });
   return data ?? [];
 }
+
+export async function startScheduledTask(taskId: string): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+  const scheduledTasksApi = getScheduledTasksApi(api);
+
+  await scheduledTasksApi.startTask({ taskId });
+}

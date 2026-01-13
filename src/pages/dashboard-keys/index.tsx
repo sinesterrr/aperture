@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -11,22 +11,8 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { ArrowUpDown, KeyRound, Search } from "lucide-react";
-
-type ApiKeyItem = {
-  Id: number;
-  AccessToken: string;
-  DeviceId: string;
-  AppName: string;
-  AppVersion: string;
-  DeviceName: string;
-  UserId: string;
-  IsActive: boolean;
-  DateCreated: string;
-  DateLastActivity: string;
-};
-
-const SAMPLE_KEYS: ApiKeyItem[] = [
-];
+import { fetchApiKeys, normalizeApiKeys } from "../../actions";
+import type { AuthenticationInfo } from "@jellyfin/sdk/lib/generated-client/models";
 
 const PAGE_SIZE = 10;
 
@@ -43,32 +29,34 @@ export default function DashboardKeysPage() {
   const [sortKey, setSortKey] = useState<SortKey>("DateCreated");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
+  const [keys, setKeys] = useState<AuthenticationInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filtered = useMemo(() => {
     const lowerQuery = query.trim().toLowerCase();
-    return SAMPLE_KEYS.filter((item) => {
+    return keys.filter((item) => {
       const matchesQuery =
         !lowerQuery ||
-        item.AppName.toLowerCase().includes(lowerQuery) ||
-        item.AccessToken.toLowerCase().includes(lowerQuery) ||
-        item.UserId.toLowerCase().includes(lowerQuery);
+        item.AppName?.toLowerCase().includes(lowerQuery) ||
+        item.AccessToken?.toLowerCase().includes(lowerQuery) ||
+        item.UserId?.toLowerCase().includes(lowerQuery);
       return matchesQuery;
     });
-  }, [query]);
+  }, [keys, query]);
 
   const sorted = useMemo(() => {
     return filtered.slice().sort((a, b) => {
       const direction = sortDirection === "asc" ? 1 : -1;
-      const getValue = (item: ApiKeyItem) => {
+      const getValue = (item: AuthenticationInfo) => {
         switch (sortKey) {
           case "IsActive":
             return item.IsActive ? 1 : 0;
           case "DateCreated":
-            return new Date(item.DateCreated).getTime();
+            return new Date(item.DateCreated!).getTime();
           case "DateLastActivity":
-            return new Date(item.DateLastActivity).getTime();
+            return new Date(item.DateLastActivity!).getTime();
           default:
-            return item[sortKey];
+            return item[sortKey] ?? "";
         }
       };
       const aValue = getValue(a);
@@ -78,6 +66,28 @@ export default function DashboardKeysPage() {
       return 0;
     });
   }, [filtered, sortKey, sortDirection]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadKeys = async () => {
+      try {
+        const result = await fetchApiKeys();
+        if (!isMounted) return;
+        setKeys(normalizeApiKeys(result.Items ?? []));
+      } catch (error) {
+        console.error("Failed to load API keys:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadKeys();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -106,7 +116,7 @@ export default function DashboardKeysPage() {
             <KeyRound className="h-5 w-5 text-primary" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-foreground">API Keys</h3>
+            <h3 className="text-lg font-semibold text-foreground">Note</h3>
             <p className="text-sm text-muted-foreground">
               External applications are required to have an API key in order to
               communicate with the server. Keys are issued by logging in with a
@@ -180,7 +190,13 @@ export default function DashboardKeysPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-muted-foreground">
+                  Loading API keys...
+                </TableCell>
+              </TableRow>
+            ) : paginated.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-muted-foreground">
                   No API keys found.
@@ -188,7 +204,9 @@ export default function DashboardKeysPage() {
               </TableRow>
             ) : (
               paginated.map((item) => (
-                <TableRow key={`${item.AppName}-${item.AccessToken}`}>
+                <TableRow
+                  key={`${item.AppName}-${item.AccessToken || item.Id}`}
+                >
                   <TableCell className="font-medium">{item.AppName}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {item.AccessToken}
@@ -198,8 +216,8 @@ export default function DashboardKeysPage() {
                       {item.IsActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatDate(item.DateCreated)}</TableCell>
-                  <TableCell>{formatDate(item.DateLastActivity)}</TableCell>
+                  <TableCell>{formatDate(item.DateCreated!)}</TableCell>
+                  <TableCell>{formatDate(item.DateLastActivity!)}</TableCell>
                 </TableRow>
               ))
             )}

@@ -379,7 +379,9 @@ export async function getSubtitleTracks(
     );
     const subtitleStreams =
       mediaSource?.MediaStreams?.filter(
-        (stream) => stream.Type === "Subtitle" && (stream.Codec || '').toLowerCase() !== 'pgssub'
+        (stream) =>
+          stream.Type === "Subtitle" &&
+          (stream.Codec || "").toLowerCase() !== "pgssub"
       ) || [];
     const subtitleTracks = subtitleStreams.map((stream) => {
       const src = `${serverUrl}/Videos/${itemId}/${mediaSourceId}/Subtitles/${stream.Index}/Stream.vtt?api_key=${user.AccessToken}`;
@@ -451,9 +453,9 @@ export async function getAudioTracks(
 
     // Sort: Default first, then Language
     audioTracks.sort((a, b) => {
-        if (a.default && !b.default) return -1;
-        if (!a.default && b.default) return 1;
-        return (a.language || "").localeCompare(b.language || "");
+      if (a.default && !b.default) return -1;
+      if (!a.default && b.default) return 1;
+      return (a.language || "").localeCompare(b.language || "");
     });
 
     return audioTracks;
@@ -831,40 +833,34 @@ export async function fetchSystemInfo(): Promise<SystemInfo | null> {
 
 export async function restartServer(): Promise<void> {
   const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
 
   try {
-    const response = await fetch(`${serverUrl}/System/Restart`, {
-      method: "POST",
-      headers: {
-        Authorization: `MediaBrowser Token="${user.AccessToken}"`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to restart server: ${response.statusText}`);
-    }
+    const systemApi = getSystemApi(api);
+    await systemApi.restartApplication();
   } catch (error) {
-    console.error("Failed to restart server:", error);
-    throw error;
+    console.error("Failed to fetch system info:", error);
+    throw new Error(`Failed to restart server: ${error}`);
   }
 }
 
 export async function shutdownServer(): Promise<void> {
   const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
 
   try {
-    const response = await fetch(`${serverUrl}/System/Shutdown`, {
-      method: "POST",
-      headers: {
-        Authorization: `MediaBrowser Token="${user.AccessToken}"`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to shutdown server: ${response.statusText}`);
-    }
+    const systemApi = getSystemApi(api);
+    await systemApi.shutdownApplication();
   } catch (error) {
-    console.error("Failed to shutdown server:", error);
-    throw error;
+    console.error("Failed to fetch system info:", error);
+    throw new Error(`Failed to shutdown server: ${error}`);
   }
 }

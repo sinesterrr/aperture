@@ -16,6 +16,7 @@ import {
   Power,
   Database,
   Settings2,
+  RefreshCcw,
 } from "lucide-react";
 import {
   getTaskIcon,
@@ -172,6 +173,14 @@ export default function DashboardPage() {
             >
               <Database className="w-4 h-4" />
               Scan Library
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary dark:border-primary/30 dark:text-primary dark:hover:bg-primary/10"
+              onClick={handleRestartServer}
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Restart
             </Button>
             <Button
               variant="outline"

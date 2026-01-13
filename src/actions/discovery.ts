@@ -16,10 +16,17 @@ interface DiscoveryResult {
 
 const PRIORITY_HOSTS = ["jellyfin.local", "jellyfin", "localhost", "127.0.0.1"];
 
-const COMMON_BASES = ["192.168.0", "192.168.1", "10.0.0"];
-const COMMON_SUFFIXES = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 46, 50, 100, 150, 200];
+const COMMON_BASES = ["192.168.0", "192.168.1", "192.168.2", "10.0.0", "10.0.1"];
 const FULL_SUFFIXES = Array.from({ length: 254 }, (_, i) => i + 1); // 1..254
 const CONCURRENCY = 16;
+const BASE_PATHS = ["", "/jellyfin"];
+
+function normalizeBasePath(path: string) {
+  if (!path) return "";
+  const trimmed = path.trim();
+  if (!trimmed || trimmed === "/") return "";
+  return trimmed.startsWith("/") ? trimmed.replace(/\/$/, "") : `/${trimmed.replace(/\/$/, "")}`;
+}
 
 function isPrivateIPv4(hostname: string | undefined) {
   if (!hostname) return null;
@@ -57,27 +64,30 @@ function buildHostCandidates(): string[] {
 
   COMMON_BASES.forEach((base) => {
     if (preferredBase === base) return;
-    COMMON_SUFFIXES.forEach((suffix) => hosts.add(`${base}.${suffix}`));
+    FULL_SUFFIXES.forEach((suffix) => hosts.add(`${base}.${suffix}`));
   });
 
   return Array.from(hosts);
 }
 
-function buildProbeUrls(host: string): string[] {
+function buildProbeUrls(host: string, basePath: string): string[] {
   const urls = new Set<string>();
+  const suffix = normalizeBasePath(basePath);
   // Common Jellyfin defaults first
-  urls.add(`http://${host}:8096`);
-  urls.add(`https://${host}:8920`);
+  urls.add(`http://${host}:8096${suffix}`);
+  urls.add(`https://${host}:8920${suffix}`);
   // Fallback to protocol defaults
-  urls.add(`http://${host}`);
-  urls.add(`https://${host}`);
+  urls.add(`http://${host}${suffix}`);
+  urls.add(`https://${host}${suffix}`);
   return Array.from(urls);
 }
 
 function buildProbeList(): string[] {
   const urls: string[] = [];
   buildHostCandidates().forEach((host) => {
-    buildProbeUrls(host).forEach((url) => urls.push(url));
+    BASE_PATHS.forEach((basePath) => {
+      buildProbeUrls(host, basePath).forEach((url) => urls.push(url));
+    });
   });
   return urls;
 }

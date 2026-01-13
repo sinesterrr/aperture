@@ -35,3 +35,18 @@ export async function startScheduledTask(taskId: string): Promise<void> {
 
   await scheduledTasksApi.startTask({ taskId });
 }
+
+export async function stopScheduledTask(taskId: string): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+  const scheduledTasksApi = getScheduledTasksApi(api);
+
+  await scheduledTasksApi.stopTask({ taskId });
+}

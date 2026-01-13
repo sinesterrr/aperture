@@ -6,12 +6,14 @@ import {
   getTaskIcon,
   getTaskIconProps,
 } from "../lib/scheduled-task-icon-mapping";
-import { Clock, Play, SquareArrowOutUpRight } from "lucide-react";
+import { Clock, Play, Square, SquareArrowOutUpRight } from "lucide-react";
 
 type ScheduledTaskCardProps = {
   task: TaskInfo;
   startingTaskId: string | null;
+  stoppingTaskId: string | null;
   onStart: (taskId?: string | null) => void;
+  onStop: (taskId?: string | null) => void;
   onOpen: (taskName?: string | null) => void;
 };
 
@@ -69,7 +71,9 @@ const buildSubtitle = (task: TaskInfo) => {
 export const ScheduledTaskCard = ({
   task,
   startingTaskId,
+  stoppingTaskId,
   onStart,
+  onStop,
   onOpen,
 }: ScheduledTaskCardProps) => {
   const Icon = getTaskIcon(
@@ -134,17 +138,31 @@ export const ScheduledTaskCard = ({
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="gap-1.5"
-            disabled={startingTaskId === task.Id}
-            onClick={() => onStart(task.Id)}
-          >
-            <Play className="h-3.5 w-3.5" />
-            {startingTaskId === task.Id ? "Running..." : "Run"}
-          </Button>
+          {isRunning ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              className="gap-1.5"
+              disabled={stoppingTaskId === task.Id}
+              onClick={() => onStop(task.Id)}
+            >
+              <Square className="h-3.5 w-3.5" />
+              {stoppingTaskId === task.Id ? "Stopping..." : "Stop"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              disabled={startingTaskId === task.Id}
+              onClick={() => onStart(task.Id)}
+            >
+              <Play className="h-3.5 w-3.5" />
+              {startingTaskId === task.Id ? "Running..." : "Run"}
+            </Button>
+          )}
           <Button
             type="button"
             size="sm"

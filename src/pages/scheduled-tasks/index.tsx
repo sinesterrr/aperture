@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchScheduledTasksList, startScheduledTask } from "../../actions";
+import {
+  fetchScheduledTasksList,
+  startScheduledTask,
+  stopScheduledTask,
+} from "../../actions";
 import type { TaskInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import { Badge } from "../../components/ui/badge";
 import { toast } from "sonner";
@@ -10,6 +14,7 @@ export default function ScheduledTasksPage() {
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
+  const [stoppingTaskId, setStoppingTaskId] = useState<string | null>(null);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(false);
 
@@ -111,6 +116,22 @@ export default function ScheduledTasksPage() {
     toast.message(`Open task "${taskName}" not implemented yet.`);
   };
 
+  const handleStopTask = async (taskId?: string | null) => {
+    if (!taskId || stoppingTaskId) return;
+    try {
+      setStoppingTaskId(taskId);
+      await stopScheduledTask(taskId);
+      toast.success("Task stopped.");
+      const data = await fetchScheduledTasksList(false);
+      setTasks(data);
+    } catch (error) {
+      console.error("Failed to stop task:", error);
+      toast.error("Failed to stop task.");
+    } finally {
+      setStoppingTaskId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-6">
@@ -140,7 +161,9 @@ export default function ScheduledTasksPage() {
                       key={task.Id || task.Name}
                       task={task}
                       startingTaskId={startingTaskId}
+                      stoppingTaskId={stoppingTaskId}
                       onStart={handleStartTask}
+                      onStop={handleStopTask}
                       onOpen={handleOpenTask}
                     />
                   );

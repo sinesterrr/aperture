@@ -91,7 +91,11 @@ export {
   createApiKey,
   revokeApiKey,
 } from "./api-keys";
-export { fetchScheduledTasksList, startScheduledTask } from "./scheduled-tasks";
+export {
+  fetchScheduledTasksList,
+  startScheduledTask,
+  stopScheduledTask,
+} from "./scheduled-tasks";
 
 // Types
 export type {

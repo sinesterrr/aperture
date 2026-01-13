@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Checkbox } from "../../components/ui/checkbox";
@@ -10,17 +10,65 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { FileBrowserDropdown } from "../../components/file-browser-dropdown";
+import { fetchDashboardGeneralData } from "../../actions";
+import { LocalizationOption } from "@jellyfin/sdk/lib/generated-client/models";
 
 export default function DashboardGeneralPage() {
   const [cachePath, setCachePath] = useState("");
   const [metadataPath, setMetadataPath] = useState("");
+  const [serverName, setServerName] = useState("");
+  const [quickConnectEnabled, setQuickConnectEnabled] = useState(false);
+  const [parallelLibraryScan, setParallelLibraryScan] = useState("");
+  const [parallelImageEncoding, setParallelImageEncoding] = useState("");
+  const [languageOptions, setLanguageOptions] = useState<LocalizationOption[]>(
+    []
+  );
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<LocalizationOption["Value"]>("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        const result = await fetchDashboardGeneralData();
+        if (!isMounted) return;
+
+        setServerName(result.configuration?.ServerName ?? "");
+        setCachePath(result.configuration?.CachePath ?? "");
+        setMetadataPath(result.configuration?.MetadataPath ?? "");
+        setQuickConnectEnabled(Boolean(result.quickConnectEnabled));
+        setLanguageOptions(result.localizationOptions ?? []);
+        setParallelLibraryScan(
+          result.configuration?.LibraryScanFanoutConcurrency?.toString() ?? ""
+        );
+        setParallelImageEncoding(
+          result.configuration?.ParallelImageEncodingLimit?.toString() ?? ""
+        );
+
+        setSelectedLanguage(result.configuration?.UICulture ?? "");
+      } catch (error) {
+        console.error("Failed to load general settings:", error);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <form className="w-full space-y-8">
       <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm space-y-4">
         <h3 className="text-lg font-semibold text-foreground">Quick Connect</h3>
         <div className="flex items-start gap-3 rounded-xl border border-dashed border-border/70 bg-muted/10 px-3 py-2">
-          <Checkbox id="quick-connect-enabled" />
+          <Checkbox
+            id="quick-connect-enabled"
+            checked={quickConnectEnabled}
+            onCheckedChange={(value) => setQuickConnectEnabled(value === true)}
+          />
           <label
             htmlFor="quick-connect-enabled"
             className="text-sm font-medium leading-none"
@@ -39,6 +87,8 @@ export default function DashboardGeneralPage() {
               id="server-name"
               type="text"
               placeholder="My Jellyfin Server"
+              value={serverName}
+              onChange={(event) => setServerName(event.target.value)}
             />
             <p className="text-xs text-muted-foreground">
               This name will be used to identify the server and will default to
@@ -49,16 +99,20 @@ export default function DashboardGeneralPage() {
             <Label htmlFor="server-display-language">
               Server display language
             </Label>
-            <Select>
+            <Select
+              key={`Language-Select-${languageOptions.length}`}
+              value={selectedLanguage || ""}
+              onValueChange={setSelectedLanguage}
+            >
               <SelectTrigger id="server-display-language">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="de">German</SelectItem>
-                <SelectItem value="it">Italian</SelectItem>
+                {languageOptions.map((option) => (
+                  <SelectItem key={option.Value} value={option.Value || ""}>
+                    {option.Name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -130,6 +184,8 @@ export default function DashboardGeneralPage() {
               type="number"
               inputMode="numeric"
               placeholder="Auto"
+              value={parallelLibraryScan}
+              onChange={(event) => setParallelLibraryScan(event.target.value)}
             />
             <p className="text-xs text-muted-foreground">
               Maximum number of parallel tasks during library scans. Leaving
@@ -147,6 +203,8 @@ export default function DashboardGeneralPage() {
               type="number"
               inputMode="numeric"
               placeholder="Auto"
+              value={parallelImageEncoding}
+              onChange={(event) => setParallelImageEncoding(event.target.value)}
             />
             <p className="text-xs text-muted-foreground">
               Maximum number of image encodings that are allowed to run in

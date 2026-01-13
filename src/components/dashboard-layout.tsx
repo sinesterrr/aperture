@@ -13,7 +13,7 @@ export default function DashboardLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="relative px-4 py-6 max-w-full overflow-hidden">
+    <div className="relative px-3 sm:px-6 xl:px-8 py-6 max-w-full overflow-hidden">
       {/* Main content with higher z-index */}
       <AuroraBackground />
       <div className="relative z-10">
@@ -27,7 +27,9 @@ export default function DashboardLayout() {
             {_.startCase(route)}
           </h2>
         </div>
-        <Outlet />
+        <div className="mx-auto w-full max-w-none 2xl:max-w-[1400px]">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

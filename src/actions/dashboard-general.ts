@@ -47,3 +47,22 @@ export async function fetchDashboardGeneralData(): Promise<DashboardGeneralData>
     quickConnectEnabled: Boolean(configuration?.QuickConnectAvailable),
   };
 }
+
+export async function updateDashboardConfiguration(
+  configuration: ServerConfiguration
+): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+  const configurationApi = getConfigurationApi(api);
+
+  await configurationApi.updateConfiguration({
+    serverConfiguration: configuration,
+  });
+}

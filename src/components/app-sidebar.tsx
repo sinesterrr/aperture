@@ -49,6 +49,7 @@ import {
   DiscAlbum,
   Antenna,
   LayoutDashboard,
+  Users,
 } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { THEME_OPTIONS } from "../constants/theme-options";
@@ -265,6 +266,16 @@ export function AppSidebar({
                         >
                           <LayoutDashboard className="h-4 w-4" />
                           <span>Overview</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/dashboard/users"
+                          className="flex items-center gap-2"
+                          onClick={() => setOpenMobile(false)}
+                        >
+                          <Users className="h-4 w-4" />
+                          <span>Manage users</span>
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

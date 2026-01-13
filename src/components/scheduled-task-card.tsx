@@ -14,7 +14,7 @@ type ScheduledTaskCardProps = {
   stoppingTaskId: string | null;
   onStart: (taskId?: string | null) => void;
   onStop: (taskId?: string | null) => void;
-  onOpen: (taskName?: string | null) => void;
+  onOpen: (task: TaskInfo) => void;
 };
 
 const formatDuration = (start?: string, end?: string) => {
@@ -168,7 +168,7 @@ export const ScheduledTaskCard = ({
             size="sm"
             variant="ghost"
             className="gap-1.5"
-            onClick={() => onOpen(task.Name)}
+            onClick={() => onOpen(task)}
           >
             <SquareArrowOutUpRight className="h-3.5 w-3.5" />
             Open

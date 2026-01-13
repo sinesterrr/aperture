@@ -7,14 +7,15 @@ import {
 import type { TaskInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import { Badge } from "../../components/ui/badge";
 import { toast } from "sonner";
-import { Activity } from "lucide-react";
 import { ScheduledTaskCard } from "../../components/scheduled-task-card";
+import { ScheduledTaskTriggersDialog } from "../../components/scheduled-task-triggers-dialog";
 
 export default function ScheduledTasksPage() {
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
   const [stoppingTaskId, setStoppingTaskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskInfo | null>(null);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(false);
 
@@ -111,9 +112,8 @@ export default function ScheduledTasksPage() {
     }
   };
 
-  const handleOpenTask = (taskName?: string | null) => {
-    if (!taskName) return;
-    toast.message(`Open task "${taskName}" not implemented yet.`);
+  const handleOpenTask = (task: TaskInfo) => {
+    setSelectedTask(task);
   };
 
   const handleStopTask = async (taskId?: string | null) => {
@@ -173,6 +173,23 @@ export default function ScheduledTasksPage() {
           ))
         )}
       </div>
+      <ScheduledTaskTriggersDialog
+        task={selectedTask}
+        open={Boolean(selectedTask)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedTask(null);
+          }
+        }}
+        onTaskUpdated={(updatedTask) => {
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.Id === updatedTask.Id ? updatedTask : task
+            )
+          );
+          setSelectedTask(updatedTask);
+        }}
+      />
     </div>
   );
 }

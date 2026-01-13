@@ -95,6 +95,7 @@ export {
   fetchScheduledTasksList,
   startScheduledTask,
   stopScheduledTask,
+  updateTaskTriggers,
 } from "./scheduled-tasks";
 
 // Types

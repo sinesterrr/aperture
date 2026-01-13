@@ -21,6 +21,9 @@ const Dashboard = lazyWithDelay(() => import("./pages/dashboard"));
 const DashboardGeneralPage = lazyWithDelay(
   () => import("./pages/dashboard-general")
 );
+const DashboardActivityPage = lazyWithDelay(
+  () => import("./pages/dashboard-activity")
+);
 const ManageUsersPage = lazyWithDelay(() => import("./pages/manage-users"));
 // Main App Routes
 const Main = lazyWithDelay(() => import("./pages/main"));
@@ -72,6 +75,10 @@ function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="general" element={<DashboardGeneralPage />} />
                     <Route path="users" element={<ManageUsersPage />} />
+                    <Route
+                      path="activity"
+                      element={<DashboardActivityPage />}
+                    />
                   </Route>
                   <Route path="/boxset/:id" element={<BoxsetPage />} />
                   <Route path="/episode/:id" element={<EpisodePage />} />

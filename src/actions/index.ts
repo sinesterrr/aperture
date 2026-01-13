@@ -79,6 +79,12 @@ export {
   fetchDashboardGeneralData,
   updateDashboardConfiguration,
 } from "./dashboard-general";
+export {
+  fetchDefaultDirectoryBrowser,
+  fetchDrives,
+  fetchDirectoryContents,
+  fetchParentPath,
+} from "./file-browser";
 
 // Types
 export type {

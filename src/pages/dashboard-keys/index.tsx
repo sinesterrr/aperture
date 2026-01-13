@@ -19,7 +19,12 @@ import {
   DialogTrigger,
 } from "../../components/ui/dialog";
 import { ArrowUpDown, KeyRound, Search } from "lucide-react";
-import { createApiKey, fetchApiKeys, normalizeApiKeys } from "../../actions";
+import {
+  createApiKey,
+  fetchApiKeys,
+  normalizeApiKeys,
+  revokeApiKey,
+} from "../../actions";
 import type { AuthenticationInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import { toast } from "sonner";
 
@@ -43,6 +48,7 @@ export default function DashboardKeysPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [revokingKey, setRevokingKey] = useState<string | null>(null);
 
   const loadKeys = async () => {
     try {
@@ -127,6 +133,23 @@ export default function DashboardKeysPage() {
       toast.error("Failed to create API key.");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleRevokeKey = async (accessToken?: string | null) => {
+    if (!accessToken || revokingKey) return;
+    if (!window.confirm("Delete this API key?")) return;
+
+    try {
+      setRevokingKey(accessToken);
+      await revokeApiKey(accessToken);
+      await loadKeys();
+      toast.success("API key deleted.");
+    } catch (error) {
+      console.error("Failed to delete API key:", error);
+      toast.error("Failed to delete API key.");
+    } finally {
+      setRevokingKey(null);
     }
   };
 
@@ -265,18 +288,19 @@ export default function DashboardKeysPage() {
                   <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </TableHead>
+              <TableHead className="text-left w-[1%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground">
+                <TableCell colSpan={6} className="text-muted-foreground">
                   Loading API keys...
                 </TableCell>
               </TableRow>
             ) : paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground">
+                <TableCell colSpan={6} className="text-muted-foreground">
                   No API keys found.
                 </TableCell>
               </TableRow>
@@ -296,6 +320,20 @@ export default function DashboardKeysPage() {
                   </TableCell>
                   <TableCell>{formatDate(item.DateCreated!)}</TableCell>
                   <TableCell>{formatDate(item.DateLastActivity!)}</TableCell>
+                  <TableCell className="text-left w-[1%]">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                      disabled={revokingKey === item.AccessToken}
+                      onClick={() => handleRevokeKey(item.AccessToken)}
+                    >
+                      {revokingKey === item.AccessToken
+                        ? "Deleting..."
+                        : "Delete"}
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}

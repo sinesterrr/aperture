@@ -56,3 +56,18 @@ export async function createApiKey(appName: string): Promise<void> {
 
   await apiKeyApi.createKey({ app: appName });
 }
+
+export async function revokeApiKey(key: string): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+  const apiKeyApi = getApiKeyApi(api);
+
+  await apiKeyApi.revokeKey({ key });
+}

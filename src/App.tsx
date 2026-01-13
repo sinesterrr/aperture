@@ -27,6 +27,7 @@ const DashboardActivityPage = lazyWithDelay(
 const ScheduledTasksPage = lazyWithDelay(
   () => import("./pages/scheduled-tasks")
 );
+const DashboardKeysPage = lazyWithDelay(() => import("./pages/dashboard-keys"));
 const ManageUsersPage = lazyWithDelay(() => import("./pages/manage-users"));
 // Main App Routes
 const Main = lazyWithDelay(() => import("./pages/main"));
@@ -83,6 +84,7 @@ function App() {
                       element={<DashboardActivityPage />}
                     />
                     <Route path="tasks" element={<ScheduledTasksPage />} />
+                    <Route path="keys" element={<DashboardKeysPage />} />
                   </Route>
                   <Route path="/boxset/:id" element={<BoxsetPage />} />
                   <Route path="/episode/:id" element={<EpisodePage />} />

@@ -1,9 +1,13 @@
-import { Search } from "lucide-react";
+import { useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Checkbox } from "../../components/ui/checkbox";
+import { FileBrowserDropdown } from "../../components/file-browser-dropdown";
 
 export default function DashboardGeneralPage() {
+  const [cachePath, setCachePath] = useState("");
+  const [metadataPath, setMetadataPath] = useState("");
+
   return (
     <form className="max-w-3xl space-y-8">
       <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm">
@@ -27,14 +31,14 @@ export default function DashboardGeneralPage() {
               type="text"
               placeholder="/var/cache/jellyfin"
               className="pr-10"
+              value={cachePath}
+              onChange={(event) => setCachePath(event.target.value)}
             />
-            <button
-              type="button"
-              aria-label="Browse cache path"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition hover:text-foreground"
-            >
-              <Search className="h-4 w-4" />
-            </button>
+            <FileBrowserDropdown
+              ariaLabel="Browse cache path"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              onSelect={setCachePath}
+            />
           </div>
         </div>
         <div className="space-y-2">
@@ -45,14 +49,14 @@ export default function DashboardGeneralPage() {
               type="text"
               placeholder="/var/lib/jellyfin/metadata"
               className="pr-10"
+              value={metadataPath}
+              onChange={(event) => setMetadataPath(event.target.value)}
             />
-            <button
-              type="button"
-              aria-label="Browse metadata path"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition hover:text-foreground"
-            >
-              <Search className="h-4 w-4" />
-            </button>
+            <FileBrowserDropdown
+              ariaLabel="Browse metadata path"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              onSelect={setMetadataPath}
+            />
           </div>
         </div>
       </div>

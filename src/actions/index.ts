@@ -97,6 +97,7 @@ export {
   stopScheduledTask,
   updateTaskTriggers,
 } from "./scheduled-tasks";
+export { fetchActivityLogEntries } from "./activity-log";
 
 // Types
 export type {

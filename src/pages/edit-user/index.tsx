@@ -13,26 +13,31 @@ import ProfileTab from "../../components/profile-tabs/profile";
 import AccessTab from "../../components/profile-tabs/access";
 import ParentalControlTab from "../../components/profile-tabs/parental-control";
 import PasswordTab from "../../components/profile-tabs/password";
+import { User, Lock, Shield, Settings2 } from "lucide-react";
 
 const TABS = [
   {
     label: "Profile",
     value: "profile",
+    icon: User,
     render: (user?: UserDto) => <ProfileTab user={user} />,
   },
   {
     label: "Access",
     value: "access",
+    icon: Lock,
     render: (user?: UserDto) => <AccessTab user={user} />,
   },
   {
     label: "Parental Control",
     value: "parental-control",
+    icon: Shield,
     render: (user?: UserDto) => <ParentalControlTab user={user} />,
   },
   {
     label: "Password",
     value: "password",
+    icon: Settings2,
     render: (user?: UserDto) => <PasswordTab user={user} />,
   },
 ];
@@ -70,13 +75,14 @@ export default function EditUserPage() {
 
   return (
     <Tabs defaultValue="profile" className="w-full">
-      <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+      <TabsList className="mb-6 w-full justify-start h-auto p-1 bg-muted/40 border border-border/40 backdrop-blur-sm">
         {TABS.map((tab) => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+            className="group flex items-center gap-2 px-4 py-2 data-[state=active]:bg-background/60 data-[state=active]:shadow-sm transition-all duration-300 ease-in-out hover:bg-muted/60"
           >
+            <tab.icon className="h-4 w-4 group-data-[state=active]:text-primary" />
             {tab.label}
           </TabsTrigger>
         ))}

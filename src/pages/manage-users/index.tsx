@@ -7,6 +7,7 @@ import {
 } from "../../components/ui/avatar";
 import { fetchUsers, getUserImageUrl } from "../../actions";
 import { UserDto } from "@jellyfin/sdk/lib/generated-client/models";
+import { Link } from "react-router-dom";
 
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<UserDto[]>([]);
@@ -38,12 +39,9 @@ export default function ManageUsersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        <button
+        <Link
+          to="/dashboard/users/add"
           className="group cursor-pointer flex flex-col items-center justify-center gap-3 transition-transform hover:scale-105 focus:outline-none"
-          onClick={() => {
-            // TODO: Implement add user modal/navigation
-            console.log("Add new user clicked");
-          }}
         >
           <div className="flex h-32 w-32 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 bg-muted/20 transition-colors group-hover:border-primary group-hover:bg-primary/10">
             <Plus className="h-12 w-12 text-muted-foreground/50 transition-colors group-hover:text-primary" />
@@ -51,7 +49,7 @@ export default function ManageUsersPage() {
           <span className="text-base font-medium text-muted-foreground transition-colors group-hover:text-primary">
             Add New User
           </span>
-        </button>
+        </Link>
 
         {users.map((user) => (
           <div

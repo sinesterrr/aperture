@@ -1,20 +1,40 @@
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-
-// Mock data
-const mockUsers = [
-  { id: 1, name: "Admin", image: "https://github.com/shadcn.png" },
-  { id: 2, name: "Alice", image: "https://brokenlink.com/image.png" },
-  { id: 3, name: "Bob", image: "" },
-  { id: 4, name: "Charlie", image: "" },
-  { id: 5, name: "David", image: "" },
-];
+import { fetchUsers, getUserImageUrl } from "../../actions";
+import { UserDto } from "@jellyfin/sdk/lib/generated-client/models";
 
 export default function ManageUsersPage() {
+  const [users, setUsers] = useState<UserDto[]>([]);
+  const [userImages, setUserImages] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const fetchedUsers = await fetchUsers();
+      setUsers(fetchedUsers);
+
+      const images: Record<string, string> = {};
+      await Promise.all(
+        fetchedUsers.map(async (user) => {
+          if (user.Id) {
+            try {
+              images[user.Id] = await getUserImageUrl(user.Id);
+            } catch (e) {
+              console.error(`Failed to get image for user ${user.Id}`, e);
+            }
+          }
+        })
+      );
+      setUserImages(images);
+    };
+
+    loadUsers();
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -33,19 +53,23 @@ export default function ManageUsersPage() {
           </span>
         </button>
 
-        {mockUsers.map((user) => (
+        {users.map((user) => (
           <div
-            key={user.id}
+            key={user.Id}
             className="group flex flex-col items-center justify-center gap-3 transition-transform hover:scale-105 cursor-pointer"
           >
             <Avatar className="h-32 w-32 border-2 border-transparent ring-offset-background transition-all group-hover:border-primary group-hover:ring-2 group-hover:ring-primary/20 group-hover:ring-offset-2">
-              <AvatarImage src={user.image} alt={user.name} />
+              <AvatarImage
+                src={user.Id ? userImages[user.Id] : undefined}
+                alt={user.Name || "User"}
+                className="object-cover"
+              />
               <AvatarFallback className="text-3xl font-semibold bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                {user.name.substring(0, 2).toUpperCase()}
+                {user.Name?.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <span className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
-              {user.name}
+              {user.Name}
             </span>
           </div>
         ))}

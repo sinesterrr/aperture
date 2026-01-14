@@ -66,6 +66,7 @@ export {
   fetchCurrentImages,
   reorderBackdropImage,
   deleteImage,
+  getUserById,
   getUserWithPolicy,
   fetchScheduledTasks,
   fetchJellyfinLogs,

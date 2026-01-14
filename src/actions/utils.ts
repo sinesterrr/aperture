@@ -701,6 +701,24 @@ export interface UserWithPolicy {
   Policy: UserPolicy;
 }
 
+export async function getUserById(userId: string): Promise<UserDto | null> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const userApi = getUserApi(api);
+    const { data } = await userApi.getUserById({ userId });
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch user ${userId}:`, error);
+    return null;
+  }
+}
+
 export async function getUserWithPolicy(
   userId: string,
   itemId: string
@@ -741,6 +759,7 @@ export async function getUserWithPolicy(
     return null;
   }
 }
+
 
 export async function fetchScheduledTasks(): Promise<any[]> {
   const { serverUrl, user } = await getAuthData();

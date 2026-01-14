@@ -18,29 +18,29 @@ const TABS = [
   {
     label: "Profile",
     value: "profile",
-    component: <ProfileTab />,
+    render: (user?: UserDto) => <ProfileTab user={user} />,
   },
   {
     label: "Access",
     value: "access",
-    component: <AccessTab />,
+    render: (user?: UserDto) => <AccessTab user={user} />,
   },
   {
     label: "Parental Control",
     value: "parental-control",
-    component: <ParentalControlTab />,
+    render: (user?: UserDto) => <ParentalControlTab user={user} />,
   },
   {
     label: "Password",
     value: "password",
-    component: <PasswordTab />,
+    render: (user?: UserDto) => <PasswordTab user={user} />,
   },
 ];
 
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
   const { setBreadcrumbLabel } = useOutletContext<UsersLayoutContextType>();
-  const [user, setUser] = useState<UserDto | null>(null);
+  const [user, setUser] = useState<UserDto | undefined>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function EditUserPage() {
       <div className="mt-6">
         {TABS.map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="space-y-4">
-            {tab.component}
+            {tab.render(user)}
           </TabsContent>
         ))}
       </div>

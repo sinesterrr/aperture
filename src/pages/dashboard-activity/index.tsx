@@ -173,25 +173,13 @@ export default function DashboardActivityPage() {
     if (entry.UserPrimaryImageTag) {
       params.set("tag", entry.UserPrimaryImageTag);
     }
-    return `${serverUrl}/Users/${entry.UserId}/Images/Primary?${params.toString()}`;
+    return `${serverUrl}/Users/${
+      entry.UserId
+    }/Images/Primary?${params.toString()}`;
   };
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Activity Log
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Recent server activity captured by Jellyfin.
-            </p>
-          </div>
-          <Badge variant="secondary">{totalCount} entries</Badge>
-        </div>
-      </div>
-
       <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
@@ -248,9 +236,7 @@ export default function DashboardActivityPage() {
               type="button"
               size="sm"
               variant="outline"
-              onClick={() =>
-                setPage((prev) => Math.min(totalPages, prev + 1))
-              }
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={page >= totalPages || isLoading}
             >
               Next

@@ -6,29 +6,27 @@ import {
   UserPolicy,
 } from "@jellyfin/sdk/lib/generated-client/models";
 import { useEffect, useState } from "react";
-import {
-  fetchParentalRatings,
-  updateUserPolicy,
-} from "../../../actions";
+import { fetchParentalRatings, updateUserPolicy } from "../../../actions";
 import { Button } from "../../ui/button";
 import { Form } from "../../ui/form";
 import { toast } from "sonner";
-import {
-  parentalControlFormSchema,
-  ParentalControlFormValues,
-} from "./schema";
+import { parentalControlFormSchema, ParentalControlFormValues } from "./schema";
 import { RatingSection } from "./rating-section";
 import { UnratedItemsSection } from "./unrated-items-section";
 import { TagsSection } from "./tags-section";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dashboardLoadingAtom } from "../../../lib/atoms";
 
 export default function ParentalControlTab({ user }: { user?: UserDto }) {
   const [ratings, setRatings] = useState<ParentalRating[]>([]);
-  const [isLoadingRatings, setIsLoadingRatings] = useState(true);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const dashboardLoading = useAtomValue(dashboardLoadingAtom);
 
   useEffect(() => {
+    setDashboardLoading(true);
     fetchParentalRatings()
       .then(setRatings)
-      .finally(() => setIsLoadingRatings(false));
+      .finally(() => setDashboardLoading(false));
   }, []);
 
   const form = useForm<ParentalControlFormValues>({
@@ -60,6 +58,7 @@ export default function ParentalControlTab({ user }: { user?: UserDto }) {
   async function onSubmit(data: ParentalControlFormValues) {
     if (!user?.Id || !user.Policy) return;
 
+    setDashboardLoading(true);
     try {
       const updatedPolicy: UserPolicy = {
         ...user.Policy,
@@ -74,6 +73,8 @@ export default function ParentalControlTab({ user }: { user?: UserDto }) {
     } catch (error) {
       console.error("Failed to update parental controls:", error);
       toast.error("Failed to update parental controls");
+    } finally {
+      setDashboardLoading(false);
     }
   }
 
@@ -83,7 +84,7 @@ export default function ParentalControlTab({ user }: { user?: UserDto }) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8 w-full pb-10"
       >
-        <RatingSection ratings={ratings} isLoadingRatings={isLoadingRatings} />
+        <RatingSection ratings={ratings} isLoadingRatings={dashboardLoading} />
         <UnratedItemsSection />
         <TagsSection />
 

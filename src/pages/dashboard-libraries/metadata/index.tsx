@@ -25,10 +25,18 @@ import {
 } from "./schema";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { dashboardLoadingAtom } from "../../../lib/atoms";
-import { fetchCultures, fetchCountries } from "../../../actions";
-import { CultureDto, CountryInfo } from "@jellyfin/sdk/lib/generated-client/models";
+import {
+  fetchCultures,
+  fetchCountries,
+  fetchSystemConfiguration,
+  updateSystemConfiguration,
+} from "../../../actions";
+import {
+  CultureDto,
+  CountryInfo,
+} from "@jellyfin/sdk/lib/generated-client/models";
 
 const resolutionOptions = [
   { label: "Match source", value: "MatchSource" },
@@ -43,6 +51,7 @@ const resolutionOptions = [
 
 export default function LibrariesMetadataPage() {
   const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const isDashboardLoading = useAtomValue(dashboardLoadingAtom);
   const [cultures, setCultures] = useState<CultureDto[]>([]);
   const [countries, setCountries] = useState<CountryInfo[]>([]);
 
@@ -52,15 +61,24 @@ export default function LibrariesMetadataPage() {
   });
 
   useEffect(() => {
-    const loadOptions = async () => {
+    const loadData = async () => {
       setDashboardLoading(true);
       try {
-        const [culturesData, countriesData] = await Promise.all([
+        const [culturesData, countriesData, config] = await Promise.all([
           fetchCultures(),
           fetchCountries(),
+          fetchSystemConfiguration(),
         ]);
         setCultures(culturesData);
         setCountries(countriesData);
+        console.log(config);
+        form.reset({
+          PreferredMetadataLanguage: config.PreferredMetadataLanguage,
+          MetadataCountryCode: config.MetadataCountryCode,
+          DummyChapterDuration: config.DummyChapterDuration || 0,
+          ChapterImageResolution:
+            (config.ChapterImageResolution as any) || "MatchSource",
+        });
       } catch (error) {
         console.error(error);
         toast.error("Failed to load metadata options");
@@ -68,12 +86,29 @@ export default function LibrariesMetadataPage() {
         setDashboardLoading(false);
       }
     };
-    loadOptions();
-  }, [setDashboardLoading]);
+    loadData();
+  }, [setDashboardLoading, form]);
 
-  function onSubmit(data: MetadataFormValues) {
-    console.log(data);
-    toast.success("Metadata settings saved (UI only)");
+  async function onSubmit(data: MetadataFormValues) {
+    setDashboardLoading(true);
+    try {
+      const currentConfig = await fetchSystemConfiguration();
+      const newConfig = {
+        ...currentConfig,
+        PreferredMetadataLanguage: data.PreferredMetadataLanguage,
+        MetadataCountryCode: data.MetadataCountryCode,
+        DummyChapterDuration: data.DummyChapterDuration,
+        ChapterImageResolution: data.ChapterImageResolution as any,
+      };
+
+      await updateSystemConfiguration(newConfig);
+      toast.success("Metadata settings saved");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save metadata settings");
+    } finally {
+      setDashboardLoading(false);
+    }
   }
 
   return (

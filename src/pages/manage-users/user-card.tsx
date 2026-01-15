@@ -18,6 +18,8 @@ import { Button } from "../../components/ui/button";
 import { useState } from "react";
 import { deleteUser } from "../../actions";
 import { toast } from "sonner";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useAtomValue, useSetAtom } from "jotai";
 
 interface UserCardProps {
   user: UserDto;
@@ -27,11 +29,11 @@ interface UserCardProps {
 
 export function UserCard({ user, imageUrl, onUserDeleted }: UserCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const dashboardLoading = useAtomValue(dashboardLoadingAtom);
   const handleDelete = async () => {
     if (!user.Id) return;
-    setIsDeleting(true);
+    setDashboardLoading(true);
     try {
       await deleteUser(user.Id);
       toast.success(`User "${user.Name}" deleted successfully`);
@@ -41,7 +43,7 @@ export function UserCard({ user, imageUrl, onUserDeleted }: UserCardProps) {
       console.error("Failed to delete user:", error);
       toast.error("Failed to delete user");
     } finally {
-      setIsDeleting(false);
+      setDashboardLoading(false);
     }
   };
 
@@ -94,16 +96,16 @@ export function UserCard({ user, imageUrl, onUserDeleted }: UserCardProps) {
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              disabled={isDeleting}
+              disabled={dashboardLoading}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={dashboardLoading}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {dashboardLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

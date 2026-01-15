@@ -21,6 +21,9 @@ import {
 import { Input } from "../../components/ui/input";
 import { Search } from "lucide-react";
 import { getAuthData } from "../../actions/utils";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 
 const PAGE_SIZE = 25;
 
@@ -33,7 +36,8 @@ export default function DashboardActivityPage() {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<ActivityFilter>("all");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [isLoading, setIsLoading] = useState(true);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const dashboardLoading = useAtomValue(dashboardLoadingAtom);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [failedUserImages, setFailedUserImages] = useState<
     Record<string, boolean>
@@ -80,7 +84,7 @@ export default function DashboardActivityPage() {
     let isMounted = true;
     const loadEntries = async () => {
       try {
-        setIsLoading(true);
+        setDashboardLoading(true);
         const result = await fetchActivityLogEntries({
           startIndex,
           limit: PAGE_SIZE,
@@ -111,7 +115,7 @@ export default function DashboardActivityPage() {
         console.error("Failed to load activity entries:", error);
       } finally {
         if (isMounted) {
-          setIsLoading(false);
+          setDashboardLoading(false);
         }
       }
     };
@@ -228,7 +232,7 @@ export default function DashboardActivityPage() {
               size="sm"
               variant="outline"
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              disabled={page === 1 || isLoading}
+              disabled={page === 1 || dashboardLoading}
             >
               Previous
             </Button>
@@ -237,14 +241,14 @@ export default function DashboardActivityPage() {
               size="sm"
               variant="outline"
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={page >= totalPages || isLoading}
+              disabled={page >= totalPages || dashboardLoading}
             >
               Next
             </Button>
           </div>
         </div>
 
-        {isLoading ? (
+        {dashboardLoading ? (
           <div className="rounded-xl border border-border/70 bg-muted/30 p-6 text-sm text-muted-foreground">
             Loading activity entries...
           </div>

@@ -10,6 +10,27 @@
       "url": "/dashboard/general"
     },
     {
+      "name": "Libraries",
+      "items": [
+        {
+          "name": "Libraries",
+          "url": "/dashboard/libraries"
+        },
+        {
+          "name": "Display",
+          "url": "/dashboard/libraries/display"
+        },
+        {
+          "name": "Metadata",
+          "url": "/dashboard/libraries/metadata"
+        },
+        {
+          "name": "NFO Settings",
+          "url": "/dashboard/libraries/nfo-settings"
+        }
+      ]
+    },
+    {
       "name": "Manage users",
       "url": "/dashboard/users"
     },

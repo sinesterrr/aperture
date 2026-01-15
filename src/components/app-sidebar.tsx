@@ -277,20 +277,62 @@ export function AppSidebar({
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {dashboardLinksConfig.sections.map((section) => (
-                          <SidebarMenuSubItem key={section.name}>
-                            <SidebarMenuSubButton asChild>
-                              <Link
-                                to={section.url}
-                                onClick={() => setOpenMobile(false)}
+                        {dashboardLinksConfig.sections.map((section: any) => {
+                          if (section.items) {
+                            return (
+                              <Collapsible
+                                asChild
+                                defaultOpen={false}
+                                className="group/collapsible-nested"
+                                key={section.name}
                               >
-                                <LayoutDashboard className="h-4 w-4" />
-                                <span>{section.name}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
+                                <SidebarMenuSubItem>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton>
+                                      <LayoutDashboard className="h-4 w-4" />
+                                      <span>{section.name}</span>
+                                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible-nested:rotate-90" />
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <SidebarMenuSub>
+                                      {section.items.map((item: any) => (
+                                        <SidebarMenuSubItem key={item.name}>
+                                          <SidebarMenuSubButton asChild>
+                                            <Link
+                                              to={item.url}
+                                              onClick={() =>
+                                                setOpenMobile(false)
+                                              }
+                                            >
+                                              <LayoutDashboard className="h-4 w-4" />
+                                              <span>{item.name}</span>
+                                            </Link>
+                                          </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                      ))}
+                                    </SidebarMenuSub>
+                                  </CollapsibleContent>
+                                </SidebarMenuSubItem>
+                              </Collapsible>
+                            );
+                          }
+
+                          return (
+                            <SidebarMenuSubItem key={section.name}>
+                              <SidebarMenuSubButton asChild>
+                                <Link
+                                  to={section.url}
+                                  onClick={() => setOpenMobile(false)}
+                                >
+                                  <LayoutDashboard className="h-4 w-4" />
+                                  <span>{section.name}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                        </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>
                 </Collapsible>

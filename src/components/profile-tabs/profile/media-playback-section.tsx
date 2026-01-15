@@ -115,7 +115,7 @@ export function MediaPlaybackSection() {
         due to unsupported media formats.
       </p>
 
-      <div className="pt-2 max-w-md">
+      <div className="pt-2">
         <FormField
           control={form.control}
           name="RemoteClientBitrateLimit"
@@ -123,7 +123,7 @@ export function MediaPlaybackSection() {
             <FormItem>
               <FormLabel>Internet streaming bitrate limit (Mbps)</FormLabel>
               <FormControl>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 max-w-md">
                   <Input
                     type="number"
                     placeholder="Unlimited"

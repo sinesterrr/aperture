@@ -82,14 +82,18 @@ export default function LibrariesMetadataPage() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="rounded-2xl border border-border/70 bg-background/70 p-5 shadow-sm space-y-6">
             <div className="flex flex-col space-y-1.5">
-              <h3 className="text-lg font-semibold text-foreground">Metadata</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Metadata
+              </h3>
               <p className="text-sm text-muted-foreground">
-                These are your defaults and can be customized on a per-library basis.
+                These are your defaults and can be customized on a per-library
+                basis.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
+                key={`PreferredMetadataLanguage-${cultures.length}`}
                 control={form.control}
                 name="PreferredMetadataLanguage"
                 render={({ field }) => (
@@ -108,8 +112,8 @@ export default function LibrariesMetadataPage() {
                       <SelectContent className="max-h-[300px]">
                         {cultures.map((culture) => (
                           <SelectItem
-                            key={culture.ThreeLetterISOLanguageName}
-                            value={culture.ThreeLetterISOLanguageName || ""}
+                            key={`Culture-${culture.TwoLetterISOLanguageName}`}
+                            value={culture.TwoLetterISOLanguageName || ""}
                           >
                             {culture.DisplayName}
                           </SelectItem>
@@ -123,6 +127,7 @@ export default function LibrariesMetadataPage() {
 
               <FormField
                 control={form.control}
+                key={`MetadataCountryCode-${countries.length}`}
                 name="MetadataCountryCode"
                 render={({ field }) => (
                   <FormItem>
@@ -140,7 +145,7 @@ export default function LibrariesMetadataPage() {
                       <SelectContent className="max-h-[300px]">
                         {countries.map((country) => (
                           <SelectItem
-                            key={country.TwoLetterISORegionName}
+                            key={`Country-${country.TwoLetterISORegionName}`}
                             value={country.TwoLetterISORegionName || ""}
                           >
                             {country.DisplayName}
@@ -173,9 +178,9 @@ export default function LibrariesMetadataPage() {
                       <Input type="number" {...field} />
                     </FormControl>
                     <FormDescription>
-                      The interval between dummy chapters in seconds. Set to 0 to
-                      disable dummy chapter generation. Changing this will have no
-                      effect on existing dummy chapters.
+                      The interval between dummy chapters in seconds. Set to 0
+                      to disable dummy chapter generation. Changing this will
+                      have no effect on existing dummy chapters.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

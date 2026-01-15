@@ -5,9 +5,12 @@ import _ from "lodash";
 import { useMemo } from "react";
 import { LoaderPinwheel } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { useAtomValue } from "jotai";
+import { dashboardLoadingAtom } from "../lib/atoms";
 
 export default function DashboardLayout() {
   let location = useLocation();
+  const isLoading = useAtomValue(dashboardLoadingAtom);
 
   const route = useMemo(() => {
     const regex = /\/dashboard\/(.*?)(?=\/|$)/;
@@ -29,13 +32,15 @@ export default function DashboardLayout() {
           <h2 className="text-3xl font-semibold text-foreground font-poppins">
             {_.startCase(route)}
           </h2>
-          <Badge
-            className="bg-background/90 backdrop-blur-sm px-3 py-2 flex flex-row gap-2 items-center"
-            variant="outline"
-          >
-            <LoaderPinwheel className="animate-spin text-primary w-6 h-6" />
-            <span className="text-sm">Loading...</span>
-          </Badge>
+          {isLoading && (
+            <Badge
+              className="bg-background/90 backdrop-blur-sm px-3 py-2 flex flex-row gap-2 items-center"
+              variant="outline"
+            >
+              <LoaderPinwheel className="animate-spin text-primary w-6 h-6" />
+              <span className="text-sm">Loading...</span>
+            </Badge>
+          )}
         </div>
         <div className="mx-auto w-full max-w-none 2xl:max-w-[1400px]">
           <Outlet />

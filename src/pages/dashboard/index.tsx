@@ -29,16 +29,20 @@ import { useEffect, useState } from "react";
 import { LogFile, SystemInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import LoadingSpinner from "../../components/loading-spinner";
 import { toast } from "sonner";
+import { useSetAtom } from "jotai";
+import { dashboardLoadingAtom } from "../../lib/atoms";
 
 export default function DashboardPage() {
   const [scheduledTasks, setScheduledTasks] = useState<any[]>([]);
   const [logs, setLogs] = useState<LogFile[]>([]);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
   const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
+      setDashboardLoading(true);
       try {
         const [st, lg, sysInfo] = await Promise.all([
           fetchScheduledTasks(),
@@ -56,38 +60,48 @@ export default function DashboardPage() {
         }
       } finally {
         setLoading(false);
+        setDashboardLoading(false);
       }
     }
 
     fetchData();
-  }, []);
+  }, [setDashboardLoading, navigate]);
 
   const handleScanLibrary = async () => {
+    setDashboardLoading(true);
     try {
       await scanLibrary();
       toast.success("Library scan started");
     } catch (error) {
       toast.error("Failed to start library scan");
+    } finally {
+      setDashboardLoading(false);
     }
   };
 
   const handleRestartServer = async () => {
     if (!confirm("Are you sure you want to restart the server?")) return;
+    setDashboardLoading(true);
     try {
       await restartServer();
       toast.success("Server restart initiated");
     } catch (error) {
       toast.error("Failed to restart server");
+    } finally {
+      setDashboardLoading(false);
     }
   };
 
   const handleShutdownServer = async () => {
     if (!confirm("Are you sure you want to shutdown the server?")) return;
+    setDashboardLoading(true);
     try {
       await shutdownServer();
       toast.success("Server shutdown initiated");
     } catch (error) {
       toast.error("Failed to shutdown server");
+    } finally {
+      setDashboardLoading(false);
     }
   };
 

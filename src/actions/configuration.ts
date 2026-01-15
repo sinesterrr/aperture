@@ -2,7 +2,7 @@ import { getConfigurationApi } from "@jellyfin/sdk/lib/utils/api/configuration-a
 import { ServerConfiguration } from "@jellyfin/sdk/lib/generated-client/models";
 import { createJellyfinInstance } from "../lib/utils";
 import { getAuthData } from "./utils";
-import { MetadataConfiguration } from "@jellyfin/sdk/lib/generated-client/models";
+import { MetadataConfiguration, XbmcMetadataOptions } from "@jellyfin/sdk/lib/generated-client/models";
 
 export async function fetchSystemConfiguration(): Promise<ServerConfiguration> {
   const { serverUrl, user } = await getAuthData();
@@ -41,6 +41,25 @@ export async function fetchMetadataConfiguration(): Promise<MetadataConfiguratio
   return data as unknown as MetadataConfiguration;
 }
 
+export async function fetchXbmcMetadataConfiguration(): Promise<XbmcMetadataOptions> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+
+  const configurationApi = getConfigurationApi(api);
+  const { data } = await configurationApi.getNamedConfiguration({
+    key: "xbmcmetadata",
+  });
+
+  return data as unknown as XbmcMetadataOptions;
+}
+
 export async function updateSystemConfiguration(
   configuration: ServerConfiguration
 ): Promise<void> {
@@ -77,5 +96,25 @@ export async function updateMetadataConfiguration(
   await configurationApi.updateNamedConfiguration({
     key: "metadata",
     body: metadataConfiguration,
+  });
+}
+
+export async function updateXbmcMetadataConfiguration(
+  xbmcMetadataConfiguration: XbmcMetadataOptions
+): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+
+  if (!user.AccessToken) {
+    throw new Error("No access token found");
+  }
+
+  api.accessToken = user.AccessToken;
+  const configurationApi = getConfigurationApi(api);
+
+  await configurationApi.updateNamedConfiguration({
+    key: "xbmcmetadata",
+    body: xbmcMetadataConfiguration,
   });
 }

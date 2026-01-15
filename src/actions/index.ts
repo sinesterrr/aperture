@@ -95,6 +95,8 @@ export {
   fetchMetadataConfiguration,
   updateSystemConfiguration,
   updateMetadataConfiguration,
+  fetchXbmcMetadataConfiguration,
+  updateXbmcMetadataConfiguration,
 } from "./configuration";
 export {
   fetchDefaultDirectoryBrowser,

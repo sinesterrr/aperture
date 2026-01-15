@@ -466,6 +466,24 @@ export async function getAudioTracks(
     return [];
   }
 }
+export async function fetchMediaFolders(): Promise<BaseItemDto[]> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const libraryApi = new LibraryApi(api.configuration);
+    const { data } = await libraryApi.getMediaFolders();
+    return data.Items || [];
+  } catch (error) {
+    console.error("Failed to fetch media folders:", error);
+    return [];
+  }
+}
+
 export async function getUserLibraries(): Promise<BaseItemDto[]> {
   try {
     const { serverUrl, user } = await getAuthData();

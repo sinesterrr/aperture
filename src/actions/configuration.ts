@@ -2,7 +2,10 @@ import { getConfigurationApi } from "@jellyfin/sdk/lib/utils/api/configuration-a
 import { ServerConfiguration } from "@jellyfin/sdk/lib/generated-client/models";
 import { createJellyfinInstance } from "../lib/utils";
 import { getAuthData } from "./utils";
-import { MetadataConfiguration, XbmcMetadataOptions } from "@jellyfin/sdk/lib/generated-client/models";
+import {
+  MetadataConfiguration,
+  XbmcMetadataOptions,
+} from "@jellyfin/sdk/lib/generated-client/models";
 
 export async function fetchSystemConfiguration(): Promise<ServerConfiguration> {
   const { serverUrl, user } = await getAuthData();

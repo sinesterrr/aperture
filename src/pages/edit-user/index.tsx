@@ -14,6 +14,8 @@ import AccessTab from "../../components/profile-tabs/access";
 import ParentalControlTab from "../../components/profile-tabs/parental-control";
 import PasswordTab from "../../components/profile-tabs/password";
 import { User, Lock, Shield, Settings2 } from "lucide-react";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useSetAtom } from "jotai";
 
 const TABS = [
   {
@@ -46,14 +48,14 @@ export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
   const { setBreadcrumbLabel } = useOutletContext<UsersLayoutContextType>();
   const [user, setUser] = useState<UserDto | undefined>();
-  const [loading, setLoading] = useState(true);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!id) return;
 
       try {
-        setLoading(true);
+        setDashboardLoading(true);
         const userData = await getUserById(id);
 
         if (userData) {
@@ -62,11 +64,11 @@ export default function EditUserPage() {
         } else {
           setBreadcrumbLabel("User Not Found");
         }
-        setLoading(false);
       } catch (error) {
         console.error("Failed to load user:", error);
         setBreadcrumbLabel("Error");
-        setLoading(false);
+      } finally {
+        setDashboardLoading(false);
       }
     };
 

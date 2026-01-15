@@ -101,8 +101,8 @@ export default function LibrariesDisplayPage() {
                         </FormLabel>
                         <FormDescription>
                           Display folders alongside your other media libraries.
-                          This can be useful if you'd like to have a plain folder
-                          view.
+                          This can be useful if you'd like to have a plain
+                          folder view.
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -143,8 +143,8 @@ export default function LibrariesDisplayPage() {
                       <div className="space-y-1 leading-none">
                         <FormLabel>Group movies into collections</FormLabel>
                         <FormDescription>
-                          Movies in a collection will be displayed as one grouped
-                          item when displaying movie lists.
+                          Movies in a collection will be displayed as one
+                          grouped item when displaying movie lists.
                         </FormDescription>
                       </div>
                     </FormItem>

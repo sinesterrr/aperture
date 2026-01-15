@@ -9,20 +9,25 @@ import { Badge } from "../../components/ui/badge";
 import { toast } from "sonner";
 import { ScheduledTaskCard } from "../../components/scheduled-task-card";
 import { ScheduledTaskTriggersDialog } from "../../components/scheduled-task-triggers-dialog";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 
 export default function ScheduledTasksPage() {
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
   const [stoppingTaskId, setStoppingTaskId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskInfo | null>(null);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(false);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const dashboardLoading = useAtomValue(dashboardLoadingAtom);
 
   useEffect(() => {
     isMountedRef.current = true;
 
     const loadTasks = async () => {
+      setDashboardLoading(true);
       try {
         const data = await fetchScheduledTasksList(false);
         if (!isMountedRef.current) return;
@@ -30,9 +35,7 @@ export default function ScheduledTasksPage() {
       } catch (error) {
         console.error("Failed to load scheduled tasks:", error);
       } finally {
-        if (isMountedRef.current) {
-          setIsLoading(false);
-        }
+        setDashboardLoading(false);
       }
     };
 
@@ -135,7 +138,7 @@ export default function ScheduledTasksPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-6">
-        {isLoading ? (
+        {dashboardLoading ? (
           <div className="rounded-2xl border border-border/70 bg-background/70 p-6 text-sm text-muted-foreground">
             Loading scheduled tasks...
           </div>

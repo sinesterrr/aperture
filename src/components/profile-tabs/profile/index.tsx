@@ -9,7 +9,9 @@ import {
   getUserImageUrl,
   uploadUserImage,
   fetchMediaFolders,
+  updateUser,
 } from "../../../actions";
+import { toast } from "sonner";
 import { Button } from "../../ui/button";
 import { Form } from "../../ui/form";
 import { profileFormSchema, ProfileFormValues } from "./schema";
@@ -126,9 +128,52 @@ export default function ProfileTab({ user }: { user?: UserDto }) {
     }
   };
 
-  function onSubmit(data: ProfileFormValues) {
-    console.log("Submitting form data:", data);
-    // TODO: Implement update user API call
+  async function onSubmit(data: ProfileFormValues) {
+    if (!user?.Id) return;
+
+    try {
+      const updatedUser: UserDto = {
+        ...user,
+        Name: data.Name,
+        Policy: {
+          ...user.Policy,
+          EnableRemoteAccess: data.EnableRemoteAccess,
+          IsAdministrator: data.IsAdministrator,
+          EnableCollectionManagement: data.EnableCollectionManagement,
+          EnableSubtitleManagement: data.EnableSubtitleManagement,
+          EnableLiveTvAccess: data.EnableLiveTvAccess,
+          EnableLiveTvManagement: data.EnableLiveTvManagement,
+          EnableMediaPlayback: data.EnableMediaPlayback,
+          EnableAudioPlaybackTranscoding: data.EnableAudioPlaybackTranscoding,
+          EnableVideoPlaybackTranscoding: data.EnableVideoPlaybackTranscoding,
+          EnablePlaybackRemuxing: data.EnablePlaybackRemuxing,
+          ForceRemoteSourceTranscoding: data.ForceRemoteSourceTranscoding,
+          RemoteClientBitrateLimit:
+            data.RemoteClientBitrateLimit && !isNaN(data.RemoteClientBitrateLimit)
+              ? data.RemoteClientBitrateLimit * 1000000 // Convert to bits per second
+              : 0,
+          EnableContentDeletion: data.EnableContentDeletion,
+          EnableContentDeletionFromFolders:
+            data.EnableContentDeletionFromFolders || [],
+          EnableRemoteControlOfOtherUsers: data.EnableRemoteControlOfOtherUsers,
+          EnableSharedDeviceControl: data.EnableSharedDeviceControl,
+          IsDisabled: data.IsDisabled,
+          // Required fields that shouldn't be null
+          AuthenticationProviderId:
+            user.Policy?.AuthenticationProviderId ||
+            "Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider",
+          PasswordResetProviderId:
+            user.Policy?.PasswordResetProviderId ||
+            "Jellyfin.Server.Implementations.Users.DefaultPasswordResetProvider",
+        },
+      };
+
+      await updateUser(user.Id, updatedUser);
+      toast.success("User updated successfully");
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      toast.error("Failed to update user");
+    }
   }
 
   return (

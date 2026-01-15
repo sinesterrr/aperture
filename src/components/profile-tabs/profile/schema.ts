@@ -17,7 +17,7 @@ export const profileFormSchema = z.object({
   EnablePlaybackRemuxing: z.boolean().default(true),
   ForceRemoteSourceTranscoding: z.boolean().default(false),
   RemoteClientBitrateLimit: z.preprocess(
-    (val) => (val === "" ? undefined : Number(val)),
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
     z.number().min(0).optional()
   ),
   // Allow Media Deletion

@@ -29,7 +29,9 @@ export function MediaPlaybackSection() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel className="font-normal">Allow media playback</FormLabel>
+              <FormLabel className="font-normal">
+                Allow media playback
+              </FormLabel>
             </FormItem>
           )}
         />
@@ -82,7 +84,8 @@ export function MediaPlaybackSection() {
                 />
               </FormControl>
               <FormLabel className="font-normal">
-                Allow video playback that requires conversion without re-encoding
+                Allow video playback that requires conversion without
+                re-encoding
               </FormLabel>
             </FormItem>
           )}
@@ -124,7 +127,11 @@ export function MediaPlaybackSection() {
                   <Input
                     type="number"
                     placeholder="Unlimited"
-                    value={field.value === undefined ? "" : field.value}
+                    value={
+                      field.value === undefined || isNaN(field.value)
+                        ? ""
+                        : field.value
+                    }
                     onChange={field.onChange}
                   />
                 </div>
@@ -132,9 +139,9 @@ export function MediaPlaybackSection() {
               <FormDescription>
                 An optional per-stream bitrate limit for all out of network
                 devices. This is useful to prevent devices from requesting a
-                higher bitrate than your internet connection can handle. This may
-                result in increased CPU load on your server in order to transcode
-                videos on the fly to a lower bitrate.
+                higher bitrate than your internet connection can handle. This
+                may result in increased CPU load on your server in order to
+                transcode videos on the fly to a lower bitrate.
               </FormDescription>
               <p className="text-sm text-muted-foreground mt-1">
                 Override the default global value set in server settings, see

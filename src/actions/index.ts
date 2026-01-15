@@ -75,6 +75,7 @@ export {
   shutdownServer,
   canBrowserDirectPlayHevc,
   fetchUsers,
+  updateUser,
   fetchMediaFolders,
 } from "./utils";
 export { discoverLocalServer } from "./discovery";

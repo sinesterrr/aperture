@@ -737,6 +737,29 @@ export async function getUserById(userId: string): Promise<UserDto | null> {
   }
 }
 
+export async function updateUser(
+  userId: string,
+  userDto: UserDto
+): Promise<void> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const userApi = getUserApi(api);
+    await userApi.updateUser({
+      userId,
+      userDto,
+    });
+  } catch (error) {
+    console.error(`Failed to update user ${userId}:`, error);
+    throw error;
+  }
+}
+
 export async function getUserWithPolicy(
   userId: string,
   itemId: string

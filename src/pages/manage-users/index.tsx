@@ -4,29 +4,39 @@ import { fetchUsers, getUserImageUrl } from "../../actions";
 import { UserDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { Link } from "react-router-dom";
 import { UserCard } from "./user-card";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useSetAtom } from "jotai";
 
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<UserDto[]>([]);
   const [userImages, setUserImages] = useState<Record<string, string>>({});
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
 
   useEffect(() => {
     const loadUsers = async () => {
-      const fetchedUsers = await fetchUsers();
-      setUsers(fetchedUsers);
+      setDashboardLoading(true);
+      try {
+        const fetchedUsers = await fetchUsers();
+        setUsers(fetchedUsers);
 
-      const images: Record<string, string> = {};
-      await Promise.all(
-        fetchedUsers.map(async (user) => {
-          if (user.Id) {
-            try {
-              images[user.Id] = await getUserImageUrl(user.Id);
-            } catch (e) {
-              console.error(`Failed to get image for user ${user.Id}`, e);
+        const images: Record<string, string> = {};
+        await Promise.all(
+          fetchedUsers.map(async (user) => {
+            if (user.Id) {
+              try {
+                images[user.Id] = await getUserImageUrl(user.Id);
+              } catch (e) {
+                console.error(`Failed to get image for user ${user.Id}`, e);
+              }
             }
-          }
-        })
-      );
-      setUserImages(images);
+          })
+        );
+        setUserImages(images);
+      } catch (error) {
+        console.error("Failed to load users:", error);
+      } finally {
+        setDashboardLoading(false);
+      }
     };
 
     loadUsers();

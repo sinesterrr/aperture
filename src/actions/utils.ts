@@ -13,6 +13,8 @@ import {
   UserPolicy,
   DeviceInfoDto,
   ParentalRating,
+  CultureDto,
+  CountryInfo,
 } from "@jellyfin/sdk/lib/generated-client/models";
 import { MediaSourceInfo } from "@jellyfin/sdk/lib/generated-client/models/media-source-info";
 import axios from "axios";
@@ -1047,6 +1049,42 @@ export async function fetchUsers(): Promise<UserDto[]> {
     return data;
   } catch (error) {
     console.error("Failed to fetch users:", error);
+    return [];
+  }
+}
+
+export async function fetchCultures(): Promise<CultureDto[]> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const localizationApi = new LocalizationApi(api.configuration);
+    const { data } = await localizationApi.getCultures();
+    return data || [];
+  } catch (error) {
+    console.error("Failed to fetch cultures:", error);
+    return [];
+  }
+}
+
+export async function fetchCountries(): Promise<CountryInfo[]> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const localizationApi = new LocalizationApi(api.configuration);
+    const { data } = await localizationApi.getCountries();
+    return data || [];
+  } catch (error) {
+    console.error("Failed to fetch countries:", error);
     return [];
   }
 }

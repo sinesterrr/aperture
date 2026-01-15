@@ -80,6 +80,8 @@ export {
   fetchMediaFolders,
   fetchDevices,
   fetchParentalRatings,
+  fetchCultures,
+  fetchCountries,
   createUser,
   deleteUser,
 } from "./utils";

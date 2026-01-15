@@ -27,6 +27,8 @@ import {
 } from "../../actions";
 import type { AuthenticationInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import { toast } from "sonner";
+import { dashboardLoadingAtom } from "../../lib/atoms";
+import { useAtomValue, useSetAtom } from "jotai";
 
 const PAGE_SIZE = 10;
 
@@ -44,18 +46,22 @@ export default function DashboardKeysPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
   const [keys, setKeys] = useState<AuthenticationInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [revokingKey, setRevokingKey] = useState<string | null>(null);
+  const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
+  const dashboardLoading = useAtomValue(dashboardLoadingAtom);
 
   const loadKeys = async () => {
+    setDashboardLoading(true);
     try {
       const result = await fetchApiKeys();
       setKeys(normalizeApiKeys(result.Items ?? []));
     } catch (error) {
       console.error("Failed to load API keys:", error);
+    } finally {
+      setDashboardLoading(false);
     }
   };
 
@@ -101,7 +107,7 @@ export default function DashboardKeysPage() {
         await loadKeys();
       } finally {
         if (isMounted) {
-          setIsLoading(false);
+          setDashboardLoading(false);
         }
       }
     };
@@ -292,7 +298,7 @@ export default function DashboardKeysPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {dashboardLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground">
                   Loading API keys...

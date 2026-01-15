@@ -80,6 +80,7 @@ export {
   fetchMediaFolders,
   fetchDevices,
   fetchParentalRatings,
+  createUser,
 } from "./utils";
 export { discoverLocalServer } from "./discovery";
 export {

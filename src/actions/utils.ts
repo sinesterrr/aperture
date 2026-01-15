@@ -765,6 +765,32 @@ export async function updateUser(
   }
 }
 
+export async function createUser(
+  name: string,
+  password?: string
+): Promise<UserDto> {
+  const { serverUrl, user } = await getAuthData();
+  const jellyfinInstance = createJellyfinInstance();
+  const api = jellyfinInstance.createApi(serverUrl);
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  api.accessToken = user.AccessToken;
+
+  try {
+    const userApi = getUserApi(api);
+    const { data } = await userApi.createUserByName({
+      createUserByName: {
+        Name: name,
+        Password: password,
+      },
+    });
+    return data;
+  } catch (error: any) {
+    console.error(`Failed to create user ${name}:`, error);
+    throw error;
+  }
+}
+
 export async function updateUserPolicy(
   userId: string,
   userPolicy: UserPolicy

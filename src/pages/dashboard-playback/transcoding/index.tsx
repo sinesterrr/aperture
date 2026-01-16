@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -155,6 +156,17 @@ export default function PlaybackTranscodingPage() {
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    <FormDescription>
+                      Hardware acceleration requires{" "}
+                      <a
+                        className="text-primary underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href="https://jellyfin.org/docs/general/administration/hardware-acceleration"
+                      >
+                        additional configuration.
+                      </a>
+                    </FormDescription>
                   </FormItem>
                 )}
               />

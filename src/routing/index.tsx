@@ -23,6 +23,8 @@ const UsersLayout = lazy(() => import("../pages/manage-users/layout"));
 const AddUserPage = lazy(() => import("../pages/add-user"));
 const EditUserPage = lazy(() => import("../pages/edit-user"));
 const LibrariesPage = lazy(() => import("../pages/dashboard-libraries"));
+const EditLibraryPage = lazy(() => import("../pages/dashboard-libraries/[id]"));
+const AddLibraryPage = lazy(() => import("../pages/dashboard-libraries/add"));
 const LibrariesDisplayPage = lazy(
   () => import("../pages/dashboard-libraries/display")
 );
@@ -78,6 +80,8 @@ export default function AppRouter() {
               </Route>
               <Route path="libraries">
                 <Route index element={<LibrariesPage />} />
+                <Route path=":id" element={<EditLibraryPage />} />
+                <Route path="add" element={<AddLibraryPage />} />
                 <Route path="display" element={<LibrariesDisplayPage />} />
                 <Route path="metadata" element={<LibrariesMetadataPage />} />
                 <Route

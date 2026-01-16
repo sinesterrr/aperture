@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "../../../components/ui/form";
 import { Button } from "../../../components/ui/button";
+import { Checkbox } from "../../../components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -30,6 +31,17 @@ import {
   updateEncodingConfiguration,
 } from "../../../actions";
 
+const hardwareDecodingCodecs = [
+  { label: "H264", value: "h264" },
+  { label: "HEVC", value: "hevc" },
+  { label: "MPEG2", value: "mpeg2video" },
+  { label: "MPEG4", value: "mpeg4" },
+  { label: "VC1", value: "vc1" },
+  { label: "VP8", value: "vp8" },
+  { label: "VP9", value: "vp9" },
+  { label: "AV1", value: "av1" },
+];
+
 export default function PlaybackTranscodingPage() {
   const setDashboardLoading = useSetAtom(dashboardLoadingAtom);
   const form = useForm<TranscodingSettingsFormValues>({
@@ -44,7 +56,17 @@ export default function PlaybackTranscodingPage() {
         const config = await fetchEncodingConfiguration();
 
         form.reset({
-          HardwareAccelerationType: (config.HardwareAccelerationType as any) || "none",
+          HardwareAccelerationType:
+            (config.HardwareAccelerationType as any) || "none",
+          HardwareDecodingCodecs: config.HardwareDecodingCodecs || [],
+          EnableDecodingColorDepth10Hevc:
+            config.EnableDecodingColorDepth10Hevc || false,
+          EnableDecodingColorDepth10Vp9:
+            config.EnableDecodingColorDepth10Vp9 || false,
+          EnableDecodingColorDepth10HevcRext:
+            config.EnableDecodingColorDepth10HevcRext || false,
+          EnableDecodingColorDepth12HevcRext:
+            config.EnableDecodingColorDepth12HevcRext || false,
         });
       } catch (error) {
         console.error(error);
@@ -64,6 +86,13 @@ export default function PlaybackTranscodingPage() {
       const newConfig = {
         ...currentConfig,
         HardwareAccelerationType: data.HardwareAccelerationType as any,
+        HardwareDecodingCodecs: data.HardwareDecodingCodecs,
+        EnableDecodingColorDepth10Hevc: data.EnableDecodingColorDepth10Hevc,
+        EnableDecodingColorDepth10Vp9: data.EnableDecodingColorDepth10Vp9,
+        EnableDecodingColorDepth10HevcRext:
+          data.EnableDecodingColorDepth10HevcRext,
+        EnableDecodingColorDepth12HevcRext:
+          data.EnableDecodingColorDepth12HevcRext,
       };
 
       await updateEncodingConfiguration(newConfig);
@@ -107,18 +136,149 @@ export default function PlaybackTranscodingPage() {
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
                         <SelectItem value="amf">AMD AMF</SelectItem>
-                        <SelectItem value="qsv">Intel QuickSync (QSV)</SelectItem>
-                        <SelectItem value="vaapi">Video Acceleration API (VAAPI)</SelectItem>
+                        <SelectItem value="qsv">
+                          Intel QuickSync (QSV)
+                        </SelectItem>
+                        <SelectItem value="vaapi">
+                          Video Acceleration API (VAAPI)
+                        </SelectItem>
                         <SelectItem value="nvenc">NVIDIA NVENC</SelectItem>
-                        <SelectItem value="videotoolbox">Apple VideoToolBox</SelectItem>
-                        <SelectItem value="v4l2m2m">Video4Linux2 (V4L2)</SelectItem>
-                        <SelectItem value="rkmpp">Rockchip MPP (RKMPP)</SelectItem>
+                        <SelectItem value="videotoolbox">
+                          Apple VideoToolBox
+                        </SelectItem>
+                        <SelectItem value="v4l2m2m">
+                          Video4Linux2 (V4L2)
+                        </SelectItem>
+                        <SelectItem value="rkmpp">
+                          Rockchip MPP (RKMPP)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-4">
+                <FormLabel>Enable hardware decoding for</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {hardwareDecodingCodecs.map((codec) => (
+                    <FormField
+                      key={codec.value}
+                      control={form.control}
+                      name="HardwareDecodingCodecs"
+                      render={({ field }) => {
+                        return (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(codec.value)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([
+                                        ...field.value,
+                                        codec.value,
+                                      ])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== codec.value
+                                        )
+                                      );
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="font-normal">
+                                {codec.label}
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+
+                  <FormField
+                    control={form.control}
+                    name="EnableDecodingColorDepth10Hevc"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="font-normal">
+                            HEVC 10bit
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="EnableDecodingColorDepth10Vp9"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="font-normal">
+                            VP9 10bit
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="EnableDecodingColorDepth10HevcRext"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="font-normal">
+                            HEVC RExt 8/10bit
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="EnableDecodingColorDepth12HevcRext"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="font-normal">
+                            HEVC RExt 12bit
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

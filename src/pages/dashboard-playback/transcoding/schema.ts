@@ -13,10 +13,23 @@ export const transcodingSettingsFormSchema = z.object({
       "rkmpp",
     ])
     .default("none"),
+  HardwareDecodingCodecs: z.array(z.string()).default([]),
+  EnableDecodingColorDepth10Hevc: z.boolean().default(false),
+  EnableDecodingColorDepth10Vp9: z.boolean().default(false),
+  EnableDecodingColorDepth10HevcRext: z.boolean().default(false),
+  EnableDecodingColorDepth12HevcRext: z.boolean().default(false),
 });
 
-export type TranscodingSettingsFormValues = z.infer<typeof transcodingSettingsFormSchema>;
+export type TranscodingSettingsFormValues = z.infer<
+  typeof transcodingSettingsFormSchema
+>;
 
-export const defaultTranscodingSettingsFormValues: TranscodingSettingsFormValues = {
-  HardwareAccelerationType: "none",
-};
+export const defaultTranscodingSettingsFormValues: TranscodingSettingsFormValues =
+  {
+    HardwareAccelerationType: "none",
+    HardwareDecodingCodecs: [],
+    EnableDecodingColorDepth10Hevc: false,
+    EnableDecodingColorDepth10Vp9: false,
+    EnableDecodingColorDepth10HevcRext: false,
+    EnableDecodingColorDepth12HevcRext: false,
+  };

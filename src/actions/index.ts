@@ -33,6 +33,7 @@ export {
   scanLibrary,
   markFavorite,
   unmarkFavorite,
+  fetchVirtualFolders,
 } from "./media";
 
 // TV show actions

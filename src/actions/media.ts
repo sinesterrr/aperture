@@ -7,7 +7,9 @@ import { UserLibraryApi } from "@jellyfin/sdk/lib/generated-client/api/user-libr
 import { getItemsApi } from "@jellyfin/sdk/lib/utils/api/items-api";
 import { getLiveTvApi } from "@jellyfin/sdk/lib/utils/api/live-tv-api";
 import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
+import { LibraryStructureApi } from "@jellyfin/sdk/lib/generated-client/api/library-structure-api";
 import { getGenresApi } from "@jellyfin/sdk/lib/utils/api/genres-api";
+import { VirtualFolderInfo } from "@jellyfin/sdk/lib/generated-client/models/virtual-folder-info";
 import { createJellyfinInstance } from "../lib/utils";
 import { JellyfinUserWithToken } from "../types/jellyfin";
 import { StoreAuthData } from "./store/store-auth-data";
@@ -885,9 +887,7 @@ export async function fetchHeroItems(): Promise<JellyfinItem[]> {
     // Smart Shuffle / Priority Sort
     // We want a mix: Resume first, then a mix of new and trending
     // Simple approach: Resume items first, then shuffle the rest
-    const resumeIds = new Set(
-      (resumeData.data.Items || []).map((i) => i.Id)
-    );
+    const resumeIds = new Set((resumeData.data.Items || []).map((i) => i.Id));
 
     const resumeContent = uniqueItems.filter((i) => resumeIds.has(i.Id));
     const discoveryContent = uniqueItems.filter((i) => !resumeIds.has(i.Id));
@@ -959,5 +959,33 @@ export async function unmarkFavorite(itemId: string): Promise<boolean> {
   } catch (error) {
     console.error("Failed to unmark favorite:", error);
     return false;
+  }
+}
+
+export async function fetchVirtualFolders(): Promise<VirtualFolderInfo[]> {
+  try {
+    const { serverUrl, user } = await getAuthData();
+    if (!user.AccessToken) throw new Error("No access token found");
+
+    const jellyfinInstance = createJellyfinInstance();
+    const api = jellyfinInstance.createApi(serverUrl);
+    api.accessToken = user.AccessToken;
+
+    const libraryStructureApi = new LibraryStructureApi(api.configuration);
+    const { data } = await libraryStructureApi.getVirtualFolders();
+    return data || [];
+  } catch (error) {
+    console.error("Failed to fetch virtual folders:", error);
+
+    // If it's an authentication error, throw an error with a special flag
+    if (isAuthError(error)) {
+      const authError = new Error(
+        "Authentication expired. Please sign in again."
+      );
+      (authError as any).isAuthError = true;
+      throw authError;
+    }
+
+    return [];
   }
 }

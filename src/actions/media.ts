@@ -10,6 +10,7 @@ import { getLibraryApi } from "@jellyfin/sdk/lib/utils/api/library-api";
 import { LibraryStructureApi } from "@jellyfin/sdk/lib/generated-client/api/library-structure-api";
 import { getGenresApi } from "@jellyfin/sdk/lib/utils/api/genres-api";
 import { VirtualFolderInfo } from "@jellyfin/sdk/lib/generated-client/models/virtual-folder-info";
+import { LibraryOptionsResultDto } from "@jellyfin/sdk/lib/generated-client/models/library-options-result-dto";
 import { createJellyfinInstance } from "../lib/utils";
 import { JellyfinUserWithToken } from "../types/jellyfin";
 import { StoreAuthData } from "./store/store-auth-data";
@@ -1046,5 +1047,49 @@ export async function renameVirtualFolder(
       throw authError;
     }
     throw error;
+  }
+}
+
+export async function fetchLibraryOptionsInfo(
+  contentType: string = "movies",
+  isNewLibrary: boolean = false
+): Promise<LibraryOptionsResultDto> {
+  try {
+    const { serverUrl, user } = await getAuthData();
+    if (!user.AccessToken) throw new Error("No access token found");
+
+    const response = await fetch(
+      `${serverUrl}/Libraries/AvailableOptions?LibraryContentType=${contentType}&IsNewLibrary=${isNewLibrary}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `MediaBrowser Token="${user.AccessToken}"`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch library options:", error);
+    if (isAuthError(error)) {
+      const authError = new Error(
+        "Authentication expired. Please sign in again."
+      );
+      (authError as any).isAuthError = true;
+      throw authError;
+    }
+    // Return empty DTO structure if failed
+    return {
+      MetadataSavers: [],
+      MetadataReaders: [],
+      SubtitleFetchers: [],
+      LyricFetchers: [],
+      TypeOptions: [],
+    };
   }
 }

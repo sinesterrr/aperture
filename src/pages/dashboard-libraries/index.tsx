@@ -1,6 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Plus, Folder, Tv, Film, Radio } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { dashboardLoadingAtom } from "../../lib/atoms";
 import {
@@ -80,9 +81,9 @@ export default function LibrariesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <button
+        <Link
+          to="/dashboard/libraries/add"
           className="group relative flex h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary hover:bg-accent/5 transition-all duration-300"
-          onClick={() => toast.info("Add library functionality coming soon")}
         >
           <div className="mb-4 rounded-full bg-background p-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
             <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
@@ -90,7 +91,7 @@ export default function LibrariesPage() {
           <span className="text-lg font-medium text-muted-foreground group-hover:text-primary">
             Add Library
           </span>
-        </button>
+        </Link>
 
         {libraries.map((library, index) => (
           <VirtualFolderCard

@@ -19,6 +19,12 @@ export const transcodingSettingsFormSchema = z.object({
   EnableDecodingColorDepth10HevcRext: z.boolean().default(false),
   EnableDecodingColorDepth12HevcRext: z.boolean().default(false),
   EnableHardwareEncoding: z.boolean().default(false),
+  EnableEnhancedNvdecDecoder: z.boolean().default(false),
+  QsvDevice: z.string().optional(),
+  PreferSystemNativeHwDecoder: z.boolean().default(false),
+  VaapiDevice: z.string().optional(),
+  EnableIntelLowPowerH264HwEncoder: z.boolean().default(false),
+  EnableIntelLowPowerHevcHwEncoder: z.boolean().default(false),
 });
 
 export type TranscodingSettingsFormValues = z.infer<
@@ -34,4 +40,10 @@ export const defaultTranscodingSettingsFormValues: TranscodingSettingsFormValues
     EnableDecodingColorDepth10HevcRext: false,
     EnableDecodingColorDepth12HevcRext: false,
     EnableHardwareEncoding: false,
+    EnableEnhancedNvdecDecoder: false,
+    QsvDevice: "",
+    PreferSystemNativeHwDecoder: false,
+    VaapiDevice: "",
+    EnableIntelLowPowerH264HwEncoder: false,
+    EnableIntelLowPowerHevcHwEncoder: false,
   };

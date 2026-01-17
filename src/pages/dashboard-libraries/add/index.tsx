@@ -105,10 +105,11 @@ export default function AddLibraryPage() {
         const result = await fetchLibraryOptionsInfo(apiType, true);
 
         // Map Metadata Fetchers
-        // For movies/shows, we look for TypeOptions with Type='Movie' or 'Series'
+        // For movies, we look for TypeOptions with Type='Movie'
+        // For shows, we look for 'Series', 'Season', 'Episode'
         const typeKey = collectionType === "movies" ? "Movie" : "Series";
         const typeOptions = result.TypeOptions?.find((t) => t.Type === typeKey);
-
+        console.log(result);
         if (typeOptions?.MetadataFetchers) {
           form.setValue(
             "MetadataFetchers",
@@ -120,6 +121,36 @@ export default function AddLibraryPage() {
           );
         }
 
+        if (collectionType === "tvshows") {
+          const seasonOptions = result.TypeOptions?.find(
+            (t) => t.Type === "Season"
+          );
+          if (seasonOptions?.MetadataFetchers) {
+            form.setValue(
+              "SeasonMetadataFetchers",
+              seasonOptions.MetadataFetchers.map((f) => ({
+                Name: f.Name || "",
+                Enabled: f.DefaultEnabled || false,
+                id: f.Name || Math.random().toString(),
+              }))
+            );
+          }
+
+          const episodeOptions = result.TypeOptions?.find(
+            (t) => t.Type === "Episode"
+          );
+          if (episodeOptions?.MetadataFetchers) {
+            form.setValue(
+              "EpisodeMetadataFetchers",
+              episodeOptions.MetadataFetchers.map((f) => ({
+                Name: f.Name || "",
+                Enabled: f.DefaultEnabled || false,
+                id: f.Name || Math.random().toString(),
+              }))
+            );
+          }
+        }
+
         if (typeOptions?.ImageFetchers) {
           form.setValue(
             "ImageFetchers",
@@ -129,6 +160,36 @@ export default function AddLibraryPage() {
               id: f.Name || Math.random().toString(),
             }))
           );
+        }
+
+        if (collectionType === "tvshows") {
+          const seasonOptions = result.TypeOptions?.find(
+            (t) => t.Type === "Season"
+          );
+          if (seasonOptions?.ImageFetchers) {
+            form.setValue(
+              "SeasonImageFetchers",
+              seasonOptions.ImageFetchers.map((f) => ({
+                Name: f.Name || "",
+                Enabled: f.DefaultEnabled || false,
+                id: f.Name || Math.random().toString(),
+              }))
+            );
+          }
+
+          const episodeOptions = result.TypeOptions?.find(
+            (t) => t.Type === "Episode"
+          );
+          if (episodeOptions?.ImageFetchers) {
+            form.setValue(
+              "EpisodeImageFetchers",
+              episodeOptions.ImageFetchers.map((f) => ({
+                Name: f.Name || "",
+                Enabled: f.DefaultEnabled || false,
+                id: f.Name || Math.random().toString(),
+              }))
+            );
+          }
         }
 
         if (result.MetadataSavers) {
@@ -152,10 +213,17 @@ export default function AddLibraryPage() {
             }))
           );
         }
-
-        // We assume MediaSegmentProviders are standard and just initialize empty or predefined
-        // Since we can't easily fetch them from the DTO based on SDK types, we'll leave it empty or
-        // if user provided list, we would use that. For now, empty list until we know where to get it.
+        // @ts-ignore
+        const MediaSegmentProviders: any[] = result.MediaSegmentProviders || [];
+        if (MediaSegmentProviders.length) {
+          form.setValue(
+            "MediaSegmentProviders",
+            MediaSegmentProviders.map((f): any => ({
+              Name: f?.Name || "",
+              Enabled: f?.DefaultEnabled || false,
+            }))
+          );
+        }
       } catch (error) {
         console.error("Failed to load library options", error);
         toast.error("Failed to load library options");
@@ -398,6 +466,22 @@ export default function AddLibraryPage() {
                     </FormItem>
                   )}
                 />
+
+                {collectionType === "tvshows" && (
+                  <FormField
+                    control={form.control}
+                    name="LibrarySettings.SeasonZeroDisplayName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Special season display name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Specials" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
 
               {/* Movie Options (Conditional) */}
@@ -452,6 +536,32 @@ export default function AddLibraryPage() {
                               Extras often have the same embedded name as the
                               parent, check this to use embedded titles for them
                               anyway.
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {collectionType === "tvshows" && enableEmbeddedTitles && (
+                    <FormField
+                      control={form.control}
+                      name="MovieOptions.EnableEmbeddedEpisodeInfos"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Prefer embedded episode information over filenames
+                            </FormLabel>
+                            <FormDescription>
+                              Use the episode information from the embedded
+                              metadata if available.
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -549,6 +659,7 @@ export default function AddLibraryPage() {
               <div className="rounded-2xl border border-border/70 bg-background/70 p-6 shadow-sm space-y-6">
                 <h3 className="text-lg font-semibold text-foreground">
                   Metadata downloaders
+                  {collectionType === "tvshows" && " (TV Shows)"}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Enable and rank your preferred metadata downloaders in order
@@ -566,6 +677,38 @@ export default function AddLibraryPage() {
                     />
                   )}
                 />
+
+                {collectionType === "tvshows" && (
+                  <>
+                    <h4 className="text-sm font-medium mt-4">
+                      Metadata downloaders (Seasons)
+                    </h4>
+                    <FormField
+                      control={form.control}
+                      name="SeasonMetadataFetchers"
+                      render={({ field }) => (
+                        <ReorderableList
+                          items={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+
+                    <h4 className="text-sm font-medium mt-4">
+                      Metadata downloaders (Episodes)
+                    </h4>
+                    <FormField
+                      control={form.control}
+                      name="EpisodeMetadataFetchers"
+                      render={({ field }) => (
+                        <ReorderableList
+                          items={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </>
+                )}
 
                 <FormField
                   control={form.control}
@@ -622,6 +765,7 @@ export default function AddLibraryPage() {
               <div className="rounded-2xl border border-border/70 bg-background/70 p-6 shadow-sm space-y-6">
                 <h3 className="text-lg font-semibold text-foreground">
                   Image fetchers
+                  {collectionType === "tvshows" && " (TV Shows)"}
                 </h3>
                 <FormField
                   control={form.control}
@@ -633,6 +777,38 @@ export default function AddLibraryPage() {
                     />
                   )}
                 />
+
+                {collectionType === "tvshows" && (
+                  <>
+                    <h4 className="text-sm font-medium mt-4">
+                      Image fetchers (Seasons)
+                    </h4>
+                    <FormField
+                      control={form.control}
+                      name="SeasonImageFetchers"
+                      render={({ field }) => (
+                        <ReorderableList
+                          items={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+
+                    <h4 className="text-sm font-medium mt-4">
+                      Image fetchers (Episodes)
+                    </h4>
+                    <FormField
+                      control={form.control}
+                      name="EpisodeImageFetchers"
+                      render={({ field }) => (
+                        <ReorderableList
+                          items={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </>
+                )}
 
                 <FormField
                   control={form.control}
@@ -655,6 +831,34 @@ export default function AddLibraryPage() {
                     </FormItem>
                   )}
                 />
+
+                {collectionType === "tvshows" && (
+                  <FormField
+                    control={form.control}
+                    name="MovieOptions.EnableAutomaticSeriesGrouping"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Automatically merge series that are spread across
+                            multiple folders
+                          </FormLabel>
+                          <FormDescription>
+                            Series that are spread across multiple folders
+                            within this library will be automatically merged
+                            into a single series.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
 
               {/* Media Segment Providers */}

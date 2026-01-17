@@ -9,15 +9,21 @@ export const addLibraryFormSchema = z.object({
     EnableRealtimeMonitor: z.boolean().default(true),
     PreferredMetadataLanguage: z.string().optional(),
     MetadataCountryCode: z.string().optional(),
+    // TV Show specific
+    SeasonZeroDisplayName: z.string().default("Specials"),
   }),
   MovieOptions: z.object({
     EnableEmbeddedTitles: z.boolean().default(false),
     EnableEmbeddedExtrasTitles: z.boolean().default(false),
+    // TV Show specific
+    EnableEmbeddedEpisodeInfos: z.boolean().default(false),
     AllowEmbeddedSubtitles: z
       .enum(["AllowAll", "AllowText", "AllowImage", "AllowNone"])
       .default("AllowAll"),
     AutomaticallyAddToCollection: z.boolean().default(false),
     AutomaticRefreshIntervalDays: z.string().default("0"), // Using string for Select, convert to number on submit
+    // TV Show specific
+    EnableAutomaticSeriesGrouping: z.boolean().default(false),
   }),
   // Lists
   MetadataFetchers: z.array(
@@ -27,7 +33,37 @@ export const addLibraryFormSchema = z.object({
       id: z.string(), // for dnd-kit
     })
   ),
+  // TV Show specific fetchers
+  SeasonMetadataFetchers: z.array(
+    z.object({
+      Name: z.string(),
+      Enabled: z.boolean(),
+      id: z.string(),
+    })
+  ),
+  EpisodeMetadataFetchers: z.array(
+    z.object({
+      Name: z.string(),
+      Enabled: z.boolean(),
+      id: z.string(),
+    })
+  ),
   ImageFetchers: z.array(
+    z.object({
+      Name: z.string(),
+      Enabled: z.boolean(),
+      id: z.string(),
+    })
+  ),
+  // TV Show specific image fetchers
+  SeasonImageFetchers: z.array(
+    z.object({
+      Name: z.string(),
+      Enabled: z.boolean(),
+      id: z.string(),
+    })
+  ),
+  EpisodeImageFetchers: z.array(
     z.object({
       Name: z.string(),
       Enabled: z.boolean(),
@@ -85,16 +121,23 @@ export const defaultAddLibraryFormValues: AddLibraryFormValues = {
     EnableRealtimeMonitor: true,
     PreferredMetadataLanguage: undefined,
     MetadataCountryCode: undefined,
+    SeasonZeroDisplayName: "Specials",
   },
   MovieOptions: {
     EnableEmbeddedTitles: false,
     EnableEmbeddedExtrasTitles: false,
+    EnableEmbeddedEpisodeInfos: false,
     AllowEmbeddedSubtitles: "AllowAll",
     AutomaticallyAddToCollection: false,
     AutomaticRefreshIntervalDays: "0",
+    EnableAutomaticSeriesGrouping: false,
   },
   MetadataFetchers: [],
+  SeasonMetadataFetchers: [],
+  EpisodeMetadataFetchers: [],
   ImageFetchers: [],
+  SeasonImageFetchers: [],
+  EpisodeImageFetchers: [],
   SaveLocalMetadata: false,
   MetadataSavers: [],
   MediaSegmentProviders: [],

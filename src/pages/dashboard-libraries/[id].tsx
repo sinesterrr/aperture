@@ -1,3 +1,3 @@
 export default function EditLibraryPage() {
-  return <div>EditLibraryPage</div>;
+  return <div>Work in progress</div>;
 }

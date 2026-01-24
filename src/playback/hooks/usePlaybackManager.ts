@@ -162,7 +162,7 @@ export function usePlaybackManager(): PlaybackContextValue {
             mediaSource = itemToPlay!.MediaSources[0];
         }
 
-        const {user } = await getAuthData();
+        const { user } = await getAuthData();
 
         // Fetch Sidecar Subtitles (VTT)
         try {
@@ -176,16 +176,15 @@ export function usePlaybackManager(): PlaybackContextValue {
                      const defaultSub = subs.find(s => s.default);
                      if (defaultSub) {
                          targetIndex = defaultSub.index;
-                     }else{
-                         if(user && user.Configuration && user.Configuration.SubtitleMode &&
-                             user.Configuration.SubtitleLanguagePreference &&
-                             user.Configuration.SubtitleMode === SubtitlePlaybackMode.Always){
-                             const subtitlePreferance =
-                                 subs.find(s => s.language === user.Configuration!.SubtitleLanguagePreference);
-                             if (subtitlePreferance) {
-                                 targetIndex = subtitlePreferance.index;
-                             }
+                     }else if(user && user.Configuration && user.Configuration.SubtitleMode &&
+                         user.Configuration.SubtitleLanguagePreference &&
+                         user.Configuration.SubtitleMode === SubtitlePlaybackMode.Always){
+                         const subtitlePreferance =
+                             subs.find(s => s.language === user.Configuration!.SubtitleLanguagePreference);
+                         if (subtitlePreferance) {
+                             targetIndex = subtitlePreferance.index;
                          }
+
                      }
                      options.subtitleStreamIndex = targetIndex;
                  }

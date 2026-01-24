@@ -176,6 +176,7 @@ export function usePlaybackManager(): PlaybackContextValue {
                      const defaultSub = subs.find(s => s.default);
                      if (defaultSub) {
                          targetIndex = defaultSub.index;
+                         options.subtitleStreamIndex = targetIndex;
                      }else if(user && user.Configuration && user.Configuration.SubtitleMode &&
                          user.Configuration.SubtitleLanguagePreference &&
                          user.Configuration.SubtitleMode === SubtitlePlaybackMode.Always){
@@ -183,10 +184,9 @@ export function usePlaybackManager(): PlaybackContextValue {
                              subs.find(s => s.language === user.Configuration!.SubtitleLanguagePreference);
                          if (subtitlePreferance) {
                              targetIndex = subtitlePreferance.index;
+                             options.subtitleStreamIndex = targetIndex;
                          }
-
                      }
-                     options.subtitleStreamIndex = targetIndex;
                  }
                  
                  if (targetIndex !== undefined) {

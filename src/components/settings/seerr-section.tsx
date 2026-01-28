@@ -31,6 +31,7 @@ import {
   type SeerrAuthType,
 } from "../../actions/store/store-seerr-data";
 import { toast } from "sonner";
+import { testSeerrConnection } from "../../actions";
 
 export default function SeerrSection() {
   const [seerrOpen, setSeerrOpen] = useState(false);
@@ -80,13 +81,40 @@ export default function SeerrSection() {
   };
 
   const handleTestConnection = async () => {
-    // Placeholder for actual connection test
     if (!serverUrl) {
       toast.error("Please enter a Server URL first");
       return;
     }
-    toast.info("Connection test coming soon... (Configuration Saved)");
-    await handleSave();
+
+    setLoading(true);
+    const toastId = toast.loading("Testing connection...");
+
+    try {
+      // Save local state first to ensure we test what is currently typed
+      const currentConfig = {
+        serverUrl,
+        authType,
+        apiKey,
+        username,
+        password,
+      };
+
+      const result = await testSeerrConnection(currentConfig);
+
+      if (result.success) {
+        toast.success(result.message || "Connection Successful", {
+          id: toastId,
+        });
+        await handleSave(); // Auto-save on success
+      } else {
+        toast.error(result.message || "Connection Failed", { id: toastId });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An unexpected error occurred", { id: toastId });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

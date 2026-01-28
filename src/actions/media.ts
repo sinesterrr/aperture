@@ -1114,11 +1114,13 @@ export async function addLibrary(
     await libraryStructureApi.addVirtualFolder({
       name,
       collectionType,
-      collectionTypeOptions: {
-        LibraryOptions: libraryOptions,
-      },
       refreshLibrary: true,
-      paths,
+      addVirtualFolderDto: {
+        LibraryOptions: {
+          ...libraryOptions,
+          PathInfos: paths.map((path) => ({ Path: path })),
+        },
+      },
     } as any);
   } catch (error) {
     console.error("Failed to add library:", error);

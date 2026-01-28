@@ -23,7 +23,10 @@ import { Checkbox } from "../../../../components/ui/checkbox";
 import { FileBrowserDropdown } from "../../../../components/file-browser-dropdown";
 import { ReorderableList } from "../../../../components/reorderable-list";
 import { Plus, Trash2 } from "lucide-react";
-import { CountryInfo, CultureDto } from "@jellyfin/sdk/lib/generated-client/models";
+import {
+  CountryInfo,
+  CultureDto,
+} from "@jellyfin/sdk/lib/generated-client/models";
 import { AddLibraryFormValues } from "../scheme";
 
 const CONTENT_TYPES = [
@@ -39,6 +42,8 @@ interface LibraryFormProps {
   onCancel: () => void;
   submitLabel?: string;
   cancelLabel?: string;
+  disableCollectionType?: boolean;
+  disableLibraryName?: boolean;
 }
 
 export function LibraryForm({
@@ -49,6 +54,8 @@ export function LibraryForm({
   onCancel,
   submitLabel = "Add Library",
   cancelLabel = "Cancel",
+  disableCollectionType = false,
+  disableLibraryName = false,
 }: LibraryFormProps) {
   const collectionType = useWatch({
     control: form.control,
@@ -65,12 +72,16 @@ export function LibraryForm({
     append: appendPath,
     remove: removePath,
   } = useFieldArray({
-    control: form.control,
-    name: "Paths",
-  });
+    control: form.control as any,
+    name: "Paths" as any,
+  }) as {
+    fields: Array<{ id: string }>;
+    append: (value: string) => void;
+    remove: (index: number) => void;
+  };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8 pb-20">
+    <div className="w-full max-w-3xl space-y-8 pb-20">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="rounded-2xl border border-border/70 bg-background/70 p-6 shadow-sm space-y-6">
@@ -89,7 +100,11 @@ export function LibraryForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Content type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={disableCollectionType}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select content type" />
@@ -118,7 +133,11 @@ export function LibraryForm({
                 <FormItem>
                   <FormLabel>Display name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Movies" {...field} />
+                    <Input
+                      placeholder="Movies"
+                      {...field}
+                      disabled={disableLibraryName}
+                    />
                   </FormControl>
                   <FormDescription>
                     The name that will be displayed in the dashboard and apps.
@@ -178,9 +197,7 @@ export function LibraryForm({
                               variant="ghost"
                               size="icon"
                               onClick={() => removePath(index)}
-                              disabled={
-                                pathFields.length === 1 && index === 0
-                              }
+                              disabled={pathFields.length === 1 && index === 0}
                               className="text-muted-foreground hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -241,7 +258,10 @@ export function LibraryForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Preferred download language</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select language" />
@@ -269,7 +289,10 @@ export function LibraryForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Country/Region</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select country" />
@@ -308,7 +331,8 @@ export function LibraryForm({
                 )}
               </div>
 
-              {(collectionType === "movies" || collectionType === "tvshows") && (
+              {(collectionType === "movies" ||
+                collectionType === "tvshows") && (
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-6 shadow-sm space-y-6">
                   <h3 className="text-lg font-semibold text-foreground">
                     {collectionType === "movies" ? "Movie" : "Series"} Options
@@ -399,7 +423,10 @@ export function LibraryForm({
                         <FormLabel>
                           Disable different types of embedded subtitles
                         </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select option" />
@@ -536,7 +563,10 @@ export function LibraryForm({
                       <FormLabel>
                         Automatically refresh metadata from the internet
                       </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select interval" />
@@ -759,7 +789,9 @@ export function LibraryForm({
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Save trickplay images next to media</FormLabel>
+                        <FormLabel>
+                          Save trickplay images next to media
+                        </FormLabel>
                         <FormDescription>
                           Saving trickplay images into media folders will put
                           them next to your media for easy migration and access.
@@ -845,7 +877,7 @@ export function LibraryForm({
                               <FormControl>
                                 <Checkbox
                                   checked={field.value?.includes(
-                                    culture.TwoLetterISOLanguageName || ""
+                                    culture.TwoLetterISOLanguageName || "",
                                   )}
                                   onCheckedChange={(checked) => {
                                     return checked
@@ -857,8 +889,8 @@ export function LibraryForm({
                                           field.value?.filter(
                                             (value) =>
                                               value !==
-                                              culture.TwoLetterISOLanguageName
-                                          )
+                                              culture.TwoLetterISOLanguageName,
+                                          ),
                                         );
                                   }}
                                 />

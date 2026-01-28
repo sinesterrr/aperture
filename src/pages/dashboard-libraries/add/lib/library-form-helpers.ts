@@ -1,5 +1,10 @@
 import { LibraryOptions } from "@jellyfin/sdk/lib/generated-client/models/library-options";
-import { AddLibraryFormValues } from "../scheme";
+import { LibraryOptionsResultDto } from "@jellyfin/sdk/lib/generated-client/models/library-options-result-dto";
+import { VirtualFolderInfo } from "@jellyfin/sdk/lib/generated-client/models/virtual-folder-info";
+import {
+  AddLibraryFormValues,
+  defaultAddLibraryFormValues,
+} from "../scheme";
 
 type FetcherSource = {
   Name?: string | null;
@@ -9,6 +14,66 @@ type FetcherSource = {
 type FetcherItem = {
   Name: string;
   Enabled: boolean;
+};
+
+const buildFetcherItems = (
+  availableItems?: FetcherSource[],
+  enabledNames?: Array<string | null | undefined>,
+  orderNames?: Array<string | null | undefined>
+) => {
+  const availableNames = (availableItems ?? [])
+    .map((item) => item?.Name?.trim())
+    .filter(Boolean) as string[];
+
+  const enabledSet = new Set(
+    (enabledNames ?? []).map((name) => name?.trim()).filter(Boolean) as string[]
+  );
+
+  const order = (orderNames ?? [])
+    .map((name) => name?.trim())
+    .filter(Boolean) as string[];
+
+  const orderedNames = order.length ? order : availableNames;
+  const seen = new Set<string>();
+
+  const orderedItems = orderedNames
+    .map((name) => {
+      if (!name || seen.has(name)) return null;
+      seen.add(name);
+      return {
+        Name: name,
+        Enabled: enabledSet.has(name),
+        id: name,
+      };
+    })
+    .filter(Boolean) as Array<{ Name: string; Enabled: boolean; id: string }>;
+
+  const remainingItems = availableNames
+    .filter((name) => !seen.has(name))
+    .map((name) => ({
+      Name: name,
+      Enabled: enabledSet.has(name),
+      id: name,
+    }));
+
+  return [...orderedItems, ...remainingItems];
+};
+
+const buildFetcherItemsFromDisabled = (
+  availableItems?: FetcherSource[],
+  disabledNames?: Array<string | null | undefined>,
+  orderNames?: Array<string | null | undefined>
+) => {
+  const availableNames = (availableItems ?? [])
+    .map((item) => item?.Name?.trim())
+    .filter(Boolean) as string[];
+  const disabledSet = new Set(
+    (disabledNames ?? [])
+      .map((name) => name?.trim())
+      .filter(Boolean) as string[]
+  );
+  const enabledNames = availableNames.filter((name) => !disabledSet.has(name));
+  return buildFetcherItems(availableItems, enabledNames, orderNames);
 };
 
 export const mapFetcherList = (items?: FetcherSource[]) =>
@@ -123,3 +188,191 @@ export const buildLibraryOptions = (
 
   TypeOptions: buildTypeOptions(data),
 });
+
+export const buildFormValuesFromLibrary = (
+  library: VirtualFolderInfo,
+  availableOptions: LibraryOptionsResultDto
+): AddLibraryFormValues => {
+  const base: AddLibraryFormValues = {
+    ...defaultAddLibraryFormValues,
+    LibrarySettings: { ...defaultAddLibraryFormValues.LibrarySettings },
+    MovieOptions: { ...defaultAddLibraryFormValues.MovieOptions },
+    Trickplay: { ...defaultAddLibraryFormValues.Trickplay },
+    ChapterImages: { ...defaultAddLibraryFormValues.ChapterImages },
+    SubtitleDownloads: {
+      ...defaultAddLibraryFormValues.SubtitleDownloads,
+    },
+  };
+
+  const libraryOptions = library.LibraryOptions ?? {};
+  const collectionType = (library.CollectionType ?? "")
+    .toString()
+    .toLowerCase();
+
+  const paths =
+    library.Locations?.filter(Boolean) ||
+    libraryOptions.PathInfos?.map((info) => info.Path).filter(Boolean) ||
+    [];
+
+  const getAvailableType = (type: string) =>
+    availableOptions.TypeOptions?.find((option) => option.Type === type);
+
+  const getLibraryType = (type: string) =>
+    libraryOptions.TypeOptions?.find((option) => option.Type === type);
+
+  const mainTypeKey = collectionType === "movies" ? "Movie" : "Series";
+  const mainAvailable = getAvailableType(mainTypeKey);
+  const mainLibrary = getLibraryType(mainTypeKey);
+
+  const seasonAvailable = getAvailableType("Season");
+  const seasonLibrary = getLibraryType("Season");
+
+  const episodeAvailable = getAvailableType("Episode");
+  const episodeLibrary = getLibraryType("Episode");
+
+  return {
+    ...base,
+    CollectionType: collectionType || base.CollectionType,
+    Name: library.Name || base.Name,
+    Paths: paths.length ? paths : base.Paths,
+    LibrarySettings: {
+      ...base.LibrarySettings,
+      Enabled: libraryOptions.Enabled ?? base.LibrarySettings.Enabled,
+      EnableRealtimeMonitor:
+        libraryOptions.EnableRealtimeMonitor ??
+        base.LibrarySettings.EnableRealtimeMonitor,
+      PreferredMetadataLanguage:
+        libraryOptions.PreferredMetadataLanguage ??
+        base.LibrarySettings.PreferredMetadataLanguage,
+      MetadataCountryCode:
+        libraryOptions.MetadataCountryCode ??
+        base.LibrarySettings.MetadataCountryCode,
+      SeasonZeroDisplayName:
+        libraryOptions.SeasonZeroDisplayName ??
+        base.LibrarySettings.SeasonZeroDisplayName,
+    },
+    MovieOptions: {
+      ...base.MovieOptions,
+      EnableEmbeddedTitles:
+        libraryOptions.EnableEmbeddedTitles ??
+        base.MovieOptions.EnableEmbeddedTitles,
+      EnableEmbeddedExtrasTitles:
+        libraryOptions.EnableEmbeddedExtrasTitles ??
+        base.MovieOptions.EnableEmbeddedExtrasTitles,
+      EnableEmbeddedEpisodeInfos:
+        libraryOptions.EnableEmbeddedEpisodeInfos ??
+        base.MovieOptions.EnableEmbeddedEpisodeInfos,
+      AllowEmbeddedSubtitles:
+        (libraryOptions.AllowEmbeddedSubtitles as any) ??
+        base.MovieOptions.AllowEmbeddedSubtitles,
+      AutomaticallyAddToCollection:
+        libraryOptions.AutomaticallyAddToCollection ??
+        base.MovieOptions.AutomaticallyAddToCollection,
+      AutomaticRefreshIntervalDays: (
+        libraryOptions.AutomaticRefreshIntervalDays ??
+        Number(base.MovieOptions.AutomaticRefreshIntervalDays)
+      ).toString(),
+      EnableAutomaticSeriesGrouping:
+        libraryOptions.EnableAutomaticSeriesGrouping ??
+        base.MovieOptions.EnableAutomaticSeriesGrouping,
+    },
+    MetadataFetchers: buildFetcherItems(
+      mainAvailable?.MetadataFetchers,
+      mainLibrary?.MetadataFetchers,
+      mainLibrary?.MetadataFetcherOrder
+    ),
+    SeasonMetadataFetchers:
+      collectionType === "tvshows"
+        ? buildFetcherItems(
+            seasonAvailable?.MetadataFetchers,
+            seasonLibrary?.MetadataFetchers,
+            seasonLibrary?.MetadataFetcherOrder
+          )
+        : base.SeasonMetadataFetchers,
+    EpisodeMetadataFetchers:
+      collectionType === "tvshows"
+        ? buildFetcherItems(
+            episodeAvailable?.MetadataFetchers,
+            episodeLibrary?.MetadataFetchers,
+            episodeLibrary?.MetadataFetcherOrder
+          )
+        : base.EpisodeMetadataFetchers,
+    ImageFetchers: buildFetcherItems(
+      mainAvailable?.ImageFetchers,
+      mainLibrary?.ImageFetchers,
+      mainLibrary?.ImageFetcherOrder
+    ),
+    SeasonImageFetchers:
+      collectionType === "tvshows"
+        ? buildFetcherItems(
+            seasonAvailable?.ImageFetchers,
+            seasonLibrary?.ImageFetchers,
+            seasonLibrary?.ImageFetcherOrder
+          )
+        : base.SeasonImageFetchers,
+    EpisodeImageFetchers:
+      collectionType === "tvshows"
+        ? buildFetcherItems(
+            episodeAvailable?.ImageFetchers,
+            episodeLibrary?.ImageFetchers,
+            episodeLibrary?.ImageFetcherOrder
+          )
+        : base.EpisodeImageFetchers,
+    SaveLocalMetadata:
+      libraryOptions.SaveLocalMetadata ?? base.SaveLocalMetadata,
+    MetadataSavers: buildFetcherItems(
+      availableOptions.MetadataSavers,
+      libraryOptions.MetadataSavers,
+      libraryOptions.MetadataSavers
+    ),
+    MediaSegmentProviders: buildFetcherItemsFromDisabled(
+      (availableOptions as any).MediaSegmentProviders,
+      libraryOptions.DisabledMediaSegmentProviders,
+      libraryOptions.MediaSegmentProvideOrder
+    ),
+    Trickplay: {
+      ...base.Trickplay,
+      EnableTrickplayImageExtraction:
+        libraryOptions.EnableTrickplayImageExtraction ??
+        base.Trickplay.EnableTrickplayImageExtraction,
+      ExtractTrickplayImagesDuringLibraryScan:
+        libraryOptions.ExtractTrickplayImagesDuringLibraryScan ??
+        base.Trickplay.ExtractTrickplayImagesDuringLibraryScan,
+      SaveTrickplayImagesIntoMediaFolders:
+        libraryOptions.SaveTrickplayWithMedia ??
+        base.Trickplay.SaveTrickplayImagesIntoMediaFolders,
+    },
+    ChapterImages: {
+      ...base.ChapterImages,
+      EnableChapterImageExtraction:
+        libraryOptions.EnableChapterImageExtraction ??
+        base.ChapterImages.EnableChapterImageExtraction,
+      ExtractChapterImagesDuringLibraryScan:
+        libraryOptions.ExtractChapterImagesDuringLibraryScan ??
+        base.ChapterImages.ExtractChapterImagesDuringLibraryScan,
+    },
+    SubtitleDownloads: {
+      ...base.SubtitleDownloads,
+      DownloadLanguages:
+        libraryOptions.SubtitleDownloadLanguages ??
+        base.SubtitleDownloads.DownloadLanguages,
+      SubtitleFetchers: buildFetcherItemsFromDisabled(
+        availableOptions.SubtitleFetchers,
+        libraryOptions.DisabledSubtitleFetchers,
+        libraryOptions.SubtitleFetcherOrder
+      ),
+      RequirePerfectSubtitleMatch:
+        libraryOptions.RequirePerfectSubtitleMatch ??
+        base.SubtitleDownloads.RequirePerfectSubtitleMatch,
+      SkipSubtitlesIfAudioTrackMatches:
+        libraryOptions.SkipSubtitlesIfAudioTrackMatches ??
+        base.SubtitleDownloads.SkipSubtitlesIfAudioTrackMatches,
+      SkipSubtitlesIfEmbeddedSubtitlesPresent:
+        libraryOptions.SkipSubtitlesIfEmbeddedSubtitlesPresent ??
+        base.SubtitleDownloads.SkipSubtitlesIfEmbeddedSubtitlesPresent,
+      SaveSubtitlesWithMedia:
+        libraryOptions.SaveSubtitlesWithMedia ??
+        base.SubtitleDownloads.SaveSubtitlesWithMedia,
+    },
+  };
+};

@@ -97,7 +97,8 @@ export function useLibraryOptionsLoader({
           );
         }
 
-        const mediaSegmentProviders: any[] = result.MediaSegmentProviders || [];
+        const mediaSegmentProviders: any[] =
+          (result as any).MediaSegmentProviders || [];
         if (mediaSegmentProviders.length) {
           form.setValue(
             "MediaSegmentProviders",

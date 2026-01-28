@@ -31,6 +31,7 @@ import {
   LayoutDashboard,
   ChevronRight,
   Sliders,
+  Eye,
 } from "lucide-react";
 import { THEME_VARIANTS } from "../../data/theme-presets";
 import { cn } from "../../lib/utils";
@@ -62,6 +63,7 @@ import { Link } from "react-router-dom";
 
 import { useSettings } from "../../contexts/settings-context";
 import { toast } from "sonner";
+import SeerrSection from "../../components/settings/seerr-section";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -251,16 +253,16 @@ export default function SettingsPage() {
   const lastSeenRaw = user?.LastLoginDate ?? user?.LastActivityDate;
   const lastSeen = lastSeenRaw
     ? new Date(lastSeenRaw).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : null;
   const membershipLabel = profileLoading
     ? "Loading profile..."
     : lastSeen
-    ? `Last active ${lastSeen}`
-    : "Profile details will appear here soon.";
+      ? `Last active ${lastSeen}`
+      : "Profile details will appear here soon.";
   const profileTiles = [
     {
       title: "Password",
@@ -485,6 +487,7 @@ export default function SettingsPage() {
               </CollapsibleContent>
             </Card>
           </Collapsible>
+          <SeerrSection />
 
           {user?.Policy?.IsAdministrator ? (
             <Card className="bg-card/80 backdrop-blur ">

@@ -11,6 +11,7 @@ import { DiscoverWidgets } from "./discover-widgets";
 import {
   getSeerrRecentlyAddedItems,
   getSeerrTrendingItems,
+  getSeerrPopularMovies,
 } from "../../actions/seerr";
 import { SeerrMediaItem } from "../../types/seerr";
 
@@ -20,6 +21,7 @@ export default function DiscoverPage() {
   const [isSeerrConnected, setIsSeerrConnected] = useState(false);
   const [recentlyAdded, setRecentlyAdded] = useState<SeerrMediaItem[]>([]);
   const [trending, setTrending] = useState<SeerrMediaItem[]>([]);
+  const [popularMovies, setPopularMovies] = useState<SeerrMediaItem[]>([]);
 
   const navigate = useNavigate();
 
@@ -36,16 +38,21 @@ export default function DiscoverPage() {
           setIsSeerrConnected(true);
 
           // Fetch widget data in parallel
-          const [recentResult, trendingResult] = await Promise.all([
-            getSeerrRecentlyAddedItems(),
-            getSeerrTrendingItems(),
-          ]);
+          const [recentResult, trendingResult, popularResult] =
+            await Promise.all([
+              getSeerrRecentlyAddedItems(),
+              getSeerrTrendingItems(),
+              getSeerrPopularMovies(),
+            ]);
 
           if (recentResult?.results) {
             setRecentlyAdded(recentResult.results);
           }
           if (trendingResult?.results) {
             setTrending(trendingResult.results);
+          }
+          if (popularResult?.results) {
+            setPopularMovies(popularResult.results);
           }
         }
       } catch (error: any) {
@@ -82,6 +89,7 @@ export default function DiscoverPage() {
             <DiscoverWidgets
               recentlyAdded={recentlyAdded}
               trending={trending}
+              popularMovies={popularMovies}
             />
           )}
         </div>

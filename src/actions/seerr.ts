@@ -210,6 +210,25 @@ export async function getSeerrTrendingItems(): Promise<{
   return null;
 }
 
+export async function getSeerrPopularMovies(): Promise<{
+  results: SeerrMediaItem[];
+  pageInfo?: any;
+} | null> {
+  const currentDate = new Date().toISOString().split("T")[0];
+  const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
+    `/api/v1/discover/movies?page=1&primaryReleaseDateGte=${currentDate}`,
+    { method: "GET" },
+  );
+
+  if (response.success && response.data) {
+    const hydratedResults = await hydrateSeerrItems(response.data.results);
+    return { ...response.data, results: hydratedResults };
+  }
+
+  console.error("Failed to fetch popular movies:", response.message);
+  return null;
+}
+
 export async function testSeerrConnection(
   config?: SeerrAuthData,
 ): Promise<{ success: boolean; message?: string }> {

@@ -79,6 +79,14 @@ export const SeerrCard = React.memo(function SeerrCard({
         className={`relative w-full border rounded-md overflow-hidden active:scale-[0.98] transition bg-muted ${aspectRatio}`}
       >
         <Link to={linkHref} draggable={false} className="block w-full h-full">
+          <div className="absolute top-2 left-2 z-20">
+            <Badge
+              variant="outline"
+              className="bg-black/60 text-white border-white/20 backdrop-blur-md text-[10px] font-bold px-2 py-0.5 h-6 rounded-md uppercase tracking-wide"
+            >
+              {item.mediaType === "tv" ? "TV" : "Movie"}
+            </Badge>
+          </div>
           {getStatusBadge()}
 
           {posterUrl ? (

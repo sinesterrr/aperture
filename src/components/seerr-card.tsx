@@ -1,0 +1,116 @@
+import React, { useMemo, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { OptimizedImage } from "./optimized-image";
+import { SeerrMediaItem } from "../types/seerr";
+import { Badge } from "./ui/badge";
+import { Check, Clock } from "lucide-react";
+
+interface SeerrCardProps {
+  item: SeerrMediaItem;
+  width?: string;
+  aspectRatio?: string;
+}
+
+export const SeerrCard = React.memo(function SeerrCard({
+  item,
+  width = "w-36",
+  aspectRatio = "aspect-[2/3]",
+}: SeerrCardProps) {
+  const [_, setImageLoaded] = useState(false);
+
+  const title = item.title || item.name || "Unknown Title";
+  const date = item.releaseDate || item.firstAirDate;
+  const year = date ? new Date(date).getFullYear() : undefined;
+
+  const posterUrl = item.posterPath
+    ? `https://image.tmdb.org/t/p/w500${item.posterPath}`
+    : undefined;
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, []);
+
+  const getStatusBadge = () => {
+    if (item.mediaType === "tv" && item.status === 5) {
+      return (
+        <div className="absolute top-2 right-2 z-20">
+          <Badge
+            variant="secondary"
+            className="h-6 w-6 rounded-full p-0 flex items-center justify-center bg-yellow-500/80 backdrop-blur-sm text-white border-none"
+          >
+            <Clock className="h-3.5 w-3.5" />
+          </Badge>
+        </div>
+      );
+    }
+
+    if (item.jellyfinMediaId || item.status === 4 || item.status === 5) {
+      return (
+        <div className="absolute top-2 right-2 z-20">
+          <Badge
+            variant="secondary"
+            className="h-6 w-6 rounded-full p-0 flex items-center justify-center bg-green-500/80 backdrop-blur-sm text-white border-none"
+          >
+            <Check className="h-3.5 w-3.5" />
+          </Badge>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const linkHref = useMemo(() => {
+    if (item.jellyfinMediaId) {
+      if (item.mediaType === "movie") {
+        return `/movie/${item.jellyfinMediaId}`;
+      } else if (item.mediaType === "tv") {
+        return `/series/${item.jellyfinMediaId}`;
+      }
+    }
+    return "#";
+  }, [item]);
+
+  return (
+    <div
+      className={`cursor-pointer group overflow-hidden transition select-none ${width}`}
+    >
+      <div
+        className={`relative w-full border rounded-md overflow-hidden active:scale-[0.98] transition bg-muted ${aspectRatio}`}
+      >
+        <Link to={linkHref} draggable={false} className="block w-full h-full">
+          {getStatusBadge()}
+
+          {posterUrl ? (
+            <OptimizedImage
+              src={posterUrl}
+              alt={title}
+              className="w-full h-full object-cover transition-opacity duration-300 shadow-lg group-hover:shadow-md rounded-md"
+              onLoad={handleImageLoad}
+              draggable={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-card text-muted-foreground p-2 text-center text-xs">
+              {title}
+            </div>
+          )}
+
+          <div
+            className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none rounded-md`}
+          />
+        </Link>
+      </div>
+
+      <Link to={linkHref} draggable={false}>
+        <div className="px-1">
+          <div className="mt-2.5 text-sm font-medium text-foreground truncate group-hover:underline">
+            {title}
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {year || (item.mediaType === "tv" ? "Series" : "Movie")}
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+});

@@ -1,8 +1,10 @@
 import { SeerrSection } from "../../components/seerr-section";
-import { SeerrMediaItem } from "../../types/seerr";
+import { SeerrRequestSection } from "../../components/seerr-request-section";
+import { SeerrMediaItem, SeerrRequestItem } from "../../types/seerr";
 
 interface DiscoverWidgetsProps {
   recentlyAdded: SeerrMediaItem[];
+  recentRequests: SeerrRequestItem[];
   trending: SeerrMediaItem[];
   popularMovies: SeerrMediaItem[];
   popularTv: SeerrMediaItem[];
@@ -10,6 +12,7 @@ interface DiscoverWidgetsProps {
 
 export function DiscoverWidgets({
   recentlyAdded,
+  recentRequests,
   trending,
   popularMovies,
   popularTv,
@@ -18,6 +21,13 @@ export function DiscoverWidgets({
     <div className="space-y-8">
       {recentlyAdded.length > 0 && (
         <SeerrSection sectionName="Recently Added" items={recentlyAdded} />
+      )}
+
+      {recentRequests.length > 0 && (
+        <SeerrRequestSection
+          sectionName="Recent Requests"
+          items={recentRequests}
+        />
       )}
 
       {trending.length > 0 && (

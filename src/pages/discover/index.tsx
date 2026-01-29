@@ -13,8 +13,9 @@ import {
   getSeerrTrendingItems,
   getSeerrPopularMovies,
   getSeerrPopularTv,
+  getSeerrRecentRequests,
 } from "../../actions/seerr";
-import { SeerrMediaItem } from "../../types/seerr";
+import { SeerrMediaItem, SeerrRequestItem } from "../../types/seerr";
 
 export default function DiscoverPage() {
   const [authError, setAuthError] = useState<any | null>(null);
@@ -24,6 +25,7 @@ export default function DiscoverPage() {
   const [trending, setTrending] = useState<SeerrMediaItem[]>([]);
   const [popularMovies, setPopularMovies] = useState<SeerrMediaItem[]>([]);
   const [popularTv, setPopularTv] = useState<SeerrMediaItem[]>([]);
+  const [recentRequests, setRecentRequests] = useState<SeerrRequestItem[]>([]);
 
   const navigate = useNavigate();
 
@@ -45,15 +47,20 @@ export default function DiscoverPage() {
             trendingResult,
             popularMoviesResult,
             popularTvResult,
+            recentRequestsResult,
           ] = await Promise.all([
             getSeerrRecentlyAddedItems(),
             getSeerrTrendingItems(),
             getSeerrPopularMovies(),
             getSeerrPopularTv(),
+            getSeerrRecentRequests(),
           ]);
 
           if (recentResult?.results) {
             setRecentlyAdded(recentResult.results);
+          }
+          if (recentRequestsResult?.results) {
+            setRecentRequests(recentRequestsResult.results);
           }
           if (trendingResult?.results) {
             setTrending(trendingResult.results);
@@ -101,6 +108,7 @@ export default function DiscoverPage() {
               trending={trending}
               popularMovies={popularMovies}
               popularTv={popularTv}
+              recentRequests={recentRequests}
             />
           )}
         </div>

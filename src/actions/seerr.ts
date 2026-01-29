@@ -247,6 +247,48 @@ export async function getSeerrPopularTv(): Promise<{
   return null;
 }
 
+export async function getSeerrRecentRequests(): Promise<{
+  results: import("../types/seerr").SeerrRequestItem[];
+  pageInfo?: any;
+} | null> {
+  const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
+    "/api/v1/request?filter=all&take=10&sort=modified&skip=0",
+    { method: "GET" },
+  );
+
+  if (response.success && response.data) {
+    const requests = response.data.results;
+
+    const hydratedRequests = await Promise.all(
+      requests.map(async (req: any) => {
+        if (req.media?.tmdbId && req.type) {
+          const detailEndpoint = `/api/v1/${req.type}/${req.media.tmdbId}`;
+          const detailResponse = await seerrFetch<any>(detailEndpoint);
+
+          if (detailResponse.success && detailResponse.data) {
+            return {
+              ...req,
+              mediaMetadata: {
+                ...detailResponse.data,
+                mediaType: req.type,
+              },
+            };
+          }
+        }
+        return req;
+      }),
+    );
+
+    return {
+      ...response.data,
+      results: hydratedRequests as import("../types/seerr").SeerrRequestItem[],
+    };
+  }
+
+  console.error("Failed to fetch recent requests:", response.message);
+  return null;
+}
+
 export async function testSeerrConnection(
   config?: SeerrAuthData,
 ): Promise<{ success: boolean; message?: string }> {

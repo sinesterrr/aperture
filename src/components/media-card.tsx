@@ -79,12 +79,6 @@ export const MediaCard = React.memo(function MediaCard({
   }, [continueWatching, item.ParentThumbItemId, itemId, itemType]);
 
   const imageUrl = useMemo(() => {
-    // @ts-ignore - Support strictly for Seerr items or external media
-    if (item.ExternalPosterUrl) {
-      // @ts-ignore
-      return item.ExternalPosterUrl;
-    }
-
     if (!serverUrl || !imageItemId) return "";
     const sizeParams = continueWatching
       ? "maxHeight=324&maxWidth=576"

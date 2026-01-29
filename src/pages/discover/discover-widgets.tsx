@@ -1,35 +1,23 @@
-import { MediaSection } from "../../components/media-section";
-import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
+import { SeerrSection } from "../../components/seerr-section";
+import { SeerrMediaItem } from "../../types/seerr";
 
 interface DiscoverWidgetsProps {
-  recentlyAdded: BaseItemDto[];
-  trending: BaseItemDto[];
-  serverUrl: string;
+  recentlyAdded: SeerrMediaItem[];
+  trending: SeerrMediaItem[];
 }
 
 export function DiscoverWidgets({
   recentlyAdded,
   trending,
-  serverUrl,
 }: DiscoverWidgetsProps) {
   return (
     <div className="space-y-8">
       {recentlyAdded.length > 0 && (
-        <MediaSection
-          sectionName="Recently Added"
-          mediaItems={recentlyAdded}
-          serverUrl={serverUrl}
-          hideViewAll={true}
-        />
+        <SeerrSection sectionName="Recently Added" items={recentlyAdded} />
       )}
 
       {trending.length > 0 && (
-        <MediaSection
-          sectionName="Trending"
-          mediaItems={trending}
-          serverUrl={serverUrl}
-          hideViewAll={true}
-        />
+        <SeerrSection sectionName="Trending" items={trending} />
       )}
     </div>
   );

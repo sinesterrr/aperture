@@ -11,16 +11,15 @@ import { DiscoverWidgets } from "./discover-widgets";
 import {
   getSeerrRecentlyAddedItems,
   getSeerrTrendingItems,
-  mapSeerrItemsToBaseItemDto,
 } from "../../actions/seerr";
-import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
+import { SeerrMediaItem } from "../../types/seerr";
 
 export default function DiscoverPage() {
   const [authError, setAuthError] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSeerrConnected, setIsSeerrConnected] = useState(false);
-  const [recentlyAdded, setRecentlyAdded] = useState<BaseItemDto[]>([]);
-  const [trending, setTrending] = useState<BaseItemDto[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<SeerrMediaItem[]>([]);
+  const [trending, setTrending] = useState<SeerrMediaItem[]>([]);
 
   const navigate = useNavigate();
 
@@ -43,10 +42,10 @@ export default function DiscoverPage() {
           ]);
 
           if (recentResult?.results) {
-            setRecentlyAdded(mapSeerrItemsToBaseItemDto(recentResult.results));
+            setRecentlyAdded(recentResult.results);
           }
           if (trendingResult?.results) {
-            setTrending(mapSeerrItemsToBaseItemDto(trendingResult.results));
+            setTrending(trendingResult.results);
           }
         }
       } catch (error: any) {
@@ -83,7 +82,6 @@ export default function DiscoverPage() {
             <DiscoverWidgets
               recentlyAdded={recentlyAdded}
               trending={trending}
-              serverUrl={"testurl"}
             />
           )}
         </div>

@@ -1,4 +1,5 @@
 import { StoreSeerrData, type SeerrAuthData } from "./store/store-seerr-data";
+import { SeerrMediaItem } from "../types/seerr";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { isTauri } from "@tauri-apps/api/core";
 
@@ -148,25 +149,25 @@ export async function seerrFetch<T>(
 }
 
 // Helper to hydrate items with full details
-async function hydrateSeerrItems(results: any[]) {
+async function hydrateSeerrItems(results: any[]): Promise<SeerrMediaItem[]> {
   return Promise.all(
     results.map(async (item: any) => {
-      if (!item.tmdbId || !item.mediaType) return item;
+      if (!item.mediaType) return item as SeerrMediaItem;
+      if (!item.tmdbId) return item as SeerrMediaItem;
 
       const detailEndpoint = `/api/v1/${item.mediaType}/${item.tmdbId}`;
       const detailResponse = await seerrFetch<any>(detailEndpoint);
 
       if (detailResponse.success && detailResponse.data) {
-        // Merge details into the main item
-        return { ...item, ...detailResponse.data };
+        return { ...item, ...detailResponse.data } as SeerrMediaItem;
       }
-      return item;
+      return item as SeerrMediaItem;
     }),
   );
 }
 
 export async function getSeerrRecentlyAddedItems(): Promise<{
-  results: any[];
+  results: SeerrMediaItem[];
   pageInfo?: any;
 } | null> {
   const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
@@ -186,7 +187,7 @@ export async function getSeerrRecentlyAddedItems(): Promise<{
 }
 
 export async function getSeerrTrendingItems(): Promise<{
-  results: any[];
+  results: SeerrMediaItem[];
   pageInfo?: any;
 } | null> {
   const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
@@ -201,26 +202,6 @@ export async function getSeerrTrendingItems(): Promise<{
 
   console.error("Failed to fetch trending items:", response.message);
   return null;
-}
-
-import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
-
-export function mapSeerrItemsToBaseItemDto(items: any[]): BaseItemDto[] {
-  return items.map((item) => ({
-    Id: String(item.jellyfinMediaId || item.id), // Use jellyfin ID if linked, else Seerr ID
-    Name: item.title || item.name || "Unknown Title",
-    Type: item.mediaType === "movie" ? "Movie" : "Series",
-    // @ts-ignore - Custom property handled in MediaCard
-    ExternalPosterUrl: item.posterPath
-      ? `https://image.tmdb.org/t/p/w500${item.posterPath}`
-      : null,
-    RunTimeTicks: 0,
-    ProductionYear: item.releaseDate
-      ? new Date(item.releaseDate).getFullYear()
-      : undefined,
-    PremiereDate: item.releaseDate,
-    CommunityRating: item.voteAverage,
-  }));
 }
 
 export async function testSeerrConnection(

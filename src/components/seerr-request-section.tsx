@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { SeerrRequestCard } from "./seerr-request-card";
 import { SeerrRequestItem } from "../types/seerr";
+import { StoreSeerrData } from "../actions/store/store-seerr-data";
 
 interface SeerrRequestSectionProps {
   sectionName: string;
@@ -18,6 +19,21 @@ export function SeerrRequestSection({
 }: SeerrRequestSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const [seerServerUrl, setSeerServerUrl] = useState<string>("");
+
+  useEffect(() => {
+    async function getSeerrData() {
+      try {
+        const seerrData = await StoreSeerrData.get();
+        if (seerrData?.serverUrl) {
+          setSeerServerUrl(seerrData.serverUrl);
+        }
+      } catch (error) {
+        console.error("Failed to load seer server url:", error);
+      }
+    }
+    getSeerrData();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -77,6 +93,7 @@ export function SeerrRequestSection({
               <SeerrRequestCard
                 item={item}
                 canManageRequests={canManageRequests}
+                seerServerUrl={seerServerUrl}
               />
             </div>
           ))}

@@ -10,11 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 interface SeerrRequestCardProps {
   item: SeerrRequestItem;
   canManageRequests?: boolean;
+  seerServerUrl?: string;
 }
 
 export function SeerrRequestCard({
   item,
   canManageRequests,
+  seerServerUrl,
 }: SeerrRequestCardProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -157,6 +159,7 @@ export function SeerrRequestCard({
   };
 
   const requester = item.requestedBy;
+  const avatarUrl = `${seerServerUrl}${requester?.avatar}`;
 
   return (
     <Link
@@ -198,15 +201,15 @@ export function SeerrRequestCard({
 
         <div className="flex items-center gap-2 pt-1">
           <Avatar className="h-5 w-5 border border-border">
-            <AvatarImage src={requester?.avatar} />
+            <AvatarImage src={avatarUrl} />
             <AvatarFallback className="text-[9px]">
-              {requester?.username?.substring(0, 2).toUpperCase() || "??"}
+              {requester?.displayName?.substring(0, 2).toUpperCase() || "??"}
             </AvatarFallback>
           </Avatar>
           <span className="text-xs text-muted-foreground truncate">
             Requested by{" "}
             <span className="font-medium text-foreground">
-              {requester?.username}
+              {requester?.displayName}
             </span>
           </span>
         </div>

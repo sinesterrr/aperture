@@ -29,6 +29,7 @@ interface SeerrContextType {
   isSeerrConnected: boolean;
   authError: any | null;
   addRequest: (request: SeerrRequestItem) => void;
+  removeRequest: (requestId: number) => void;
   refreshData: () => Promise<void>;
 }
 
@@ -116,6 +117,10 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const removeRequest = useCallback((requestId: number) => {
+    setRecentRequests((prev) => prev.filter((r) => r.id !== requestId));
+  }, []);
+
   const value = {
     recentlyAdded,
     trending,
@@ -127,6 +132,7 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
     isSeerrConnected,
     authError,
     addRequest,
+    removeRequest,
     refreshData: fetchData,
   };
 

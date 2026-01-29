@@ -473,3 +473,10 @@ export async function submitSeerrRequest(payload: any): Promise<any | null> {
 
   return null;
 }
+
+export async function deleteSeerrRequest(requestId: number): Promise<boolean> {
+  const response = await seerrFetch(`/api/v1/request/${requestId}`, {
+    method: "DELETE",
+  });
+  return response.success;
+}

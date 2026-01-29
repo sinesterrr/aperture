@@ -1,4 +1,6 @@
 import { StoreSeerrData, type SeerrAuthData } from "./store/store-seerr-data";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { isTauri } from "@tauri-apps/api/core";
 
 export async function testSeerrConnection(
   config?: SeerrAuthData,
@@ -10,12 +12,26 @@ export async function testSeerrConnection(
       return { success: false, message: "No Server URL configured" };
     }
 
-    const baseUrl = data.serverUrl.replace(/\/$/, "");
+    // Normalize URL: remove trailing slashes and ensure protocol
+    let baseUrl = data.serverUrl.replace(/\/+$/, "");
+    if (!/^https?:\/\//i.test(baseUrl)) {
+      baseUrl = `https://${baseUrl}`;
+    }
+
     let endpoint = "";
-    let headers: Record<string, string> = {
+    let method = "GET";
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json, text/plain, */*",
     };
+
+    // In web development mode, use the standalone Hono proxy to bypass CORS
+    // The proxy runs on port 3001 and expects the target URL in the header
+    if (!isTauri()) {
+      console.debug("Using Hono proxy for Seerr API");
+      headers["X-Proxy-Target"] = baseUrl;
+      baseUrl = import.meta.env.VITE_PROXY_URL || "http://localhost:3001";
+    }
     let body: Record<string, any> | undefined;
 
     switch (data.authType) {
@@ -25,6 +41,7 @@ export async function testSeerrConnection(
         }
         endpoint = "/api/v1/auth/me";
         headers["X-Api-Key"] = data.apiKey;
+        method = "GET";
         break;
 
       case "local-user":
@@ -36,6 +53,7 @@ export async function testSeerrConnection(
           email: data.username,
           password: data.password,
         };
+        method = "POST";
         break;
 
       case "jellyfin-user":
@@ -51,16 +69,26 @@ export async function testSeerrConnection(
           username: data.username,
           password: data.password,
         };
+        method = "POST";
         break;
 
       default:
         return { success: false, message: "Unknown Authentication Type" };
     }
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-      method: body ? "POST" : "GET",
+    const fullUrl = `${baseUrl}${endpoint}`;
+    console.debug(`[Seerr] Testing connection: ${method} ${fullUrl}`, {
+      authType: data.authType,
+      env: isTauri() ? "Tauri" : "Web",
+    });
+
+    const fetchFn = isTauri() ? tauriFetch : fetch;
+
+    const response = await fetchFn(fullUrl, {
+      method,
       headers,
-      credentials: "include", // Important for sessions
+      // @ts-ignore
+      credentials: "include",
       body: body ? JSON.stringify(body) : undefined,
     });
 

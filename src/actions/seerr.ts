@@ -382,3 +382,18 @@ export async function testSeerrConnection(
     };
   }
 }
+export async function searchSeerrItems(
+  query: string,
+): Promise<SeerrMediaItem[]> {
+  const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
+    `/api/v1/search?query=${encodeURIComponent(query)}&page=1`,
+    { method: "GET" },
+  );
+
+  if (response.success && response.data) {
+    return normalizeSeerrItems(response.data.results);
+  }
+
+  console.error("Failed to search seerr items:", response.message);
+  return [];
+}

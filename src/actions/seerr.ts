@@ -148,25 +148,32 @@ export async function seerrFetch<T>(
   }
 }
 
-// Helper to hydrate items with full details
+function normalizeSeerrItems(results: any[]): SeerrMediaItem[] {
+  return results.map((item: any) => {
+    const tmdbId = item.tmdbId || item.id;
+
+    return {
+      ...item,
+      tmdbId,
+    } as SeerrMediaItem;
+  });
+}
+
 async function hydrateSeerrItems(results: any[]): Promise<SeerrMediaItem[]> {
   return Promise.all(
     results.map(async (item: any) => {
-      if (!item.mediaType) return item as SeerrMediaItem;
-
       const tmdbId = item.tmdbId || item.id;
       if (!tmdbId) return item as SeerrMediaItem;
 
-      const detailEndpoint = `/api/v1/${item.mediaType}/${tmdbId}`;
+      const type = item.mediaType || "movie";
+      const detailEndpoint = `/api/v1/${type}/${tmdbId}`;
       const detailResponse = await seerrFetch<any>(detailEndpoint);
 
       if (detailResponse.success && detailResponse.data) {
         let merged = { ...item, ...detailResponse.data };
         merged.tmdbId = tmdbId;
-
         return merged as SeerrMediaItem;
       }
-
       return item as SeerrMediaItem;
     }),
   );
@@ -202,8 +209,8 @@ export async function getSeerrTrendingItems(): Promise<{
   );
 
   if (response.success && response.data) {
-    const hydratedResults = await hydrateSeerrItems(response.data.results);
-    return { ...response.data, results: hydratedResults };
+    const normalizedResults = normalizeSeerrItems(response.data.results);
+    return { ...response.data, results: normalizedResults };
   }
 
   console.error("Failed to fetch trending items:", response.message);
@@ -221,8 +228,8 @@ export async function getSeerrPopularMovies(): Promise<{
   );
 
   if (response.success && response.data) {
-    const hydratedResults = await hydrateSeerrItems(response.data.results);
-    return { ...response.data, results: hydratedResults };
+    const normalizedResults = normalizeSeerrItems(response.data.results);
+    return { ...response.data, results: normalizedResults };
   }
 
   console.error("Failed to fetch popular movies:", response.message);
@@ -239,8 +246,8 @@ export async function getSeerrPopularTv(): Promise<{
   );
 
   if (response.success && response.data) {
-    const hydratedResults = await hydrateSeerrItems(response.data.results);
-    return { ...response.data, results: hydratedResults };
+    const normalizedResults = normalizeSeerrItems(response.data.results);
+    return { ...response.data, results: normalizedResults };
   }
 
   console.error("Failed to fetch popular tv:", response.message);

@@ -74,11 +74,8 @@ export default function DiscoverPage() {
             setPopularTv(popularTvResult.results);
           }
 
-          // Fetch user permissions
           const user = await getSeerrUser();
           if (user) {
-            // Check for ADMIN (2) or MANAGE_REQUESTS (32)
-            // Using bitwise check
             const permissions = user.permissions || 0;
 
             if ((permissions & 2) !== 0) {

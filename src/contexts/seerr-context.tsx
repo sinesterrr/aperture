@@ -31,6 +31,7 @@ interface SeerrContextType {
   addRequest: (request: SeerrRequestItem) => void;
   removeRequest: (requestId: number) => void;
   refreshData: () => Promise<void>;
+  serverUrl: string | null;
 }
 
 const SeerrContext = createContext<SeerrContextType | undefined>(undefined);
@@ -38,6 +39,7 @@ const SeerrContext = createContext<SeerrContextType | undefined>(undefined);
 export function SeerrProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isSeerrConnected, setIsSeerrConnected] = useState(false);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [recentlyAdded, setRecentlyAdded] = useState<SeerrMediaItem[]>([]);
   const [trending, setTrending] = useState<SeerrMediaItem[]>([]);
   const [popularMovies, setPopularMovies] = useState<SeerrMediaItem[]>([]);
@@ -60,6 +62,7 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
         (seerrData.apiKey || (seerrData.username && seerrData.password))
       ) {
         setIsSeerrConnected(true);
+        setServerUrl(seerrData.serverUrl);
 
         const [
           recentResult,
@@ -94,6 +97,7 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setIsSeerrConnected(false);
+        setServerUrl(null);
       }
     } catch (error: any) {
       console.error("Failed to load Seerr data", error);
@@ -134,6 +138,7 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
     addRequest,
     removeRequest,
     refreshData: fetchData,
+    serverUrl,
   };
 
   return (

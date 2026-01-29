@@ -83,6 +83,106 @@ function buildRequestConfig(data: SeerrAuthData): {
   return { endpoint, method, headers, body };
 }
 
+export async function seerrFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<{ success: boolean; data?: T; message?: string }> {
+  try {
+    const data = await StoreSeerrData.get();
+    if (!data?.serverUrl) {
+      return { success: false, message: "No Server URL configured" };
+    }
+
+    const {
+      endpoint: authEndpoint, // unused here, but part of destructuring
+      method: authMethod, // unused here
+      headers,
+      body, // unused here
+      error,
+    } = buildRequestConfig(data);
+
+    if (error) return { success: false, message: error };
+
+    let baseUrl = normalizeServerUrl(data.serverUrl);
+    baseUrl = configureProxy(baseUrl, headers);
+
+    const fullUrl = `${baseUrl}${endpoint}`;
+
+    // Merge custom options
+    const finalHeaders = { ...headers, ...(options.headers || {}) };
+    const fetchFn = isTauri() ? tauriFetch : fetch;
+
+    const response = await fetchFn(fullUrl, {
+      ...options,
+      headers: finalHeaders,
+      // @ts-ignore
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const json = await response.json();
+      return { success: true, data: json };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        success: false,
+        message: "Authentication failed: Invalid credentials",
+      };
+    }
+
+    return {
+      success: false,
+      message: `Request failed: ${response.status} ${response.statusText}`,
+    };
+  } catch (error) {
+    console.error("Seerr Fetch Error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Network error or unreachable host",
+    };
+  }
+}
+
+export async function getSeerrRecentlyAddedItems(): Promise<{
+  results: any[];
+  pageInfo?: any;
+} | null> {
+  const response = await seerrFetch<{ results: any[]; pageInfo?: any }>(
+    "/api/v1/media?filter=allavailable&take=20&sort=mediaAdded",
+    {
+      method: "GET",
+    },
+  );
+
+  if (response.success && response.data) {
+    // Hydrate the results with full media details (Title, Poster, etc.)
+    // as the /media endpoint only returns IDs and status.
+    const hydratedResults = await Promise.all(
+      response.data.results.map(async (item: any) => {
+        if (!item.tmdbId || !item.mediaType) return item;
+
+        const detailEndpoint = `/api/v1/${item.mediaType}/${item.tmdbId}`;
+        const detailResponse = await seerrFetch<any>(detailEndpoint);
+
+        if (detailResponse.success && detailResponse.data) {
+          // Merge details into the main item
+          return { ...item, ...detailResponse.data };
+        }
+        return item;
+      }),
+    );
+
+    return { ...response.data, results: hydratedResults };
+  }
+
+  console.error("Failed to fetch recently added items:", response.message);
+  return null;
+}
+
 export async function testSeerrConnection(
   config?: SeerrAuthData,
 ): Promise<{ success: boolean; message?: string }> {

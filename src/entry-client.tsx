@@ -1,11 +1,12 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { hydrateRoot } from "react-dom/client";
 import "./globals.css";
 import App from "./App";
 import "./lib/fonts";
 
-createRoot(document.getElementById("root")!).render(
+hydrateRoot(
+  document.getElementById("root") as HTMLElement,
   <StrictMode>
     <App />
-  </StrictMode>
+  </StrictMode>,
 );

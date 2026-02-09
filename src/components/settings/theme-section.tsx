@@ -10,14 +10,14 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../../components/ui/collapsible";
+} from "../ui/collapsible";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
+} from "../ui/card";
 import { Check, ChevronDown, Palette } from "lucide-react";
 import { Badge } from "../ui/badge";
 
@@ -88,7 +88,7 @@ export default function ThemeSection() {
     if (!theme) return;
 
     const variantFromTheme = THEME_VARIANTS.variants.find(
-      (variant) => variant.themeId === theme
+      (variant) => variant.themeId === theme,
     );
 
     if (
@@ -118,7 +118,7 @@ export default function ThemeSection() {
       });
       setTheme(themeId);
     },
-    [selectedTheme.family, selectedTheme.variant, setSelectedTheme, setTheme]
+    [selectedTheme.family, selectedTheme.variant, setSelectedTheme, setTheme],
   );
 
   return (
@@ -144,23 +144,22 @@ export default function ThemeSection() {
                 <ChevronDown
                   className={cn(
                     "h-3.5 w-3.5 transition-transform duration-200",
-                    themesOpen ? "rotate-180" : "rotate-0"
+                    themesOpen ? "rotate-180" : "rotate-0",
                   )}
                 />
               </button>
             </CollapsibleTrigger>
           </div>
           <CardDescription className="w-full">
-            Explore the palette families that power the dashboard theming
-            system and apply any variant instantly.
+            Explore the palette families that power the dashboard theming system
+            and apply any variant instantly.
           </CardDescription>
         </CardHeader>
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-up data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-down">
           <CardContent className="space-y-4">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {THEME_VARIANTS.variants.map((variant) => {
-                const isSelected =
-                  selectedTheme?.variant === variant.name;
+                const isSelected = selectedTheme?.variant === variant.name;
 
                 return (
                   <button
@@ -173,7 +172,7 @@ export default function ThemeSection() {
                       "group flex flex-col gap-1.5 rounded-2xl border bg-background/70 p-2.5 text-left transition focus-visible:outline focus-visible:outline-primary/40",
                       isSelected
                         ? "border-primary/60 bg-primary/5 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]"
-                        : "border-border/60 hover:-translate-y-0.5 hover:border-primary/40"
+                        : "border-border/60 hover:-translate-y-0.5 hover:border-primary/40",
                     )}
                   >
                     <div className="relative">
@@ -189,9 +188,7 @@ export default function ThemeSection() {
                       <span
                         className={cn(
                           "text-[11px] font-normal",
-                          isSelected
-                            ? "text-primary"
-                            : "text-muted-foreground"
+                          isSelected ? "text-primary" : "text-muted-foreground",
                         )}
                       >
                         {isSelected ? "Active" : "Preview"}

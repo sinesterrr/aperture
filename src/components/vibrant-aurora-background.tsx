@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { Vibrant } from "node-vibrant/browser";
-import { AuroraBackground } from "../components/aurora-background";
+import { AuroraBackground } from "./aurora-background";
 import { auroraColorsAtom, updateAuroraColorsAtom } from "../lib/atoms";
 
 interface VibrantAuroraBackgroundProps {

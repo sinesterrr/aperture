@@ -2,16 +2,16 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal, Eye, Download } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Checkbox } from "../../components/ui/checkbox";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import { Badge } from "../../components/ui/badge";
+} from "../ui/dropdown-menu";
+import { Badge } from "../ui/badge";
 import { LogViewerDialog } from "./log-viewer-dialog";
 import { LogFile } from "@jellyfin/sdk/lib/generated-client/models";
 import { useState } from "react";

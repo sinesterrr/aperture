@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
-import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { MediaCard } from "../components/media-card";
+import { Card, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
+import { MediaCard } from "./media-card";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";

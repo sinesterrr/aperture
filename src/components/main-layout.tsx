@@ -1,6 +1,6 @@
-import { JotaiProvider } from "../components/jotai-provider";
-import { FullscreenDetector } from "../components/fullscreen-detector";
-import { LayoutContent } from "../components/layout-content";
+import { JotaiProvider } from "./jotai-provider";
+import { FullscreenDetector } from "./fullscreen-detector";
+import { LayoutContent } from "./layout-content";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { PlaybackProvider } from "../playback/context/PlaybackProvider";

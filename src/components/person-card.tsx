@@ -1,5 +1,5 @@
-import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
-import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import { User } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models/base-item-dto";
 import { Link } from "react-router-dom";

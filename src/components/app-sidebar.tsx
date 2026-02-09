@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom"; // for React Router
 // @ts-ignore
@@ -16,23 +16,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   useSidebar,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "../components/ui/sidebar";
+} from "./ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
+} from "./ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../components/ui/collapsible";
+} from "./ui/collapsible";
 import {
   getUser,
   getServerUrl,
@@ -53,29 +52,11 @@ import {
   DiscAlbum,
   Antenna,
   LayoutDashboard,
-  Users,
-  Wrench,
-  CalendarClock,
-  Activity,
-  Key,
   Compass,
 } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 
-interface JellyfinLibrary {
-  Id: string;
-  Name: string;
-  CollectionType: string;
-  ItemCount?: number;
-}
-
-export function AppSidebar({
-  isTauriMac,
-  isTauriFullscreen,
-}: {
-  isTauriMac: boolean;
-  isTauriFullscreen: boolean;
-}) {
+export function AppSidebar() {
   const { setOpen, setOpenMobile, isMobile } = useSidebar();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -163,7 +144,7 @@ export function AppSidebar({
     <Sidebar
       variant="floating"
       collapsible="icon"
-      className={`${isTauriMac && !isTauriFullscreen ? "pt-10" : ""} z-20`}
+      className={"z-20"}
       onMouseEnter={() => !isMobile && setOpen(true)}
       onMouseLeave={() => !isMobile && setOpen(false)}
     >
@@ -367,7 +348,7 @@ export function AppSidebar({
                     <img
                       src={avatarUrl}
                       alt="Avatar"
-                      className="aspect-square object-cover size-8 rounded-lg border-[1px]"
+                      className="aspect-square object-cover size-8 rounded-lg border"
                     />
                   ) : (
                     <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg bg-primary p-2">

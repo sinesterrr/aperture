@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Skeleton } from "../components/ui/skeleton";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 import { Search, Film, Tv, Calendar, PlayCircle, Star } from "lucide-react";
 import { searchItems } from "../actions";
 import { Badge } from "./ui/badge";
 import { SearchSuggestionItem } from "./search-suggestion-item";
 import { TextShimmerWave } from "./ui/text-shimmer-wave";
 
-import * as Kbd from "../components/ui/kbd";
+import * as Kbd from "./ui/kbd";
 import { TextShimmer } from "./motion-primitives/text-shimmer";
 import { useAuth } from "../hooks/useAuth";
-import { SidebarTrigger } from "../components/ui/sidebar";
+import { SidebarTrigger } from "./ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/use-mobile";
 import { searchSeerrItems } from "../actions/seerr";

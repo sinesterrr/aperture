@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { cn } from "../../lib/utils";
-import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { THEME_OPTIONS } from "../../constants/theme-options";
 
 interface ThemeToggleCardProps {
@@ -33,7 +33,7 @@ export const ThemeToggleCard: React.FC<ThemeToggleCardProps> = ({
       <div
         className={cn(
           "transition duration-200 bg-card backdrop-blur-sm p-3 rounded-xl w-full",
-          className
+          className,
         )}
       >
         <div className="flex gap-3 items-center w-full">

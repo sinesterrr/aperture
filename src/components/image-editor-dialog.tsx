@@ -5,33 +5,28 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../components/ui/dialog";
-import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/ui/tabs";
-import { Card, CardContent } from "../components/ui/card";
-import { ScrollArea } from "../components/ui/scroll-area";
-import { Skeleton } from "../components/ui/skeleton";
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card, CardContent } from "./ui/card";
+import { ScrollArea } from "./ui/scroll-area";
+import { Skeleton } from "./ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
+} from "./ui/select";
 import { Edit, Download, Star, Users, Image as ImageIcon } from "lucide-react";
 import {
   fetchRemoteImages,
   downloadRemoteImage,
   RemoteImage,
 } from "../actions";
-import { TmdbIcon } from "../components/icons/tmdb";
-import { Flag } from "../components/ui/flag";
+import { TmdbIcon } from "./icons/tmdb";
+import { Flag } from "./ui/flag";
 import { toast } from "sonner";
 
 interface ImageEditorDialogProps {
@@ -100,7 +95,7 @@ export function ImageEditorDialog({
         itemId,
         image.Type as ImageType,
         image.Url,
-        image.ProviderName
+        image.ProviderName,
       );
       toast.success(`${image.Type} image downloaded successfully`, {
         onAutoClose() {
@@ -231,7 +226,7 @@ export function ImageEditorDialog({
                         >
                           <div
                             className={`relative ${getSkeletonAspectRatio(
-                              key
+                              key,
                             )} p-3`}
                           >
                             <Skeleton className="w-full h-full rounded-lg" />
@@ -294,7 +289,7 @@ export function ImageEditorDialog({
                         >
                           <div
                             className={`relative ${getAspectRatio(
-                              key
+                              key,
                             )} rounded-lg overflow-hidden`}
                           >
                             <img

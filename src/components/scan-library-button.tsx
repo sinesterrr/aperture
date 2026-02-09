@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../components/ui/button";
-import { TextShimmer } from "../components/motion-primitives/text-shimmer";
+import { Button } from "./ui/button";
+import { TextShimmer } from "./motion-primitives/text-shimmer";
 import { RefreshCw } from "lucide-react";
 import { scanLibrary } from "../actions";
 import { toast } from "sonner";

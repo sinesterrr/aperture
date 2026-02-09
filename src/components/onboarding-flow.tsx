@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { isAuthenticated, getServerUrl } from "../actions";
-import { ServerSetup } from "../components/server-setup";
-import { LoginForm } from "../components/login-form";
+import { ServerSetup } from "./server-setup";
+import { LoginForm } from "./login-form";
 import { ThemePreferenceStep } from "./theme-preference-step";
 import { useAtom } from "jotai";
 import { themeSelectionAtom } from "../lib/atoms";

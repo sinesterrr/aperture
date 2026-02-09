@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { MediaCard } from "../components/media-card";
+import { MediaCard } from "./media-card";
 import {
   BaseItemDto,
   ItemSortBy,
@@ -9,13 +9,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
+} from "./ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../components/ui/tooltip";
+} from "./ui/tooltip";
 import {
   ChevronDown,
   ArrowUpDown,
@@ -32,8 +32,8 @@ import {
   Dices,
   Heart,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { LiveChannelCard } from "./live-channel-card";
 
 type SortField = {
@@ -147,7 +147,7 @@ export function LibraryMediaList({
   const filteredAndSortedItems = useMemo(() => {
     // First filter by search query
     const filtered = mediaItems.filter((item) =>
-      (item.Name || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (item.Name || "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     // Then sort the filtered results
@@ -276,7 +276,7 @@ export function LibraryMediaList({
             />
           ) : (
             <LiveChannelCard key={item.Id} item={item} serverUrl={serverUrl} />
-          )
+          ),
         )}
       </div>
 

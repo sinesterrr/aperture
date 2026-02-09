@@ -1,4 +1,4 @@
-import { components } from "./seerr.d";
+import { components } from "./seerr";
 
 export type MovieDetails = components["schemas"]["MovieDetails"];
 export type TvDetails = components["schemas"]["TvDetails"];

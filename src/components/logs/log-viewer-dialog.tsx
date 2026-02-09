@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Loader2,
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,11 +19,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../components/ui/dialog";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Switch } from "../../components/ui/switch";
+} from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Switch } from "../ui/switch";
 import { fetchLogContent, JellyfinLog } from "../../actions/utils";
 import { toast } from "sonner";
 import { LogFile } from "@jellyfin/sdk/lib/generated-client/models";
@@ -103,7 +103,7 @@ export function LogViewerDialog({
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
+        "[data-radix-scroll-area-viewport]",
       );
       if (scrollContainer) {
         scrollContainer.addEventListener("scroll", handleScroll);
@@ -162,7 +162,7 @@ export function LogViewerDialog({
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
+        "[data-radix-scroll-area-viewport]",
       );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -179,7 +179,7 @@ export function LogViewerDialog({
   const handleScroll = () => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
+        "[data-radix-scroll-area-viewport]",
       );
       if (scrollContainer) {
         const isAtBottom =
@@ -200,7 +200,7 @@ export function LogViewerDialog({
     const regex = new RegExp(`(${searchTerm})`, "gi");
     return text.replace(
       regex,
-      "<mark class='bg-primary dark:bg-primary/50 text-white'>$1</mark>"
+      "<mark class='bg-primary dark:bg-primary/50 text-white'>$1</mark>",
     );
   };
 

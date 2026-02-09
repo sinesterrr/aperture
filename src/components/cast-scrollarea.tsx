@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { BaseItemPerson } from "@jellyfin/sdk/lib/generated-client/models/base-item-person";
-import { ScrollArea, ScrollBar } from "../components/ui/scroll-area";
-import { Button } from "../components/ui/button";
+import { ScrollArea, ScrollBar } from "./ui/scroll-area";
+import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CastCrewCard } from "./cast-crew-card";

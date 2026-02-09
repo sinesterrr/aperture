@@ -1,6 +1,3 @@
-import { isTauri } from "@tauri-apps/api/core";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-
 type ProgressHandler = (progress: number) => void;
 
 interface DiscoveryOptions {
@@ -16,7 +13,13 @@ interface DiscoveryResult {
 
 const PRIORITY_HOSTS = ["jellyfin.local", "jellyfin", "localhost", "127.0.0.1"];
 
-const COMMON_BASES = ["192.168.0", "192.168.1", "192.168.2", "10.0.0", "10.0.1"];
+const COMMON_BASES = [
+  "192.168.0",
+  "192.168.1",
+  "192.168.2",
+  "10.0.0",
+  "10.0.1",
+];
 const FULL_SUFFIXES = Array.from({ length: 254 }, (_, i) => i + 1); // 1..254
 const CONCURRENCY = 16;
 const BASE_PATHS = ["", "/jellyfin"];
@@ -25,13 +28,15 @@ function normalizeBasePath(path: string) {
   if (!path) return "";
   const trimmed = path.trim();
   if (!trimmed || trimmed === "/") return "";
-  return trimmed.startsWith("/") ? trimmed.replace(/\/$/, "") : `/${trimmed.replace(/\/$/, "")}`;
+  return trimmed.startsWith("/")
+    ? trimmed.replace(/\/$/, "")
+    : `/${trimmed.replace(/\/$/, "")}`;
 }
 
 function isPrivateIPv4(hostname: string | undefined) {
   if (!hostname) return null;
   const match = hostname.match(
-    /^(?<a>\d{1,3})\.(?<b>\d{1,3})\.(?<c>\d{1,3})\.(?<d>\d{1,3})$/
+    /^(?<a>\d{1,3})\.(?<b>\d{1,3})\.(?<c>\d{1,3})\.(?<d>\d{1,3})$/,
   );
   if (!match?.groups) return null;
 
@@ -57,7 +62,9 @@ function buildHostCandidates(): string[] {
       const privateBase = isPrivateIPv4(host);
       if (privateBase) {
         preferredBase = privateBase;
-        FULL_SUFFIXES.forEach((suffix) => hosts.add(`${privateBase}.${suffix}`));
+        FULL_SUFFIXES.forEach((suffix) =>
+          hosts.add(`${privateBase}.${suffix}`),
+        );
       }
     }
   }
@@ -95,7 +102,7 @@ function buildProbeList(): string[] {
 async function fetchSystemInfo(
   baseUrl: string,
   timeoutMs: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<DiscoveryResult | null> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -107,17 +114,7 @@ async function fetchSystemInfo(
   const startedAt = performance.now ? performance.now() : Date.now();
 
   try {
-    const response = await (isTauri()
-      ? tauriFetch(endpoint, {
-          method: "GET",
-          connectTimeout: timeoutMs,
-          danger: {
-            acceptInvalidCerts: true,
-            acceptInvalidHostnames: true,
-          },
-          signal: combinedSignal,
-        })
-      : fetch(endpoint, { signal: combinedSignal }));
+    const response = await fetch(endpoint, { signal: combinedSignal });
 
     if (!response.ok) return null;
 
@@ -144,7 +141,7 @@ async function fetchSystemInfo(
 }
 
 export async function discoverLocalServer(
-  options: DiscoveryOptions = {}
+  options: DiscoveryOptions = {},
 ): Promise<DiscoveryResult | null> {
   const candidates = buildProbeList();
   if (!candidates.length) return null;

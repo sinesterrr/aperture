@@ -1,9 +1,11 @@
 import { lazy, Suspense } from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  Location,
+  StaticRouter,
+  BrowserRouter,
 } from "react-router-dom";
 import { CinematicSplashLoader } from "../components/cinematic-splash-loader";
 import MainLayout from "../components/main-layout";
@@ -64,9 +66,15 @@ const SettingsPage = lazy(() => import("../pages/settings"));
 const PasswordSettingsPage = lazy(() => import("../pages/password"));
 const QuickConnectPage = lazy(() => import("../pages/quick-connect"));
 
-export default function AppRouter() {
+interface AppRouterProps {
+  url?: string | Partial<Location<any>>;
+}
+
+export default function AppRouter({ url }: AppRouterProps) {
+  const Router = typeof window === "undefined" ? StaticRouter : BrowserRouter;
+
   return (
-    <Router>
+    <Router location={url!}>
       <Suspense fallback={<CinematicSplashLoader />}>
         <Routes>
           <Route element={<MainLayout />}>

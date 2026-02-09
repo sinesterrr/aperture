@@ -1,10 +1,11 @@
+import { Location } from "react-router-dom";
 import RootProvider from "./providers/RootProvider";
 import AppRouter from "./routing";
 
-function App() {
+function App({ url }: { url?: string | Partial<Location<any>> }) {
   return (
     <RootProvider>
-      <AppRouter />
+      <AppRouter url={url} />
     </RootProvider>
   );
 }

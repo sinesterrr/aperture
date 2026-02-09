@@ -7,7 +7,7 @@ import {
   Video,
   Globe,
 } from "lucide-react";
-import { Progress } from "../../components/ui/progress";
+import { Progress } from "./progress";
 
 export interface BentoItem {
   title: string;
@@ -76,7 +76,7 @@ function BentoGrid({ items = itemsSample }: BentoGridProps) {
             "hover:-translate-y-0.5 hover:shadow-md will-change-transform",
             item.colSpan || "col-span-1",
             item.colSpan === 2 ? "md:col-span-2" : "",
-            item.hasPersistentHover && "shadow-md -translate-y-0.5"
+            item.hasPersistentHover && "shadow-md -translate-y-0.5",
           )}
         >
           <div
@@ -98,7 +98,7 @@ function BentoGrid({ items = itemsSample }: BentoGridProps) {
                 className={cn(
                   "text-xs font-medium px-2 py-1 rounded-lg backdrop-blur-sm",
                   "bg-secondary/60 text-secondary-foreground",
-                  "transition-colors duration-300 group-hover:bg-secondary"
+                  "transition-colors duration-300 group-hover:bg-secondary",
                 )}
               >
                 {item.status || "Active"}

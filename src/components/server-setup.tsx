@@ -6,18 +6,25 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { ThemeToggle } from "../components/ui/theme-toggle";
-import { VibrantAuroraBackground } from "../components/vibrant-aurora-background";
+} from "./ui/card";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { ThemeToggle } from "./ui/theme-toggle";
+import { VibrantAuroraBackground } from "./vibrant-aurora-background";
 import {
   checkServerHealth,
   discoverLocalServer,
   setServerUrl,
   getServerUrl,
 } from "../actions";
-import { Loader2, Server, CheckCircle, Globe, Shield, Radar } from "lucide-react";
+import {
+  Loader2,
+  Server,
+  CheckCircle,
+  Globe,
+  Shield,
+  Radar,
+} from "lucide-react";
 
 const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
 
@@ -125,7 +132,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
         setConnectionStatus("error");
         setError(
           result.error ||
-            "Unable to connect to Jellyfin server. Please check the URL and try again."
+            "Unable to connect to Jellyfin server. Please check the URL and try again.",
         );
       }
     } catch {
@@ -165,8 +172,8 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
             setDiscoveryStatus(
               `Searching your local network... ${Math.max(
                 10,
-                Math.min(percent, 95)
-              )}%`
+                Math.min(percent, 95),
+              )}%`,
             );
           }
         },
@@ -265,8 +272,8 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                   error
                     ? "border-red-500"
                     : connectionStatus === "success"
-                    ? "border-green-500"
-                    : ""
+                      ? "border-green-500"
+                      : ""
                 }`}
               />
 
@@ -319,7 +326,9 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                   <div className="flex items-center gap-2">
                     <Radar className="h-4 w-4 text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Find server automatically</p>
+                      <p className="text-sm font-medium">
+                        Find server automatically
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         We can search your local network for a Jellyfin server.
                       </p>
@@ -343,7 +352,9 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                 </div>
 
                 {discoveryStatus && (
-                  <p className="text-xs text-muted-foreground">{discoveryStatus}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {discoveryStatus}
+                  </p>
                 )}
 
                 {foundLocalUrl && (

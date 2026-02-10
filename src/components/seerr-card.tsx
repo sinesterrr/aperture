@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "./optimized-image";
-import { SeerrMediaItem } from "../types/seerr";
+import { SeerrMediaItem } from "../types/seerr-types";
 import { Badge } from "./ui/badge";
 import { Check, Clock } from "lucide-react";
 import { SeerrRequestModal } from "./seerr-request-modal";

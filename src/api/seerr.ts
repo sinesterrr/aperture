@@ -1,5 +1,5 @@
 import express from "express";
-import { SeerrMediaItem } from "../types/seerr";
+import { SeerrMediaItem } from "../types/seerr-types";
 
 const router = express.Router();
 router.use(express.json());

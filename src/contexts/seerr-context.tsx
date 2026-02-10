@@ -8,7 +8,7 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { getSeerrDiscovery, getSeerrUser } from "../actions/seerr";
 import { StoreSeerrData } from "../actions/store/store-seerr-data";
-import { SeerrMediaItem, SeerrRequestItem } from "../types/seerr";
+import { SeerrMediaItem, SeerrRequestItem } from "../types/seerr-types";
 import { getAuthData } from "../actions";
 
 interface SeerrContextType {

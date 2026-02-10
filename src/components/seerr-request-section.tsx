@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { SeerrRequestCard } from "./seerr-request-card";
-import { SeerrRequestItem } from "../types/seerr";
+import { SeerrRequestItem } from "../types/seerr-types";
 import { StoreSeerrData } from "../actions/store/store-seerr-data";
 
 interface SeerrRequestSectionProps {

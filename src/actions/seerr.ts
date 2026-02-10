@@ -1,5 +1,5 @@
 import { StoreSeerrData, type SeerrAuthData } from "./store/store-seerr-data";
-import { SeerrMediaItem, SeerrRequestItem, User } from "../types/seerr";
+import { SeerrMediaItem, SeerrRequestItem, User } from "../types/seerr-types";
 
 async function getHeaders(): Promise<HeadersInit> {
   const data = await StoreSeerrData.get();

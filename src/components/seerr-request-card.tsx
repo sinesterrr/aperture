@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from "react";
 import { SeerrRequestModal } from "./seerr-request-modal";
 import { useSeerr } from "../contexts/seerr-context";
-import { SeerrRequestItem } from "../types/seerr";
+import { SeerrRequestItem } from "../types/seerr-types";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Check } from "lucide-react";

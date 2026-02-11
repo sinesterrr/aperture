@@ -1,3 +1,4 @@
+"use client";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useMemo } from "react";
 import { useAtom } from "jotai";
@@ -114,12 +115,12 @@ export function AuroraBackground({
     colorStops || !activeTheme
       ? "default"
       : activeTheme in AURORA_THEME_PRESETS
-      ? activeTheme
-      : "default";
+        ? activeTheme
+        : "default";
   const palettePreset =
     colorStops || !activeTheme
       ? null
-      : AURORA_THEME_PRESETS[normalizedTheme] ?? AURORA_THEME_PRESETS.default;
+      : (AURORA_THEME_PRESETS[normalizedTheme] ?? AURORA_THEME_PRESETS.default);
   const paletteBackground =
     palettePreset?.background ?? AURORA_THEME_PRESETS.default.background;
 
@@ -134,10 +135,10 @@ export function AuroraBackground({
   }, [colorStops, palettePreset, currentColors]);
 
   const [activePalette, setActivePalette] = useState<string[]>(
-    () => targetPalette
+    () => targetPalette,
   );
   const [previousPalette, setPreviousPalette] = useState<string[]>(
-    () => targetPalette
+    () => targetPalette,
   );
 
   useEffect(() => {

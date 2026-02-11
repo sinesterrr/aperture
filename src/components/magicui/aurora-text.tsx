@@ -1,3 +1,4 @@
+"use client";
 import React, { memo } from "react";
 
 interface AuroraTextProps {
@@ -35,7 +36,7 @@ export const AuroraText = memo(
         </span>
       </span>
     );
-  }
+  },
 );
 
 AuroraText.displayName = "AuroraText";

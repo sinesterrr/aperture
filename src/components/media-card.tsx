@@ -1,3 +1,4 @@
+"use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { Link } from "react-router-dom";
@@ -91,7 +92,7 @@ export const MediaCard = React.memo(function MediaCard({
       ? item.ParentThumbImageTag
       : item.ImageTags?.[imageType];
   const blurHash = imageTag
-    ? item.ImageBlurHashes?.[imageType]?.[imageTag] ?? ""
+    ? (item.ImageBlurHashes?.[imageType]?.[imageTag] ?? "")
     : "";
 
   useEffect(() => {
@@ -150,7 +151,7 @@ export const MediaCard = React.memo(function MediaCard({
 
   const clampedProgressPercentage = useMemo(
     () => clampNumber(progressPercentage, 0, 100),
-    [progressPercentage]
+    [progressPercentage],
   );
 
   const roundedClass = progressPercentage > 0 ? "rounded-t-md" : "rounded-md";
@@ -166,7 +167,11 @@ export const MediaCard = React.memo(function MediaCard({
   const canShowImage = Boolean(serverUrl && imageUrl);
 
   const secondaryText = useMemo(() => {
-    if (itemType === "Movie" || itemType === "Series" || itemType === "Season") {
+    if (
+      itemType === "Movie" ||
+      itemType === "Series" ||
+      itemType === "Season"
+    ) {
       return item.ProductionYear;
     }
     return item.SeriesName;
@@ -200,7 +205,7 @@ export const MediaCard = React.memo(function MediaCard({
       itemType,
       play,
       resumePosition,
-    ]
+    ],
   );
 
   const handleImageLoad = useCallback(() => {
@@ -214,7 +219,9 @@ export const MediaCard = React.memo(function MediaCard({
   }, []);
 
   return (
-    <div className={`cursor-pointer group overflow-hidden transition select-none ${cardWidthClass}`}>
+    <div
+      className={`cursor-pointer group overflow-hidden transition select-none ${cardWidthClass}`}
+    >
       <div
         className={`relative w-full border rounded-md overflow-hidden active:scale-[0.98] transition ${aspectClass}`}
       >

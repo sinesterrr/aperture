@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -45,7 +46,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
         </TextShimmer>
       </div>
     ),
-    [serverUrl]
+    [serverUrl],
   );
 
   // Debounced search

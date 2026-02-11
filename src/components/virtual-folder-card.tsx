@@ -1,3 +1,4 @@
+"use client";
 import { VirtualFolderInfo } from "@jellyfin/sdk/lib/generated-client/models";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";

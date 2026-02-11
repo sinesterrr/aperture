@@ -1,3 +1,4 @@
+"use client";
 import { JotaiProvider } from "../components/jotai-provider";
 import { FullscreenDetector } from "../components/fullscreen-detector";
 import { LayoutContent } from "../components/layout-content";

@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Skeleton } from "../components/ui/skeleton";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";

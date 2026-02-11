@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Card,
@@ -17,9 +18,14 @@ import {
   setServerUrl,
   getServerUrl,
 } from "../actions";
-import { Loader2, Server, CheckCircle, Globe, Shield, Radar } from "lucide-react";
-
-const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+import {
+  Loader2,
+  Server,
+  CheckCircle,
+  Globe,
+  Shield,
+  Radar,
+} from "lucide-react";
 
 interface ServerSetupProps {
   onNext: () => void;
@@ -34,7 +40,7 @@ type ConnectionStatus =
   | "error";
 
 export function ServerSetup({ onNext }: ServerSetupProps) {
-  const [url, setUrl] = useState(SERVER_BASE_URL);
+  const [url, setUrl] = useState("");
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("idle");
   const [error, setError] = useState("");
@@ -42,7 +48,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [discoveryStatus, setDiscoveryStatus] = useState("");
   const [foundLocalUrl, setFoundLocalUrl] = useState("");
-  const [hasUserEdited, setHasUserEdited] = useState(Boolean(SERVER_BASE_URL));
+  const [hasUserEdited, setHasUserEdited] = useState(false);
   const [detectedUrl, setDetectedUrl] = useState("");
   const [checkedStoredUrl, setCheckedStoredUrl] = useState(false);
   const [hasStoredUrl, setHasStoredUrl] = useState(false);
@@ -125,7 +131,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
         setConnectionStatus("error");
         setError(
           result.error ||
-            "Unable to connect to Jellyfin server. Please check the URL and try again."
+            "Unable to connect to Jellyfin server. Please check the URL and try again.",
         );
       }
     } catch {
@@ -165,8 +171,8 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
             setDiscoveryStatus(
               `Searching your local network... ${Math.max(
                 10,
-                Math.min(percent, 95)
-              )}%`
+                Math.min(percent, 95),
+              )}%`,
             );
           }
         },
@@ -224,7 +230,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
 
   useEffect(() => {
     if (!checkedStoredUrl) return;
-    if (SERVER_BASE_URL || hasStoredUrl) return;
+    if (hasStoredUrl) return;
     startDiscovery();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkedStoredUrl, hasStoredUrl]);
@@ -265,8 +271,8 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                   error
                     ? "border-red-500"
                     : connectionStatus === "success"
-                    ? "border-green-500"
-                    : ""
+                      ? "border-green-500"
+                      : ""
                 }`}
               />
 
@@ -299,7 +305,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
               {/* Help Text */}
               <div className="mt-3 space-y-1">
                 <p className="text-xs text-muted-foreground">
-                  No need to include http:// or https:// - we'll try HTTPS
+                  No need to include http:// or https:// - we&apos;ll try HTTPS
                   first, then HTTP
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -319,7 +325,9 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                   <div className="flex items-center gap-2">
                     <Radar className="h-4 w-4 text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Find server automatically</p>
+                      <p className="text-sm font-medium">
+                        Find server automatically
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         We can search your local network for a Jellyfin server.
                       </p>
@@ -343,7 +351,9 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                 </div>
 
                 {discoveryStatus && (
-                  <p className="text-xs text-muted-foreground">{discoveryStatus}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {discoveryStatus}
+                  </p>
                 )}
 
                 {foundLocalUrl && (

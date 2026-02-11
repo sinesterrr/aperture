@@ -1,3 +1,4 @@
+"use client";
 import { useAuth } from "../hooks/useAuth";
 import { BaseItemPerson } from "@jellyfin/sdk/lib/generated-client/models";
 import { useMemo } from "react";

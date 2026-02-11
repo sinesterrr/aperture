@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { usePlayback } from "../hooks/usePlayback";

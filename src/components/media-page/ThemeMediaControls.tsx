@@ -47,11 +47,7 @@ export const ThemeMediaControls: React.FC<ThemeMediaControlsProps> = ({
             className="flex h-11 w-11 items-center justify-center transition-all hover:bg-white/10 active:scale-90"
             title={isMuted ? "Unmute" : "Mute"}
           >
-            {isMuted ? (
-              <VolumeX size={16} />
-            ) : (
-              <Volume2 size={16} />
-            )}
+            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
         </motion.div>
       )}

@@ -1,4 +1,4 @@
-
+"use client";
 import { useEffect, useState } from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models/base-item-dto";
 import { fetchHeroItems } from "../../actions/media";

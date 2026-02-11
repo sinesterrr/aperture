@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { isAuthenticated, getServerUrl } from "../actions";
 import { ServerSetup } from "../components/server-setup";

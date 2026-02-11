@@ -1,3 +1,4 @@
+"use client";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models/base-item-dto";
 import { Play, Info } from "lucide-react";
 import { usePlayback } from "../../hooks/usePlayback";

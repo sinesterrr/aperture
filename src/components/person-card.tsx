@@ -1,8 +1,8 @@
 import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
-import { Badge } from "../components/ui/badge";
 import { User } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models/base-item-dto";
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 
 interface PersonCardProps {
   person: BaseItemDto;
@@ -15,14 +15,15 @@ export function PersonCard({ person, serverUrl }: PersonCardProps) {
     : null;
 
   // Get initials for fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0))
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const initials = useMemo(
+    () =>
+      person?.Name?.split(" ")
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || "??",
+    [person.Name],
+  );
 
   return (
     <Link to={`/person/${person.Id}`} draggable={false}>
@@ -38,11 +39,7 @@ export function PersonCard({ person, serverUrl }: PersonCardProps) {
             />
           )}
           <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-lg">
-            {person.Name ? (
-              getInitials(person.Name)
-            ) : (
-              <User className="size-8" />
-            )}
+            {person.Name ? initials : <User className="size-8" />}
           </AvatarFallback>
         </Avatar>
 

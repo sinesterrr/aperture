@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { JellyfinItem } from "../types/jellyfin";
 import { Button } from "../components/ui/button";
@@ -80,7 +81,7 @@ export function SeriesPlayButton({
   console.log("UserData:", nextEpisode.UserData);
   console.log(
     "PlaybackPositionTicks:",
-    nextEpisode.UserData?.PlaybackPositionTicks
+    nextEpisode.UserData?.PlaybackPositionTicks,
   );
   console.log("Played:", nextEpisode.UserData?.Played);
 

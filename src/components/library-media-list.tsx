@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useMemo } from "react";
 import { MediaCard } from "../components/media-card";
 import {
@@ -147,7 +148,7 @@ export function LibraryMediaList({
   const filteredAndSortedItems = useMemo(() => {
     // First filter by search query
     const filtered = mediaItems.filter((item) =>
-      (item.Name || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (item.Name || "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
     // Then sort the filtered results
@@ -276,7 +277,7 @@ export function LibraryMediaList({
             />
           ) : (
             <LiveChannelCard key={item.Id} item={item} serverUrl={serverUrl} />
-          )
+          ),
         )}
       </div>
 

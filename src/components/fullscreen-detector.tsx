@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { isFullscreenAtom, isTauriMacAtom } from "../lib/atoms";
@@ -45,7 +46,7 @@ export function FullscreenDetector() {
       document.addEventListener("fullscreenchange", handleFullscreenChange);
       document.addEventListener(
         "webkitfullscreenchange",
-        handleFullscreenChange
+        handleFullscreenChange,
       );
       document.addEventListener("mozfullscreenchange", handleFullscreenChange);
       document.addEventListener("MSFullscreenChange", handleFullscreenChange);
@@ -57,19 +58,19 @@ export function FullscreenDetector() {
       return () => {
         document.removeEventListener(
           "fullscreenchange",
-          handleFullscreenChange
+          handleFullscreenChange,
         );
         document.removeEventListener(
           "webkitfullscreenchange",
-          handleFullscreenChange
+          handleFullscreenChange,
         );
         document.removeEventListener(
           "mozfullscreenchange",
-          handleFullscreenChange
+          handleFullscreenChange,
         );
         document.removeEventListener(
           "MSFullscreenChange",
-          handleFullscreenChange
+          handleFullscreenChange,
         );
       };
     };

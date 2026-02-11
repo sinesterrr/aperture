@@ -1,3 +1,4 @@
+"use client";
 import React, { useRef, useEffect } from "react";
 import { BaseItemPerson } from "@jellyfin/sdk/lib/generated-client/models/base-item-person";
 import { ScrollArea, ScrollBar } from "../components/ui/scroll-area";

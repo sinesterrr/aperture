@@ -1,3 +1,4 @@
+"use client";
 import React, {
   useState,
   useEffect,
@@ -58,7 +59,7 @@ const seasonsCache = new Map<string, Season[]>();
 // Helper function to find which season contains a specific episode
 const findSeasonForEpisode = async (
   episodeId: string,
-  seasons: Season[]
+  seasons: Season[],
 ): Promise<string | null> => {
   // First, try to find the episode in already cached season episodes
   for (const [seasonId, cachedEpisodes] of episodesCache.entries()) {
@@ -129,7 +130,7 @@ export const SeasonEpisodes = React.memo(function SeasonEpisodes({
       else if (currentEpisodeId && !selectedSeasonId) {
         const currentEpisodeSeasonId = await findSeasonForEpisode(
           currentEpisodeId,
-          cachedSeasons
+          cachedSeasons,
         );
         if (currentEpisodeSeasonId) {
           setSelectedSeasonId(currentEpisodeSeasonId);
@@ -171,7 +172,7 @@ export const SeasonEpisodes = React.memo(function SeasonEpisodes({
       else if (currentEpisodeId) {
         const currentEpisodeSeasonId = await findSeasonForEpisode(
           currentEpisodeId,
-          typedSeasons
+          typedSeasons,
         );
         if (currentEpisodeSeasonId) {
           setSelectedSeasonId(currentEpisodeSeasonId);
@@ -243,7 +244,7 @@ export const SeasonEpisodes = React.memo(function SeasonEpisodes({
       // Use setTimeout to ensure DOM is fully rendered
       setTimeout(() => {
         const currentEpisodeElement = document.querySelector(
-          `[data-episode-id="${currentEpisodeId}"]`
+          `[data-episode-id="${currentEpisodeId}"]`,
         );
         if (currentEpisodeElement) {
           // Only scroll horizontally within the scroll area, not the entire page

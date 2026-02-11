@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -100,7 +101,7 @@ export function ImageEditorDialog({
         itemId,
         image.Type as ImageType,
         image.Url,
-        image.ProviderName
+        image.ProviderName,
       );
       toast.success(`${image.Type} image downloaded successfully`, {
         onAutoClose() {
@@ -231,7 +232,7 @@ export function ImageEditorDialog({
                         >
                           <div
                             className={`relative ${getSkeletonAspectRatio(
-                              key
+                              key,
                             )} p-3`}
                           >
                             <Skeleton className="w-full h-full rounded-lg" />
@@ -294,7 +295,7 @@ export function ImageEditorDialog({
                         >
                           <div
                             className={`relative ${getAspectRatio(
-                              key
+                              key,
                             )} rounded-lg overflow-hidden`}
                           >
                             <img

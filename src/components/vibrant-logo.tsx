@@ -1,3 +1,4 @@
+"use client";
 import { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { Vibrant } from "node-vibrant/browser";
 

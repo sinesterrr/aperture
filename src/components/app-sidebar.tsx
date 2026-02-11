@@ -1,7 +1,7 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom"; // for React Router
-// @ts-ignore
 import Logo from "../assets/logo/icon.png";
 import dashboardLinksConfig from "../config/sidebar/dashboard-links.json";
 
@@ -221,7 +221,6 @@ export function AppSidebar({
             >
               <Link to="/">
                 <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  {/* @ts-ignore */}
                   <img src={Logo} alt="Apertúre Logo" className="rounded" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">

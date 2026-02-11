@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef } from "react";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 
@@ -222,7 +223,7 @@ export default function AuroraTransition(props: AuroraTransitionProps) {
           (hex: string) => {
             const c = new Color(hex);
             return [c.r, c.g, c.b];
-          }
+          },
         );
 
         program.uniforms.uColorStopsTo.value = stopsTo.map((hex: string) => {

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -25,7 +26,7 @@ export const CinematicSplashLoader: React.FC<CinematicSplashLoaderProps> = ({
     <div
       className={cn(
         "fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center overflow-hidden font-sans",
-        className
+        className,
       )}
     >
       <div className="absolute inset-0 z-0">

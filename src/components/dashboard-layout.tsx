@@ -1,3 +1,4 @@
+"use client";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AuroraBackground } from "./aurora-background";
 import { SearchBar } from "./search-component";

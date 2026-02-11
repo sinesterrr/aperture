@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { getImageUrl } from "../actions";
 import { Film, PlayCircle, Tv, Calendar, Star, User } from "lucide-react";

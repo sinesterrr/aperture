@@ -1,3 +1,4 @@
+"use client";
 import { AuthErrorHandler } from "@/src/components/auth-error-handler";
 import { AuroraBackground } from "@/src/components/aurora-background";
 import { SearchBar } from "@/src/components/search-component";

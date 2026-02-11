@@ -1,21 +1,22 @@
+"use client";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
+} from "@/src/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../../components/ui/collapsible";
-import { cn } from "../../lib/utils";
-import { Switch } from "../../components/ui/switch";
+} from "@/src/components/ui/collapsible";
+import { cn } from "@/src/lib/utils";
+import { Switch } from "@/src/components/ui/switch";
 import { Sliders } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { useSettings } from "../../contexts/settings-context";
+import { useSettings } from "@/src/contexts/settings-context";
 
 export default function UserPreferenceSection() {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
@@ -61,7 +62,7 @@ export default function UserPreferenceSection() {
               <ChevronDown
                 className={cn(
                   "h-3.5 w-3.5 transition-transform duration-200",
-                  preferencesOpen ? "rotate-180" : "rotate-0"
+                  preferencesOpen ? "rotate-180" : "rotate-0",
                 )}
               />
             </button>

@@ -1,16 +1,14 @@
-import { SeerrSection } from "../../components/seerr-section";
-import { SeerrRequestSection } from "../../components/seerr-request-section";
-import { useSeerr } from "../../contexts/seerr-context";
+"use client";
+
+import { SeerrSection } from "@/src/components/seerr-section";
+import { SeerrRequestSection } from "@/src/components/seerr-request-section";
+import { useSeerr } from "@/src/contexts/seerr-context";
+import { useSeerrDashboard } from "@/src/hooks/use-seerr-dashboard";
 
 export function DiscoverWidgets() {
-  const {
-    recentlyAdded,
-    recentRequests,
-    trending,
-    popularMovies,
-    popularTv,
-    canManageRequests,
-  } = useSeerr();
+  const { recentRequests, canManageRequests } = useSeerr();
+  const { recentlyAdded, trending, popularMovies, popularTv } =
+    useSeerrDashboard();
 
   return (
     <div className="space-y-8">

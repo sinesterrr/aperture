@@ -1,13 +1,14 @@
+"use client"
 import React, { Fragment, useState } from "react";
 import { SeerrRequestModal } from "./seerr-request-modal";
-import { useSeerr } from "../contexts/seerr-context";
-import { SeerrRequestItem } from "../types/seerr";
+import { useSeerr } from "@/src/contexts/seerr-context";
+import { SeerrRequestItem } from "@/src/types/seerr-types";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { OptimizedImage } from "./optimized-image";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 interface SeerrRequestCardProps {
   item: SeerrRequestItem;
@@ -15,7 +16,7 @@ interface SeerrRequestCardProps {
 
 export function SeerrRequestCard({ item }: SeerrRequestCardProps) {
   const { canManageRequests, serverUrl } = useSeerr();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [_, setIsLoaded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [localStatus, setLocalStatus] = useState(item.status);
@@ -36,10 +37,10 @@ export function SeerrRequestCard({ item }: SeerrRequestCardProps) {
       mediaInfo.jellyfinMediaId
     ) {
       if (item.type === "movie") {
-        navigate(`/movie/${mediaInfo.jellyfinMediaId}`);
+        router.push(`/movie/${mediaInfo.jellyfinMediaId}`);
         return;
       } else if (item.type === "tv") {
-        navigate(`/series/${mediaInfo.jellyfinMediaId}`);
+        router.push(`/series/${mediaInfo.jellyfinMediaId}`);
         return;
       }
     }

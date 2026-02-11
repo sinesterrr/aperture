@@ -1,3 +1,4 @@
+"use client";
 import {
   ChevronDown,
   Eye,
@@ -13,29 +14,34 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../ui/card";
+} from "@/src/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
-import { Badge } from "../ui/badge";
-import { cn } from "../../lib/utils";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+} from "@/src/components/ui/collapsible";
+import { Badge } from "@/src/components/ui/badge";
+import { cn } from "@/src/lib/utils";
+import { Label } from "@/src/components/ui/label";
+import { Input } from "@/src/components/ui/input";
+import { Button } from "@/src/components/ui/button";
+import { useCallback, useEffect, useState } from "react";
 import {
-  StoreSeerrData,
-  type SeerrAuthType,
-} from "../../actions/store/store-seerr-data";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/src/components/ui/tabs";
+import { StoreSeerrData } from "@/src/actions/store/store-seerr-data";
+import { type SeerrAuthType } from "@/src/actions/store/server-actions";
 import { toast } from "sonner";
-import { testSeerrConnection } from "../../actions";
+import { testSeerrConnection } from "@/src/actions";
+import { useSeerr } from "@/src/contexts/seerr-context";
 
 export default function SeerrSection() {
   const [seerrOpen, setSeerrOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { isSeerrConnected, setIsSeerrConnected } = useSeerr();
 
   // Form State
   const [serverUrl, setServerUrl] = useState("");
@@ -43,46 +49,48 @@ export default function SeerrSection() {
   const [apiKey, setApiKey] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const data = await StoreSeerrData.get();
+      if (data) {
+        setServerUrl(data.serverUrl);
+
+        if (
+          data.serverUrl &&
+          ((data.authType === "api-key" && data.apiKey) ||
+            (data.authType !== "api-key" && data.username && data.password))
+        ) {
+          setIsSeerrConnected(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load Seerr settings", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const data = await StoreSeerrData.get();
-        if (data) {
-          setServerUrl(data.serverUrl || "");
-          setAuthType(data.authType || "api-key");
-          setApiKey(data.apiKey || "");
-          setUsername(data.username || "");
-          setPassword(data.password || "");
-          // Assume connected if data exists, or verify?
-          // For now, let's assume if they have saved data, they connected successfully before.
-          // Ideally we might want to auto-verify on load, but that might be slow.
-          if (
-            data.serverUrl &&
-            (data.apiKey || (data.username && data.password))
-          ) {
-            setIsConnected(true);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load Seerr settings", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadSettings();
-  }, []);
+  }, [loadSettings]);
 
   const handleSave = async () => {
     try {
-      await StoreSeerrData.set({
-        serverUrl,
-        authType,
-        apiKey,
-        username,
-        password,
-      });
+      if (authType === "api-key") {
+        await StoreSeerrData.set({
+          authType: "api-key",
+          serverUrl,
+          apiKey,
+        });
+      } else {
+        await StoreSeerrData.set({
+          authType,
+          serverUrl,
+          username,
+          password,
+        });
+      }
       toast.success("Seerr settings saved successfully");
     } catch (error) {
       console.error("Failed to save Seerr settings", error);
@@ -96,7 +104,7 @@ export default function SeerrSection() {
     setApiKey("");
     setUsername("");
     setPassword("");
-    setIsConnected(false);
+    setIsSeerrConnected(false);
     toast.success("Disconnected Seerr Integration");
   };
 
@@ -126,10 +134,10 @@ export default function SeerrSection() {
           id: toastId,
         });
         await handleSave(); // Auto-save on success
-        setIsConnected(true);
+        setIsSeerrConnected(true);
       } else {
         toast.error(result.message || "Connection Failed", { id: toastId });
-        setIsConnected(false);
+        setIsSeerrConnected(false);
       }
     } catch (error) {
       console.error(error);
@@ -146,7 +154,8 @@ export default function SeerrSection() {
           <CardTitle className="flex items-center gap-2 font-poppins text-lg">
             <Eye className="h-5 w-5" />
             Seerr Integration
-            {isConnected && (
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSeerrConnected && (
               <div className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-medium text-green-500 ring-1 ring-inset ring-green-500/20">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
                 Connected
@@ -185,7 +194,7 @@ export default function SeerrSection() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading settings...
               </div>
-            ) : isConnected ? (
+            ) : isSeerrConnected ? (
               <div className="space-y-4">
                 <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-4">
                   <div className="flex items-center gap-3">

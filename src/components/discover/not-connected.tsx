@@ -1,7 +1,8 @@
+"use client"
 import { Button } from "../ui/button";
 import { Settings2, Globe, Server } from "lucide-react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export function NotConnected() {
   return (
@@ -42,7 +43,7 @@ export function NotConnected() {
           asChild
           className="h-12 rounded-full px-8 font-medium transition-all hover:scale-105 active:scale-95"
         >
-          <Link to="/settings" className="flex items-center gap-2">
+          <Link href="/settings" className="flex items-center gap-2">
             <span>Configure Integration</span>
             <Settings2 className="h-4 w-4" />
           </Link>

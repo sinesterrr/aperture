@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from "react";
+"use client";
+import { useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { SeerrCard } from "./seerr-card";
-import { SeerrMediaItem } from "../types/seerr";
+import { SeerrMediaItem } from "../types/seerr-types";
 
 interface SeerrSectionProps {
   sectionName: string;

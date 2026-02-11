@@ -1,10 +1,11 @@
+"use client"
 import React, { useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { OptimizedImage } from "./optimized-image";
-import { SeerrMediaItem } from "../types/seerr";
+import { SeerrMediaItem } from "../types/seerr-types";
 import { Badge } from "./ui/badge";
 import { Check, Clock } from "lucide-react";
 import { SeerrRequestModal } from "./seerr-request-modal";
+import Link from "next/link";
 
 interface SeerrCardProps {
   item: SeerrMediaItem;
@@ -93,7 +94,7 @@ export const SeerrCard = React.memo(function SeerrCard({
           className={`relative w-full border rounded-md overflow-hidden active:scale-[0.98] transition bg-muted ${aspectRatio}`}
         >
           <Link
-            to={linkHref}
+            href={linkHref}
             onClick={handleClick}
             draggable={false}
             className="block w-full h-full"
@@ -128,7 +129,7 @@ export const SeerrCard = React.memo(function SeerrCard({
           </Link>
         </div>
 
-        <Link to={linkHref} onClick={handleClick} draggable={false}>
+        <Link href={linkHref} onClick={handleClick} draggable={false}>
           <div className="px-1">
             <div className="mt-2.5 text-sm font-medium text-foreground truncate group-hover:underline">
               {title}

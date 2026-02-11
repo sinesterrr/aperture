@@ -1,36 +1,26 @@
+"use client";
 import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  getSeerrRecentlyAddedItems,
-  getSeerrTrendingItems,
-  getSeerrPopularMovies,
-  getSeerrPopularTv,
-  getSeerrRecentRequests,
-  getSeerrUser,
-} from "../actions/seerr";
-import { StoreSeerrData } from "../actions/store/store-seerr-data";
-import { SeerrMediaItem, SeerrRequestItem } from "../types/seerr";
-import { getAuthData } from "../actions";
+import { getSeerrRecentRequests, getSeerrUser } from "@/src/actions/seerr";
+import { StoreSeerrData } from "@/src/actions/store/store-seerr-data";
+import { SeerrRequestItem } from "@/src/types/seerr-types";
+import { getAuthData } from "@/src/actions";
 
 interface SeerrContextType {
-  recentlyAdded: SeerrMediaItem[];
-  trending: SeerrMediaItem[];
-  popularMovies: SeerrMediaItem[];
-  popularTv: SeerrMediaItem[];
   recentRequests: SeerrRequestItem[];
   canManageRequests: boolean;
   loading: boolean;
   isSeerrConnected: boolean;
+  setIsSeerrConnected: (connected: boolean) => void;
   authError: any | null;
   addRequest: (request: SeerrRequestItem) => void;
   removeRequest: (requestId: number) => void;
-  refreshData: () => Promise<void>;
   serverUrl: string | null;
 }
 
@@ -40,18 +30,13 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isSeerrConnected, setIsSeerrConnected] = useState(false);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [recentlyAdded, setRecentlyAdded] = useState<SeerrMediaItem[]>([]);
-  const [trending, setTrending] = useState<SeerrMediaItem[]>([]);
-  const [popularMovies, setPopularMovies] = useState<SeerrMediaItem[]>([]);
-  const [popularTv, setPopularTv] = useState<SeerrMediaItem[]>([]);
   const [recentRequests, setRecentRequests] = useState<SeerrRequestItem[]>([]);
   const [canManageRequests, setCanManageRequests] = useState(false);
   const [authError, setAuthError] = useState<any | null>(null);
 
-  const navigate = useNavigate();
+  // Check connection and permissions (Lightweight)
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const checkConnection = useCallback(async () => {
     setAuthError(null);
     try {
       await getAuthData();
@@ -59,60 +44,56 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
       if (
         seerrData &&
         seerrData.serverUrl &&
-        (seerrData.apiKey || (seerrData.username && seerrData.password))
+        ((seerrData.authType === "api-key" && seerrData.apiKey) ||
+          ((seerrData.authType === "jellyfin-user" ||
+            seerrData.authType === "local-user") &&
+            seerrData.username &&
+            seerrData.password))
       ) {
         setIsSeerrConnected(true);
         setServerUrl(seerrData.serverUrl);
 
-        const [
-          recentResult,
-          trendingResult,
-          popularMoviesResult,
-          popularTvResult,
-          recentRequestsResult,
-        ] = await Promise.all([
-          getSeerrRecentlyAddedItems(),
-          getSeerrTrendingItems(),
-          getSeerrPopularMovies(),
-          getSeerrPopularTv(),
-          getSeerrRecentRequests(),
-        ]);
+        // Fetch user permissions & initial requests
+        try {
+          const [user, requestsResult] = await Promise.all([
+            getSeerrUser(),
+            getSeerrRecentRequests(),
+          ]);
 
-        if (recentResult?.results) setRecentlyAdded(recentResult.results);
-        if (trendingResult?.results) setTrending(trendingResult.results);
-        if (popularMoviesResult?.results)
-          setPopularMovies(popularMoviesResult.results);
-        if (popularTvResult?.results) setPopularTv(popularTvResult.results);
-        if (recentRequestsResult?.results)
-          setRecentRequests(recentRequestsResult.results);
-
-        const user = await getSeerrUser();
-        if (user) {
-          const permissions = user.permissions || 0;
-          if ((permissions & 2) !== 0) {
-            setCanManageRequests(true);
-          } else {
-            setCanManageRequests(false);
+          if (user) {
+            const permissions = user.permissions || 0;
+            if ((permissions & 2) !== 0) {
+              setCanManageRequests(true);
+            } else {
+              setCanManageRequests(false);
+            }
           }
+
+          if (requestsResult?.results) {
+            setRecentRequests(requestsResult.results);
+          }
+        } catch (e) {
+          console.error("Failed to fetch Seerr user info", e);
         }
       } else {
         setIsSeerrConnected(false);
         setServerUrl(null);
+        setRecentRequests([]);
+        setCanManageRequests(false);
       }
     } catch (error: any) {
-      console.error("Failed to load Seerr data", error);
+      console.error("Failed to check Seerr connection", error);
       if (error.isAuthError) {
         setAuthError(error);
-        navigate("/login", { replace: true });
       }
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    checkConnection();
+  }, [checkConnection]);
 
   const addRequest = useCallback((newRequest: SeerrRequestItem) => {
     setRecentRequests((prev) => {
@@ -125,11 +106,19 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
     setRecentRequests((prev) => prev.filter((r) => r.id !== requestId));
   }, []);
 
-  const value = {
-    recentlyAdded,
-    trending,
-    popularMovies,
-    popularTv,
+  const value = useMemo(() => {
+    return {
+      recentRequests,
+      canManageRequests,
+      loading,
+      isSeerrConnected,
+      authError,
+      addRequest,
+      removeRequest,
+      serverUrl,
+      setIsSeerrConnected,
+    };
+  }, [
     recentRequests,
     canManageRequests,
     loading,
@@ -137,9 +126,9 @@ export function SeerrProvider({ children }: { children: React.ReactNode }) {
     authError,
     addRequest,
     removeRequest,
-    refreshData: fetchData,
     serverUrl,
-  };
+    setIsSeerrConnected,
+  ]);
 
   return (
     <SeerrContext.Provider value={value}>{children}</SeerrContext.Provider>

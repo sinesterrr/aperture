@@ -624,13 +624,14 @@ function AdminRequestOptions({
         <div className="grid gap-2">
           <Label>Quality Profile</Label>
           <Select
+            key={`select-profile-dropdown-${profiles.length}`}
             value={selectedProfileId}
             onValueChange={setSelectedProfileId}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Profile" />
             </SelectTrigger>
-            <SelectContent z-index={200}>
+            <SelectContent className="z-200">
               {profiles.map((profile: any) => (
                 <SelectItem key={profile.id} value={profile.id.toString()}>
                   {profile.name}

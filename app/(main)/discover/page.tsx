@@ -3,7 +3,6 @@ import { AuthErrorHandler } from "@/src/components/auth-error-handler";
 import { AuroraBackground } from "@/src/components/aurora-background";
 import { SearchBar } from "@/src/components/search-component";
 import { useSeerr } from "@/src/contexts/seerr-context";
-import { Loader2 } from "lucide-react";
 import { NotConnected } from "@/src/components/discover/not-connected";
 import { DiscoverWidgets } from "@/src/components/discover-widgets";
 
@@ -19,11 +18,7 @@ export default function DiscoverPage() {
           <div className="mb-6">
             <SearchBar />
           </div>
-          {loading ? (
-            <div className="flex h-[50vh] w-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : !isSeerrConnected ? (
+          {!loading && !isSeerrConnected ? (
             <NotConnected />
           ) : (
             <DiscoverWidgets />

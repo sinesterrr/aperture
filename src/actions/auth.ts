@@ -5,9 +5,9 @@ import { Configuration } from "@jellyfin/sdk/lib/generated-client/configuration"
 import type { UserDto } from "@jellyfin/sdk/lib/generated-client/models/user-dto";
 import { createJellyfinInstance } from "../lib/utils";
 import { getDeviceId } from "../lib/device-id";
-import { useNavigate } from "react-router-dom";
 import { StoreServerURL } from "./store/store-server-url";
 import { StoreAuthData } from "./store/store-auth-data";
+import { StoreSeerrData } from "./store/store-seerr-data";
 
 // Type aliases for easier use
 type JellyfinUserWithToken = UserDto & { AccessToken?: string };
@@ -439,9 +439,7 @@ export async function authenticateWithQuickConnect(
   }
 }
 
-import { StoreSeerrData } from "./store/store-seerr-data";
-
-export function logout(navigate: ReturnType<typeof useNavigate>) {
+export function logout(navigate: (redirectPath: string) => void) {
   Promise.all([
     StoreAuthData.remove(),
     StoreServerURL.remove(),

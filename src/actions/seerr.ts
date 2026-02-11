@@ -1,7 +1,5 @@
 import { StoreSeerrData, type SeerrAuthData } from "./store/store-seerr-data";
 import { SeerrMediaItem } from "../types/seerr";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { isTauri } from "@tauri-apps/api/core";
 
 function normalizeServerUrl(url: string): string {
   let baseUrl = url.replace(/\/+$/, "");
@@ -15,11 +13,6 @@ function configureProxy(
   baseUrl: string,
   headers: Record<string, string>,
 ): string {
-  // if (!isTauri()) {
-  //   console.debug("Using Proxy for Seerr API");
-  //   headers["X-Proxy-Target"] = baseUrl;
-  //   return import.meta.env.VITE_PROXY_URL || "http://localhost:3001";
-  // }
   return baseUrl;
 }
 
@@ -111,9 +104,8 @@ export async function seerrFetch<T>(
 
     // Merge custom options
     const finalHeaders = { ...headers, ...(options.headers || {}) };
-    const fetchFn = isTauri() ? tauriFetch : fetch;
 
-    const response = await fetchFn(fullUrl, {
+    const response = await fetch(fullUrl, {
       ...options,
       headers: finalHeaders,
       // @ts-ignore
@@ -346,11 +338,9 @@ export async function testSeerrConnection(
     const fullUrl = `${baseUrl}${endpoint}`;
     console.debug(`[Seerr] Testing connection: ${method} ${fullUrl}`, {
       authType: data.authType,
-      env: isTauri() ? "Tauri" : "Web",
     });
 
-    const fetchFn = isTauri() ? tauriFetch : fetch;
-    const response = await fetchFn(fullUrl, {
+    const response = await fetch(fullUrl, {
       method,
       headers,
       credentials: "include",

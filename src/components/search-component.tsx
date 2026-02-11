@@ -1,23 +1,20 @@
+"use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Skeleton } from "../components/ui/skeleton";
-import { Search, Film, Tv, Calendar, PlayCircle, Star } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchItems } from "../actions";
-import { Badge } from "./ui/badge";
 import { SearchSuggestionItem } from "./search-suggestion-item";
-import { TextShimmerWave } from "./ui/text-shimmer-wave";
 
 import * as Kbd from "../components/ui/kbd";
 import { TextShimmer } from "./motion-primitives/text-shimmer";
 import { useAuth } from "../hooks/useAuth";
 import { SidebarTrigger } from "../components/ui/sidebar";
-import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/use-mobile";
 import { searchSeerrItems } from "../actions/seerr";
 import { StoreSeerrData } from "../actions/store/store-seerr-data";
-import { toast } from "sonner";
 import { SeerrRequestModal } from "./seerr-request-modal";
+import { useRouter } from "next/navigation";
+import { Badge } from "./ui/badge";
 
 interface SearchBarProps {
   className?: string;
@@ -30,7 +27,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
   const [isSeerrConnected, setIsSeerrConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const isMobile = useIsMobile();
   const isPlayerVisible = false;
   // Server actions are imported directly
@@ -128,7 +125,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchQuery, searchItems]);
+  }, [searchQuery]);
 
   // Global keyboard shortcut for search activation
   useEffect(() => {
@@ -181,7 +178,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSuggestions(false);
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -205,15 +202,15 @@ export function SearchBar({ className = "" }: SearchBarProps) {
     }
 
     if (item.Type === "Movie") {
-      navigate(`/movie/${item.Id}`);
+      router.push(`/movie/${item.Id}`);
     } else if (item.Type === "Series") {
       // Assuming a series page exists at /series/[id]
-      navigate(`/series/${item.Id}`);
+      router.push(`/series/${item.Id}`);
     } else if (item.Type === "Person") {
-      navigate(`/person/${item.Id}`);
+      router.push(`/person/${item.Id}`);
     } else if (item.Type === "Episode") {
       // For episodes, navigate to the search page for now as SeriesId is not directly available
-      navigate(`/search?q=${encodeURIComponent(item.Name)}`);
+      router.push(`/search?q=${encodeURIComponent(item.Name)}`);
     }
   };
 
@@ -242,7 +239,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
   return (
     <div
-      className={`relative z-[99] md:max-w-xl ${className}`}
+      className={`relative z-99 md:max-w-xl ${className}`}
       ref={suggestionsRef}
     >
       <form onSubmit={handleSearch} className="flex gap-2">
@@ -281,7 +278,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
       {/* Search Suggestions Dropdown */}
       {(showSuggestions || isLoading) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl border z-[99] max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl border z-99 max-h-96 overflow-y-auto">
           {isLoading && loadingComponent}
 
           {!isLoading && suggestions.length > 0 && (

@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom"; // for React Router
-// @ts-ignore
-import Logo from "../assets/logo/icon.png";
+"use client";
+import { useState, useEffect } from "react";
 import dashboardLinksConfig from "../config/sidebar/dashboard-links.json";
-
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   useSidebar,
   SidebarMenuSub,
   SidebarMenuSubItem,
@@ -59,25 +54,23 @@ import {
   Activity,
   Key,
   Compass,
+  Monitor,
+  Database,
+  FileCode,
+  PlayCircle,
+  Cpu,
+  History,
+  Signal,
+  FastForward,
 } from "lucide-react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
-interface JellyfinLibrary {
-  Id: string;
-  Name: string;
-  CollectionType: string;
-  ItemCount?: number;
-}
-
-export function AppSidebar({
-  isTauriMac,
-  isTauriFullscreen,
-}: {
-  isTauriMac: boolean;
-  isTauriFullscreen: boolean;
-}) {
+export function AppSidebar() {
   const { setOpen, setOpenMobile, isMobile } = useSidebar();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [libraries, setLibraries] = useState<BaseItemDto[]>([]);
@@ -141,7 +134,7 @@ export function AppSidebar({
 
   const handleLogout = async () => {
     // logout() already handles the redirect
-    await logout(navigate);
+    await logout(router.push);
   };
 
   const getLibraryIcon = (collectionType: string) => {
@@ -159,11 +152,48 @@ export function AppSidebar({
     }
   };
 
+  const getDashboardIcon = (name: string) => {
+    switch (name) {
+      case "Overview":
+        return <LayoutDashboard className="h-4 w-4" />;
+      case "General":
+        return <Wrench className="h-4 w-4" />;
+      case "Libraries":
+        return <Library className="h-4 w-4" />;
+      case "Display":
+        return <Monitor className="h-4 w-4" />;
+      case "Metadata":
+        return <Database className="h-4 w-4" />;
+      case "NFO Settings":
+        return <FileCode className="h-4 w-4" />;
+      case "Playback":
+        return <PlayCircle className="h-4 w-4" />;
+      case "Transcoding":
+        return <Cpu className="h-4 w-4" />;
+      case "Resume":
+        return <History className="h-4 w-4" />;
+      case "Streaming":
+        return <Signal className="h-4 w-4" />;
+      case "Trickplay":
+        return <FastForward className="h-4 w-4" />;
+      case "Manage users":
+        return <Users className="h-4 w-4" />;
+      case "Activity":
+        return <Activity className="h-4 w-4" />;
+      case "Scheduled tasks":
+        return <CalendarClock className="h-4 w-4" />;
+      case "API keys":
+        return <Key className="h-4 w-4" />;
+      default:
+        return <LayoutDashboard className="h-4 w-4" />;
+    }
+  };
+
   return (
     <Sidebar
       variant="floating"
       collapsible="icon"
-      className={`${isTauriMac && !isTauriFullscreen ? "pt-10" : ""} z-20`}
+      className={`z-20`}
       onMouseEnter={() => !isMobile && setOpen(true)}
       onMouseLeave={() => !isMobile && setOpen(false)}
     >
@@ -175,10 +205,15 @@ export function AppSidebar({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               asChild
             >
-              <Link to="/">
+              <Link href="/">
                 <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  {/* @ts-ignore */}
-                  <img src={Logo} alt="Apertúre Logo" className="rounded" />
+                  <Image
+                    src={"/assets/logo/icon.png"}
+                    alt="Apertúre Logo"
+                    className="rounded"
+                    width={32}
+                    height={32}
+                  />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">Apertúre</span>
@@ -203,7 +238,7 @@ export function AppSidebar({
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/" onClick={() => setOpenMobile(false)}>
+                  <Link href="/" onClick={() => setOpenMobile(false)}>
                     <Home className="h-4 w-4" />
                     <span>Home</span>
                   </Link>
@@ -212,7 +247,7 @@ export function AppSidebar({
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/discover" onClick={() => setOpenMobile(false)}>
+                  <Link href="/discover" onClick={() => setOpenMobile(false)}>
                     <Compass className="h-4 w-4" />
                     <span>Discover</span>
                   </Link>
@@ -240,7 +275,7 @@ export function AppSidebar({
                             <SidebarMenuSubItem key={library.Id}>
                               <SidebarMenuSubButton asChild>
                                 <Link
-                                  to={
+                                  href={
                                     library.CollectionType !== "livetv"
                                       ? `/library/${library.Id}`
                                       : `/livetv/`
@@ -261,7 +296,7 @@ export function AppSidebar({
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/settings" onClick={() => setOpenMobile(false)}>
+                  <Link href="/settings" onClick={() => setOpenMobile(false)}>
                     <Settings2 className="h-4 w-4" />
                     <span>Settings</span>
                   </Link>
@@ -299,7 +334,7 @@ export function AppSidebar({
                                 <SidebarMenuSubItem>
                                   <CollapsibleTrigger asChild>
                                     <SidebarMenuSubButton>
-                                      <LayoutDashboard className="h-4 w-4" />
+                                      {getDashboardIcon(section.name)}
                                       <span>{section.name}</span>
                                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible-nested:rotate-90" />
                                     </SidebarMenuSubButton>
@@ -310,12 +345,12 @@ export function AppSidebar({
                                         <SidebarMenuSubItem key={item.name}>
                                           <SidebarMenuSubButton asChild>
                                             <Link
-                                              to={item.url}
+                                              href={item.url}
                                               onClick={() =>
                                                 setOpenMobile(false)
                                               }
                                             >
-                                              <LayoutDashboard className="h-4 w-4" />
+                                              {getDashboardIcon(item.name)}
                                               <span>{item.name}</span>
                                             </Link>
                                           </SidebarMenuSubButton>
@@ -332,10 +367,10 @@ export function AppSidebar({
                             <SidebarMenuSubItem key={section.name}>
                               <SidebarMenuSubButton asChild>
                                 <Link
-                                  to={section.url}
+                                  href={section.url}
                                   onClick={() => setOpenMobile(false)}
                                 >
-                                  <LayoutDashboard className="h-4 w-4" />
+                                  {getDashboardIcon(section.name)}
                                   <span>{section.name}</span>
                                 </Link>
                               </SidebarMenuSubButton>
@@ -367,7 +402,7 @@ export function AppSidebar({
                     <img
                       src={avatarUrl}
                       alt="Avatar"
-                      className="aspect-square object-cover size-8 rounded-lg border-[1px]"
+                      className="aspect-square object-cover size-8 rounded-lg border"
                     />
                   ) : (
                     <div className="text-foreground flex aspect-square size-8 items-center justify-center rounded-lg bg-primary p-2">

@@ -5,10 +5,10 @@ import { LibraryMediaList } from "@/src/components/library-media-list";
 import { SearchBar } from "@/src/components/search-component";
 import { ScanLibraryButton } from "@/src/components/scan-library-button";
 import { AuroraBackground } from "@/src/components/aurora-background";
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import LoadingSpinner from "@/src/components/loading-spinner";
+import { useParams } from "next/navigation";
 
 export default function LibraryPage() {
   const { id } = useParams<{ id: string }>();

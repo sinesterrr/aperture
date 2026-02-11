@@ -12,11 +12,20 @@ import {
   TabsContent,
 } from "@/src/components/ui/tabs";
 import { SearchIcon, Film, Tv, PlayCircle, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CinematicSplashLoader } from "@/src/components/cinematic-splash-loader";
 
-export default function Search() {
+export default function Page() {
+  return (
+    <Suspense fallback={<CinematicSplashLoader />}>
+      <Search />
+    </Suspense>
+  );
+}
+
+function Search() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const router = useRouter();

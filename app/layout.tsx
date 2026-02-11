@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import RootProvider from "@/src/providers/RootProvider";
 import Head from "next/head";
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",

@@ -97,7 +97,6 @@ interface AuroraBackgroundProps {
 }
 
 export function AuroraBackground({
-  imageUrl,
   colorStops,
   amplitude = 0.8,
   blend = 0.4,

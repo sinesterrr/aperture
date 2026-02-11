@@ -33,7 +33,7 @@ export function FullscreenDetector() {
     };
 
     checkTauriMac();
-  }, []);
+  }, [setIsTauriMac]);
 
   useEffect(() => {
     const setupWebFullscreen = () => {

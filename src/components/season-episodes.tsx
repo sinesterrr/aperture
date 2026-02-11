@@ -17,7 +17,6 @@ import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 
 interface SeasonEpisodesProps {
   showId: string;

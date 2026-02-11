@@ -12,7 +12,7 @@ interface CastScrollAreaProps {
   mediaId: string;
 }
 
-export function CastScrollArea({ people, mediaId }: CastScrollAreaProps) {
+export function CastScrollArea({ people }: CastScrollAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 

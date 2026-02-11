@@ -1,6 +1,5 @@
 "use client";
-import React, { useState } from "react";
-import { Skeleton } from "../components/ui/skeleton";
+import React from "react";
 import { BaseItemDto } from "@jellyfin/sdk/lib/generated-client/models";
 import { Play } from "lucide-react";
 import { usePlayback } from "../hooks/usePlayback";

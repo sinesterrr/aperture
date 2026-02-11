@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,15 +12,8 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { ThemeToggle } from "../components/ui/theme-toggle";
 import { VibrantAuroraBackground } from "../components/vibrant-aurora-background";
-import { checkServerHealth, setServerUrl, getServerUrl } from "../actions";
-import {
-  Loader2,
-  Server,
-  CheckCircle,
-  Globe,
-  Shield,
-  Radar,
-} from "lucide-react";
+import { checkServerHealth, setServerUrl } from "../actions";
+import { Loader2, Server, CheckCircle, Globe, Shield } from "lucide-react";
 
 interface ServerSetupProps {
   onNext: () => void;
@@ -39,11 +32,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("idle");
   const [error, setError] = useState("");
-  const isMountedRef = useRef(true);
-  const [hasUserEdited, setHasUserEdited] = useState(false);
   const [detectedUrl, setDetectedUrl] = useState("");
-  const [checkedStoredUrl, setCheckedStoredUrl] = useState(false);
-  const [hasStoredUrl, setHasStoredUrl] = useState(false);
 
   const isLoading =
     connectionStatus !== "idle" &&
@@ -127,26 +116,6 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
     }
   };
 
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    (async () => {
-      const savedUrl = await getServerUrl();
-      if (!isMountedRef.current) return;
-      if (savedUrl) {
-        setUrl(savedUrl);
-        setHasUserEdited(true);
-        setHasStoredUrl(true);
-      } else {
-        setHasStoredUrl(false);
-      }
-      setCheckedStoredUrl(true);
-    })();
-
-    // We intentionally only run this once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative w-full">
       <VibrantAuroraBackground amplitude={0.8} blend={0.4} />
@@ -174,10 +143,7 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
                 type="text"
                 placeholder="jellyfin.example.com or 192.168.1.100:8096"
                 value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setHasUserEdited(true);
-                }}
+                onChange={(e) => setUrl(e.target.value)}
                 disabled={isLoading}
                 className={`${
                   error

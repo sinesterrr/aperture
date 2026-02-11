@@ -100,7 +100,7 @@ export function MediaSection({
         <ScrollArea className="w-full pb-6">
           <div className="flex gap-4 w-max h-fit" ref={scrollRef}>
             {mediaItems.map((item) => (
-              <div key={item.Id} className="flex-shrink-0">
+              <div key={item.Id} className="shrink-0">
                 {item?.Type === "TvChannel" ? (
                   <LiveChannelCard item={item} serverUrl={serverUrl} />
                 ) : (

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { JellyfinItem, MediaSourceInfo, MediaStream } from "../types/jellyfin";
 import {
   DropdownMenu,
@@ -22,7 +22,6 @@ import {
   Info,
   Download,
   Play,
-  ArrowLeft,
   Layers,
   ChevronDown,
   Music,
@@ -31,17 +30,10 @@ import {
 import {
   getAuthData,
   getDownloadUrl,
-  getStreamUrl,
-  getSubtitleTracks,
   getUserWithPolicy,
   getUser,
 } from "../actions";
-import {
-  getMediaDetailsFromName,
-  cutOffText,
-  formatPlaybackPosition,
-  formatRuntime,
-} from "../lib/utils";
+import { getMediaDetailsFromName, formatRuntime } from "../lib/utils";
 import { usePlayback } from "../hooks/usePlayback";
 import { useIsMobile } from "../hooks/use-mobile";
 import { DolbyDigital, DolbyTrueHd, DolbyVision, DtsHd } from "./icons/codecs";
@@ -276,10 +268,6 @@ export function MediaActions({
       return false;
     }
 
-    const audioStreams = source.MediaStreams.filter(
-      (stream) => stream.Type === "Audio",
-    );
-
     const result = source.MediaStreams.some(
       (stream) =>
         stream.Type === "Audio" &&
@@ -297,10 +285,6 @@ export function MediaActions({
       return false;
     }
 
-    const audioStreams = source.MediaStreams.filter(
-      (stream) => stream.Type === "Audio",
-    );
-
     const result = source.MediaStreams.some(
       (stream) =>
         stream.Type === "Audio" &&
@@ -316,10 +300,6 @@ export function MediaActions({
     if (!source.MediaStreams) {
       return false;
     }
-
-    const videoStreams = source.MediaStreams.filter(
-      (stream) => stream.Type === "Video",
-    );
 
     const result = source.MediaStreams.some(
       (stream) =>
@@ -377,10 +357,6 @@ export function MediaActions({
       return false;
     }
 
-    const audioStreams = source.MediaStreams.filter(
-      (stream) => stream.Type === "Audio",
-    );
-
     const result = source.MediaStreams.some(
       (stream) =>
         stream.Type === "Audio" &&
@@ -430,7 +406,7 @@ export function MediaActions({
                   className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4 w-full sm:w-auto justify-between sm:justify-start"
                 >
                   {renderSourceLabel(selectedVersion)}
-                  <ChevronDown className="h-4 w-4 opacity-50 ml-1 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 opacity-50 ml-1 shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -481,7 +457,7 @@ export function MediaActions({
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4 w-full sm:w-auto sm:max-w-[200px] justify-between sm:justify-start"
+                      className="overflow-hidden whitespace-nowrap text-ellipsis fill-foreground gap-1.5 px-4 w-full sm:w-auto sm:max-w-50 justify-between sm:justify-start"
                     >
                       <Music className="h-4 w-4 opacity-70" />
                       <span className="truncate">
@@ -489,7 +465,7 @@ export function MediaActions({
                           ? getAudioStreamDisplayName(currentAudio)
                           : "Audio"}
                       </span>
-                      <ChevronDown className="h-4 w-4 opacity-50 ml-1 flex-shrink-0" />
+                      <ChevronDown className="h-4 w-4 opacity-50 ml-1 shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -560,7 +536,7 @@ export function MediaActions({
                 <span className="ml-2 text-sm sm:hidden">Info</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl dark:bg-background/30 backdrop-blur-md z-[9999999999]">
+            <DialogContent className="max-w-2xl dark:bg-background/30 backdrop-blur-md z-9999999999">
               <DialogHeader>
                 <DialogTitle>Media Info</DialogTitle>
               </DialogHeader>

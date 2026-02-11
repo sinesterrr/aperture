@@ -12,7 +12,6 @@ export function OptimizedImage({
   alt,
   onLoad,
   onError,
-  fallbackSrc = "/placeholder.png", // We don't have a real one yet, but better than broken
   ...props
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);

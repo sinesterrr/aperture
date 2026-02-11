@@ -1,13 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Skeleton } from "../components/ui/skeleton";
-import { Search, Film, Tv, Calendar, PlayCircle, Star } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchItems } from "../actions";
-import { Badge } from "./ui/badge";
 import { SearchSuggestionItem } from "./search-suggestion-item";
-import { TextShimmerWave } from "./ui/text-shimmer-wave";
 
 import * as Kbd from "../components/ui/kbd";
 import { TextShimmer } from "./motion-primitives/text-shimmer";
@@ -89,7 +85,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchQuery, searchItems]);
+  }, [searchQuery]);
 
   // Global keyboard shortcut for search activation
   useEffect(() => {
@@ -189,7 +185,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
   return (
     <div
-      className={`relative z-[99] md:max-w-xl ${className}`}
+      className={`relative z-99 md:max-w-xl ${className}`}
       ref={suggestionsRef}
     >
       <form onSubmit={handleSearch} className="flex gap-2">
@@ -228,7 +224,7 @@ export function SearchBar({ className = "" }: SearchBarProps) {
 
       {/* Search Suggestions Dropdown */}
       {(showSuggestions || isLoading) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl border z-[99] max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl border z-99 max-h-96 overflow-y-auto">
           {isLoading && loadingComponent}
 
           {!isLoading && suggestions.length > 0 && (

@@ -1,4 +1,4 @@
-"use client"; // must be a client component if you mutate state
+"use client";
 
 import { createContext, useContext } from "react";
 

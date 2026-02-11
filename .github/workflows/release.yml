@@ -151,6 +151,7 @@ jobs:
             "${files[@]}"
 
       - name: Notify Discord
+        working-directory: repo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}

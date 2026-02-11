@@ -31,7 +31,7 @@ export function HeroSection({ serverUrl }: HeroSectionProps) {
 
   if (loading) {
     return (
-      <div className="w-full h-[65vh] min-h-[500px] mb-8 relative px-4">
+      <div className="w-full h-[65vh] min-h-125 mb-8 relative px-4">
         <Skeleton className="w-full h-full rounded-xl" />
       </div>
     );

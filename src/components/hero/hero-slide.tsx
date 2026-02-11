@@ -81,7 +81,7 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
   };
 
   return (
-    <div className="relative w-full h-[60vh] min-h-[400px] max-h-[600px] overflow-hidden rounded-xl group select-none shadow-lg border border-border bg-card">
+    <div className="relative w-full h-[60vh] min-h-100 max-h-150 overflow-hidden rounded-xl group select-none shadow-lg border border-border bg-card">
       {/* Background Image / Blur */}
       <div className="absolute inset-0 overflow-hidden rounded-xl z-0">
         {blurDataUrl && !imageLoaded && (
@@ -106,9 +106,9 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
 
         {/* Cinematic Gradient Overlays */}
         {/* Complex gradient map for clearer text and interesting visual */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)]" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
       </div>
 
       {/* Content */}
@@ -119,7 +119,7 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
             <OptimizedImage
               src={logoUrl}
               alt={item.Name || "Logo"}
-              className={`h-20 md:h-28 lg:h-32 w-auto object-contain object-left-bottom drop-shadow-2xl transition-opacity duration-700 ${
+              className={`h-20 md:h-28 lg:h-32 w-auto object-contain object-bottom-left drop-shadow-2xl transition-opacity duration-700 ${
                 logoLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setLogoLoaded(true)}

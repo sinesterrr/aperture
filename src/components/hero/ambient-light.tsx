@@ -6,7 +6,7 @@ export function AmbientLight() {
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 mix-blend-screen">
       {/* Moving Light Leak / Flare */}
       <motion.div
-        className="absolute top-[-50%] left-[-20%] w-[100%] h-[200%] bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 blur-3xl opacity-30"
+        className="absolute top-[-50%] left-[-20%] w-full h-[200%] bg-linear-to-r from-transparent via-white/5 to-transparent skew-x-12 blur-3xl opacity-30"
         animate={{
           x: ["-100%", "200%"],
         }}

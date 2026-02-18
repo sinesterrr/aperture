@@ -1,5 +1,5 @@
 "use client";
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useCallback, useEffect, useRef, useState } from "react";
 import { motion, MotionProps } from "motion/react";
 
 export type TextScrambleProps = {
@@ -31,50 +31,51 @@ export function TextScramble({
     Component as keyof JSX.IntrinsicElements,
   );
   const [displayText, setDisplayText] = useState(children || "");
-  const [isAnimating, setIsAnimating] = useState(false);
   const text = children || "";
 
+  const isAnimatingRef = useRef(false);
+
+  const scramble = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+
+    const steps = duration / speed;
+    let step = 0;
+
+    const interval = setInterval(() => {
+      let scrambled = "";
+      const progress = step / steps;
+
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === " ") {
+          scrambled += " ";
+          continue;
+        }
+
+        if (progress * text.length > i) {
+          scrambled += text[i];
+        } else {
+          scrambled +=
+            characterSet[Math.floor(Math.random() * characterSet.length)];
+        }
+      }
+
+      setDisplayText(scrambled);
+      step++;
+
+      if (step > steps) {
+        clearInterval(interval);
+        setDisplayText(text);
+        isAnimatingRef.current = false;
+        onScrambleComplete?.();
+      }
+    }, speed * 1000);
+  }, [text, duration, speed, characterSet, onScrambleComplete]);
+
   useEffect(() => {
-    const scramble = async () => {
-      if (isAnimating) return;
-      setIsAnimating(true);
-
-      const steps = duration / speed;
-      let step = 0;
-
-      const interval = setInterval(() => {
-        let scrambled = "";
-        const progress = step / steps;
-
-        for (let i = 0; i < text.length; i++) {
-          if (text[i] === " ") {
-            scrambled += " ";
-            continue;
-          }
-
-          if (progress * text.length > i) {
-            scrambled += text[i];
-          } else {
-            scrambled +=
-              characterSet[Math.floor(Math.random() * characterSet.length)];
-          }
-        }
-
-        setDisplayText(scrambled);
-        step++;
-
-        if (step > steps) {
-          clearInterval(interval);
-          setDisplayText(text);
-          setIsAnimating(false);
-          onScrambleComplete?.();
-        }
-      }, speed * 1000);
-    };
     if (!trigger) return;
-
     scramble();
-  }, [trigger]);
+  }, [scramble, trigger]);
 
   return (
     <MotionComponent className={className} {...props}>

@@ -246,7 +246,7 @@ export default function AuroraTransition(props: AuroraTransitionProps) {
       }
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [amplitude, blend, colorStopsFrom, colorStopsTo, transition]);
+  }, []);
 
   return <div ref={ctnDom} className="w-full h-full" />;
 }

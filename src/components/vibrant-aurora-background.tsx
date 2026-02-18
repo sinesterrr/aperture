@@ -1,9 +1,9 @@
 "use client";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { Vibrant } from "node-vibrant/browser";
-import { AuroraBackground } from "../components/aurora-background";
-import { auroraColorsAtom, updateAuroraColorsAtom } from "../lib/atoms";
+import { AuroraBackground } from "@/src/components/aurora-background";
+import { auroraColorsAtom, updateAuroraColorsAtom } from "@/src/lib/atoms";
 
 interface VibrantAuroraBackgroundProps {
   posterUrl?: string;
@@ -21,12 +21,10 @@ export function VibrantAuroraBackground({
   const [colorStops] = useAtom(auroraColorsAtom);
   const updateColors = useSetAtom(updateAuroraColorsAtom);
 
-  useEffect(() => {
-    if (!posterUrl) return;
-
-    const extractColors = async () => {
+  const extractColors = useCallback(
+    async (url: string) => {
       try {
-        const palette = await Vibrant.from(posterUrl).getPalette();
+        const palette = await Vibrant.from(url).getPalette();
 
         // Extract vibrant colors from the palette
         const vibrantColors: string[] = [];
@@ -67,17 +65,23 @@ export function VibrantAuroraBackground({
               finalColors.push(vibrantColors[3]); // Add fourth color
             }
           }
-
           updateColors(finalColors);
         }
       } catch (error) {
         console.warn("Failed to extract colors from poster:", error);
         // Keep previous colors on error - they're already in the atom
       }
-    };
+    },
+    [posterUrl, updateColors],
+  );
 
-    extractColors();
-  }, [posterUrl, updateColors]);
+  useEffect(() => {
+    if (posterUrl) extractColors(posterUrl);
+
+    return () => {
+      return;
+    };
+  }, [posterUrl, extractColors]);
 
   return (
     <AuroraBackground

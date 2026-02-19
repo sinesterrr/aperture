@@ -561,8 +561,8 @@
 .glassmorphism [data-slot="input"],
 .glassmorphism .bg-input {
   /* Match backdrop-blur-md from ThemeMediaControls */
-  backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
   /* Match shadow-lg from ThemeMediaControls */
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.1),
@@ -578,16 +578,16 @@
 /* Override MediaDetail.Main with frosted glass in Glassmorphism theme */
 .glassmorphism [data-slot="media-detail-main"] {
   background: rgba(256, 256, 256, 0.1) !important;
-  backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid rgba(256, 256, 256, 0.1);
 }
 
 /* Override badges with frosted glass in Glassmorphism theme */
 .glassmorphism [data-slot="badge"] {
   background: rgba(255, 255, 255, 0.12) !important;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
@@ -595,8 +595,8 @@
 .glassmorphism button[data-slot="button"][data-variant="outline"],
 .glassmorphism button[data-variant="outline"] {
   background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
 

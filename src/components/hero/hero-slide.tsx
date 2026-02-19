@@ -4,7 +4,7 @@ import { Play, Info } from "lucide-react";
 import { usePlayback } from "../../hooks/usePlayback";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { decode } from "blurhash";
 import { OptimizedImage } from "../optimized-image";
 import { useRouter } from "next/navigation";
@@ -21,14 +21,25 @@ export function HeroSlide({ item, serverUrl }: HeroSlideProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
 
-  const backdropTag = item.BackdropImageTags?.[0];
-  const backdropUrl = backdropTag
-    ? `${serverUrl}/Items/${item.Id}/Images/Backdrop/0?maxWidth=3840&quality=90`
-    : null;
+  const backdropTag = useMemo(() => {
+    return item.Type === "Episode"
+      ? item.ParentBackdropImageTags?.[0]
+      : item.BackdropImageTags?.[0];
+  }, [item]);
 
-  const imageUrl =
-    backdropUrl ||
-    `${serverUrl}/Items/${item.Id}/Images/Primary?maxWidth=3840&quality=90`;
+  const imageUrl = useMemo(() => {
+    const backdropItemId =
+      item.Type === "Episode"
+        ? item.ParentBackdropItemId || item.SeriesId || item.Id
+        : item.Id;
+    const backdropUrl = backdropItemId
+      ? `${serverUrl}/Items/${backdropItemId}/Images/Backdrop/0?maxWidth=3840&quality=90`
+      : null;
+    return (
+      backdropUrl ||
+      `${serverUrl}/Items/${item.Id}/Images/Primary?maxWidth=3840&quality=90`
+    );
+  }, [item]);
 
   const logoTag = item.ImageTags?.Logo || item.ParentLogoImageTag;
   const logoItemId = item.ImageTags?.Logo ? item.Id : item.ParentLogoItemId;

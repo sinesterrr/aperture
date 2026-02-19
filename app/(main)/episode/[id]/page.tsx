@@ -30,15 +30,16 @@ export default function Episode() {
 
         setEpisode(episodeDetails);
 
-        const [pi, bi, li, server] = await Promise.all([
+        const [pi, bi, sbi, li, server] = await Promise.all([
           getImageUrl(id, "Primary"),
           getImageUrl(id, "Backdrop"),
+          getImageUrl(episodeDetails.SeriesId || id, "Backdrop"),
           getImageUrl(episodeDetails.SeriesId || id, "Logo"),
           getServerUrl(),
         ]);
 
         setPrimaryImage(pi);
-        setBackdropImage(bi || pi); // Episode backdrop is often missing, fallback to primary (landscape thumb)
+        setBackdropImage(bi || sbi || pi);
         setLogoImage(li);
         setServerUrl(server);
       } catch (err: any) {

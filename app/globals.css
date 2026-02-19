@@ -561,8 +561,8 @@
 .glassmorphism [data-slot="input"],
 .glassmorphism .bg-input {
   /* Match backdrop-blur-md from ThemeMediaControls */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   /* Match shadow-lg from ThemeMediaControls */
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.1),

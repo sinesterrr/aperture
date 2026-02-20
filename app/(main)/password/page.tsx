@@ -17,6 +17,7 @@ import { changeUserPassword } from "@/src/actions";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dashboardLoadingAtom } from "@/src/lib/atoms";
 import { useRouter } from "next/navigation";
+import { SearchBar } from "@/src/components/search-component";
 
 const MIN_PASSWORD_LENGTH = 3;
 
@@ -85,11 +86,10 @@ export default function PasswordSettingsPage() {
     <div className="relative max-w-full overflow-hidden px-4 py-3">
       <AuroraBackground />
       <div className="relative z-10 space-y-6">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Lock className="h-5 w-5" />
-          <span className="text-sm uppercase tracking-wide">
-            Account Security
-          </span>
+        <div className="relative z-99 mb-8">
+          <div className="mb-6">
+            <SearchBar />
+          </div>
         </div>
 
         <div>

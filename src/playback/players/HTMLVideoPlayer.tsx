@@ -23,6 +23,7 @@ interface HTMLVideoPlayerProps {
   onVolumeChange?: (volume: number) => void;
   subtitleOffset?: number;
   onDurationChange?: (duration: number) => void;
+  onBufferedChange?: (buffered: TimeRanges) => void;
   textTracks?: any[];
   subtitleStreamIndex?: number;
 }
@@ -39,6 +40,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
       onVolumeChange,
       subtitleOffset = 0,
       onDurationChange,
+      onBufferedChange,
       textTracks: propTextTracks,
       subtitleStreamIndex: propSubtitleStreamIndex,
     },
@@ -77,6 +79,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
       onError,
       onVolumeChange,
       onDurationChange,
+      onBufferedChange,
     });
     useEffect(() => {
       propsRef.current = {
@@ -87,6 +90,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
         onError,
         onVolumeChange,
         onDurationChange,
+        onBufferedChange,
       };
     }, [
       onEnded,
@@ -96,6 +100,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
       onError,
       onVolumeChange,
       onDurationChange,
+      onBufferedChange,
     ]);
 
     const resetPlayer = () => {
@@ -323,6 +328,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
       const handlePlay = () => onPlay?.();
       const handleVolumeChange = () =>
         onVolumeChange?.(Math.pow(video.volume, 1 / 3) * 100);
+      const handleProgress = () => onBufferedChange?.(video.buffered);
       const handleError = (e: any) => onError?.(e);
 
       video.addEventListener("timeupdate", handleTimeUpdate);
@@ -332,6 +338,7 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
       video.addEventListener("pause", handlePause);
       video.addEventListener("play", handlePlay);
       video.addEventListener("volumechange", handleVolumeChange);
+      video.addEventListener("progress", handleProgress);
       video.addEventListener("error", handleError);
 
       return () => {
@@ -342,11 +349,13 @@ export const HTMLVideoPlayer = forwardRef<Player, HTMLVideoPlayerProps>(
         video.removeEventListener("pause", handlePause);
         video.removeEventListener("play", handlePlay);
         video.removeEventListener("volumechange", handleVolumeChange);
+        video.removeEventListener("progress", handleProgress);
         video.removeEventListener("error", handleError);
       };
     }, [
       onTimeUpdate,
       onDurationChange,
+      onBufferedChange,
       onEnded,
       onPause,
       onPlay,

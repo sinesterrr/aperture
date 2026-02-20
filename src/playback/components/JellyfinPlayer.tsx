@@ -174,6 +174,9 @@ export const JellyfinPlayer: React.FC<JellyfinPlayerProps> = ({
           onDurationChange={(duration) => {
             manager.reportState({ duration });
           }}
+          onBufferedChange={(buffered) => {
+            manager.reportState({ buffered });
+          }}
           onEnded={() => {
             manager.reportState({ isEnded: true });
             manager.next();

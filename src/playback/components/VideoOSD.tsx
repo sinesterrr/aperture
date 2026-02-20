@@ -43,6 +43,7 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager }) => {
     isMiniPlayer,
     isLoading,
     isBuffering,
+    buffered,
   } = playbackState;
   const { initializeTrickplay, renderThumbnail } = useTrickplay();
   const { checkSegment } = useSkipSegments(currentItem?.Id);
@@ -473,6 +474,27 @@ export const VideoOSD: React.FC<VideoOSDProps> = ({ manager }) => {
               }}
             >
               <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm relative group-hover/progress:h-2 transition-all duration-200">
+                {/* Buffered Ranges */}
+                {buffered &&
+                  durationSeconds > 0 &&
+                  Array.from({ length: buffered.length }).map((_, index) => {
+                    const start = buffered.start(index);
+                    const end = buffered.end(index);
+                    const startPct = (start / durationSeconds) * 100;
+                    const endPct = (end / durationSeconds) * 100;
+                    const width = endPct - startPct;
+
+                    return (
+                      <div
+                        key={`buffered-${index}`}
+                        className="absolute top-0 h-full bg-white/30 pointer-events-none"
+                        style={{
+                          left: `${startPct}%`,
+                          width: `${width}%`,
+                        }}
+                      />
+                    );
+                  })}
                 <div
                   className="absolute top-0 left-0 h-full bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]"
                   style={{

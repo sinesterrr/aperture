@@ -1,9 +1,11 @@
 "use client";
 import { useState, SyntheticEvent, ImgHTMLAttributes, useEffect } from "react";
 import { cn } from "../lib/utils";
+import _ from "lodash";
 
 interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
+  showMissingLabel?: boolean;
 }
 
 export function OptimizedImage({
@@ -12,6 +14,8 @@ export function OptimizedImage({
   alt,
   onLoad,
   onError,
+  fallbackSrc,
+  showMissingLabel = false,
   ...props
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -33,16 +37,33 @@ export function OptimizedImage({
     onError?.(e);
   };
 
-  if (hasError) {
-    // Return a fallback div if image failed
+  if (hasError && isLoaded) {
+    if (fallbackSrc) {
+      return (
+        <img
+          src={fallbackSrc}
+          alt={alt}
+          loading="lazy"
+          className={cn(
+            "transition-opacity duration-500 opacity-100",
+            className,
+          )}
+          onError={() => setHasError(true)}
+          {...props}
+        />
+      );
+    }
+
     return (
       <div
         className={cn(
-          "flex items-center justify-center bg-gray-800 text-white/50 text-xs",
+          "flex items-center justify-center bg-black text-white text-sm font-bold",
           className,
         )}
       >
-        <span>Error</span>
+        <span className="select-none">
+          {showMissingLabel ? `MISSING ${_.upperCase(alt)}` : "No image"}
+        </span>
       </div>
     );
   }

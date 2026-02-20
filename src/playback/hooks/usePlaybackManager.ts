@@ -19,9 +19,41 @@ import { PlaybackState, Player, PlayOptions, PlayerType } from "../types";
 import { PlayQueueManager } from "../utils/playQueueManager";
 import { v4 as uuidv4 } from "uuid";
 
-// Initialize queue manager outside hook to persist (or use Context)
-// In a real app, this should probably be in a Context Provider
 export const playQueueManager = new PlayQueueManager();
+
+function convertSubtitleToVTT(content: string): string {
+  if (content.includes("WEBVTT")) {
+    return content;
+  }
+
+  let vtt = "WEBVTT\n\n";
+
+  const blocks = content.split(/\n\s*\n/);
+
+  for (const block of blocks) {
+    if (!block.trim()) continue;
+
+    const lines = block.trim().split("\n");
+    if (lines.length < 2) continue;
+
+    let startIdx = 0;
+    if (/^\d+$/.test(lines[0])) {
+      startIdx = 1;
+    }
+
+    const timeline = lines[startIdx];
+    if (!timeline || !timeline.includes("-->")) continue;
+
+    const vttTimeline = timeline.replace(/,/g, ".");
+    const subtitleText = lines.slice(startIdx + 1).join("\n");
+
+    if (subtitleText.trim()) {
+      vtt += `${vttTimeline}\n${subtitleText}\n\n`;
+    }
+  }
+
+  return vtt;
+}
 
 export interface PlaybackContextValue {
   playbackState: PlaybackState;
@@ -42,6 +74,7 @@ export interface PlaybackContextValue {
   setPlaybackRate: (rate: number) => void;
   setAudioStreamIndex: (index: number) => void;
   setSubtitleStreamIndex: (index: number) => void;
+  setSubtitleUrl: (url: string) => Promise<void>;
   registerPlayer: (type: PlayerType, player: Player) => void;
   unregisterPlayer: (type: PlayerType) => void;
   reportState: (updates: Partial<PlaybackState>) => void;
@@ -51,10 +84,8 @@ export interface PlaybackContextValue {
 }
 
 export function usePlaybackManager(): PlaybackContextValue {
-  // Registered players (refs)
   const playersRef = useRef<Record<string, Player>>({});
 
-  // State
   const [playbackState, setPlaybackState] = useState<PlaybackState>({
     paused: false,
     muted: false,
@@ -78,7 +109,6 @@ export function usePlaybackManager(): PlaybackContextValue {
 
   const activePlayerRef = useRef<Player | null>(null);
   const playSessionIdRef = useRef<string>("");
-  // Track latest state for reporting interval
   const latestStateRef = useRef(playbackState);
   useEffect(() => {
     latestStateRef.current = playbackState;
@@ -86,7 +116,6 @@ export function usePlaybackManager(): PlaybackContextValue {
 
   const updateState = useCallback((updates: Partial<PlaybackState>) => {
     setPlaybackState((prev) => {
-      // Auto-clear loading if we get progress or buffering finish or unpause
       const shouldClearLoading =
         (updates.currentTime !== undefined && updates.currentTime > 0.1) ||
         updates.isBuffering === false ||
@@ -96,7 +125,6 @@ export function usePlaybackManager(): PlaybackContextValue {
       if (shouldClearLoading) {
         nextLoading = false;
       }
-      // If explicit isLoading is passed, respect it
       if (updates.isLoading !== undefined) {
         nextLoading = updates.isLoading;
       }
@@ -117,7 +145,6 @@ export function usePlaybackManager(): PlaybackContextValue {
     const mediaType = item.MediaType as string;
     if (!mediaType) return null;
 
-    // Simple selection logic
     if (
       mediaType === "Video" ||
       mediaType === "Movie" ||
@@ -136,12 +163,8 @@ export function usePlaybackManager(): PlaybackContextValue {
       const itemList = Array.isArray(items) ? items : [items];
       if (itemList.length === 0) return;
 
-      // Reset queue and add new items
-      // unless specific options say otherwise.
       playQueueManager.setPlaylist(itemList as any[]);
       playQueueManager.setPlaylistIndex(0);
-
-      // Play first item
       let itemToPlay = playQueueManager.getCurrentItem();
       if (!itemToPlay || !itemToPlay.Id) return;
 
@@ -151,12 +174,9 @@ export function usePlaybackManager(): PlaybackContextValue {
         return;
       }
 
-      // Stop previous player if different
       if (activePlayerRef.current && activePlayerRef.current !== player) {
         activePlayerRef.current.stop(true);
       }
-
-      // Ensure we have full item details (MediaSources and Trickplay)
       const hasMediaSources =
         itemToPlay.MediaSources && itemToPlay.MediaSources.length > 0;
       const hasTrickplay = !!(itemToPlay as any).Trickplay;
@@ -187,12 +207,9 @@ export function usePlaybackManager(): PlaybackContextValue {
 
       const { user } = await getAuthData();
 
-      // Fetch Sidecar Subtitles (VTT)
       try {
         if (mediaSource?.Id && itemToPlay!.Id) {
           const subs = await getSubtitleTracks(itemToPlay!.Id!, mediaSource.Id);
-
-          // Apply selection logic
           let targetIndex = options.subtitleStreamIndex;
 
           if (targetIndex === undefined) {
@@ -232,7 +249,6 @@ export function usePlaybackManager(): PlaybackContextValue {
                   }
                   break;
                 default:
-                // SubtitlePlaybackMode.None is handled here;
               }
               if (subtitlePreference) {
                 targetIndex = subtitlePreference.index;
@@ -249,20 +265,17 @@ export function usePlaybackManager(): PlaybackContextValue {
           } else {
             options.textTracks = subs;
           }
-          // Store in state so we don't re-fetch during switching
           updateState({ textTracks: subs });
         }
       } catch (e) {
         console.error("Failed to load sidecar subtitles", e);
       }
 
-      // Determine Default Audio Stream
       if (options.audioStreamIndex === undefined && mediaSource?.MediaStreams) {
         const audioStreams = mediaSource.MediaStreams.filter(
           (s) => s.Type === "Audio",
         );
 
-        // Sort: Default first, then Language
         audioStreams.sort((a, b) => {
           const defA = a.IsDefault || false;
           const defB = b.IsDefault || false;
@@ -278,12 +291,9 @@ export function usePlaybackManager(): PlaybackContextValue {
         }
       }
 
-      // Generate URL if missing
       if (!options.url && mediaSource && mediaSource.Id && itemToPlay!.Id) {
         try {
-          // Optimize burn-in: If we have sidecar for selected index, don't burn in.
           let urlSubtitleIndex = options.subtitleStreamIndex;
-          // Fetch subtitle tracks for client-side rendering
           if (!options.textTracks && itemToPlay?.Id && mediaSource?.Id) {
             try {
               const tracks = await getSubtitleTracks(
@@ -309,8 +319,6 @@ export function usePlaybackManager(): PlaybackContextValue {
             }
           }
 
-          // Optimization: If the selected subtitle stream is text-based (srt, subrip, vtt, ass, ssa),
-          // we should extract it client-side instead of burning it in.
           if (urlSubtitleIndex !== undefined && urlSubtitleIndex !== -1) {
             const selectedSub = mediaSource.MediaStreams?.find(
               (s) => s.Type === "Subtitle" && s.Index === urlSubtitleIndex,
@@ -321,7 +329,6 @@ export function usePlaybackManager(): PlaybackContextValue {
                 (selectedSub.Codec || "").toLowerCase(),
               );
             if (isTextSub) {
-              // Don't burn it in (let client fetch VTT)
               urlSubtitleIndex = -1;
             }
           }
@@ -339,14 +346,11 @@ export function usePlaybackManager(): PlaybackContextValue {
                   (s) => s.Type === "Video" && s.Codec === "h264",
                 )));
 
-          // Ensure selected bitrate allows for direct play
           const isBitrateCompatible =
             !options.videoBitrate ||
             (mediaSource.Bitrate &&
               options.videoBitrate >= mediaSource.Bitrate);
 
-          // Ensure Audio Codec is supported by browser (AAC, MP3, Opus, FLAC, Vorbis)
-          // If not, we must fallback to Direct Stream (Video Copy + Audio Transcode)
           const selectedAudio = mediaSource.MediaStreams?.find(
             (s) => s.Type === "Audio" && s.Index === options.audioStreamIndex,
           );
@@ -369,8 +373,6 @@ export function usePlaybackManager(): PlaybackContextValue {
             isBitrateCompatible &&
             isAudioCompatible
           ) {
-            // Try Direct Play (Static URL)
-            // Note: Direct Play doesn't support burning subtitles, so only use if no subs or sidecar subs
             options.url = await getDirectStreamUrl(
               itemToPlay!.Id!,
               mediaSource,
@@ -391,7 +393,6 @@ export function usePlaybackManager(): PlaybackContextValue {
         }
       }
 
-      // Generate Session ID
       playSessionIdRef.current = uuidv4();
 
       activePlayerRef.current = player;
@@ -407,7 +408,6 @@ export function usePlaybackManager(): PlaybackContextValue {
         isLoading: true,
       });
 
-      // Report Start
       if (itemToPlay!.Id && mediaSource && mediaSource.Id) {
         reportPlaybackStart(
           itemToPlay!.Id,
@@ -421,9 +421,6 @@ export function usePlaybackManager(): PlaybackContextValue {
           ...options,
           mediaSource: mediaSource || undefined,
         });
-        // Volume/Mute sync
-        // player.setVolume(playbackState.volume);
-        // player.setMute(playbackState.muted);
       } catch (err) {
         console.error("Playback failed", err);
       }
@@ -468,7 +465,6 @@ export function usePlaybackManager(): PlaybackContextValue {
   }, [updateState]);
 
   const stop = useCallback(() => {
-    // Report stop
     const item = latestStateRef.current.currentItem;
     const mediaSource = latestStateRef.current.currentMediaSource;
     const sessionId = playSessionIdRef.current;
@@ -496,7 +492,6 @@ export function usePlaybackManager(): PlaybackContextValue {
       const player = activePlayerRef.current;
       if (player) {
         player.seek(ticks);
-        // Optimistic update to prevent UI jump-back
         updateState({ currentTime: ticks / 10000000 });
       }
     },
@@ -508,8 +503,6 @@ export function usePlaybackManager(): PlaybackContextValue {
     if (nextInfo) {
       playQueueManager.setPlaylistIndex(nextInfo.index);
       const item = playQueueManager.getCurrentItem();
-      // Using internal play logic or calling play again (simplified)
-      // Ideally we extract playItem logic
       if (item) play(item, { startPositionTicks: 0 });
     } else {
       stop();
@@ -517,8 +510,6 @@ export function usePlaybackManager(): PlaybackContextValue {
   }, [play, stop]);
 
   const previous = useCallback(() => {
-    // Logic for previous: if < 5s, go to start, else go to prev item
-    // Simplified:
     const currentIndex = playQueueManager.getCurrentPlaylistIndex();
     if (currentIndex > 0) {
       playQueueManager.setPlaylistIndex(currentIndex - 1);
@@ -555,7 +546,6 @@ export function usePlaybackManager(): PlaybackContextValue {
     const isFavorite = item.UserData.IsFavorite;
     const newFavoriteState = !isFavorite;
 
-    // Optimistic update
     updateState({
       currentItem: {
         ...item,
@@ -574,7 +564,6 @@ export function usePlaybackManager(): PlaybackContextValue {
       }
     } catch (error) {
       console.error("Failed to toggle favorite", error);
-      // Revert on failure
       updateState({
         currentItem: {
           ...item,
@@ -594,12 +583,6 @@ export function usePlaybackManager(): PlaybackContextValue {
     },
     [updateState],
   );
-
-  // Listen to global events or player callbacks via Context/Props passed to Players
-  // Since this is a hook, it typically returns functions to be bound to player events
-
-  // ...
-  // ...
 
   const setAudioStreamIndex = useCallback(
     (index: number) => {
@@ -632,16 +615,13 @@ export function usePlaybackManager(): PlaybackContextValue {
       const item = playbackState.currentItem;
       const mediaSourceId = playbackState.currentMediaSource?.Id;
 
-      // Try client-side switch for sidecar/VTT
       if (
         item?.Id &&
         mediaSourceId &&
         activePlayerRef.current?.name === "HTML Video Player"
       ) {
-        // Use cached tracks from state if available
         const subs = playbackState.textTracks || [];
 
-        // If its "Off" (-1), we can always handle it client-side
         if (index === -1) {
           activePlayerRef.current.setSubtitleStreamIndex(index);
           updateState({ subtitleStreamIndex: index });
@@ -650,14 +630,12 @@ export function usePlaybackManager(): PlaybackContextValue {
 
         const targetTrack = subs.find((t) => t.index === index);
 
-        // If target is a valid sidecar track, switch instantly without reload
         if (targetTrack) {
           activePlayerRef.current.setSubtitleStreamIndex(index);
           updateState({ subtitleStreamIndex: index });
           return;
         }
 
-        // If not in state, try one quick fetch just in case
         try {
           const freshSubs = await getSubtitleTracks(item.Id, mediaSourceId);
           const freshTarget = freshSubs.find((t) => t.index === index);
@@ -671,7 +649,6 @@ export function usePlaybackManager(): PlaybackContextValue {
         }
       }
 
-      // Reload stream with new subtitle index (handles burn-in/transcoding)
       if (!item) return;
 
       const startTicks = Math.floor(playbackState.currentTime * 10000000);
@@ -701,7 +678,6 @@ export function usePlaybackManager(): PlaybackContextValue {
     [updateState],
   );
 
-  // Progress Reporting Effect
   useEffect(() => {
     const report = async () => {
       const state = latestStateRef.current;
@@ -732,6 +708,48 @@ export function usePlaybackManager(): PlaybackContextValue {
     setPlaybackState((prev) => ({ ...prev, isMiniPlayer: enabled }));
   }, []);
 
+  const setSubtitleUrl = useCallback(
+    async (url: string) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch subtitle: ${response.statusText}`);
+        }
+
+        const content = await response.text();
+        const vttContent = convertSubtitleToVTT(content);
+        const blob = new Blob([vttContent], { type: "text/vtt" });
+        const blobUrl = URL.createObjectURL(blob);
+
+        const newTrack = {
+          kind: "subtitles",
+          label: "OpenSubtitles",
+          src: blobUrl,
+          language: "en",
+          default: true,
+          index: 9999,
+        };
+
+        const updatedTracks = [newTrack];
+
+        updateState({
+          textTracks: updatedTracks,
+          subtitleStreamIndex: 9999,
+        });
+
+        if (activePlayerRef.current) {
+          activePlayerRef.current.setSubtitleStreamIndex(9999);
+        } else {
+          console.warn("No active player found");
+        }
+      } catch (error) {
+        console.error("Error loading subtitle from URL:", error);
+        throw error;
+      }
+    },
+    [playbackState.textTracks, updateState],
+  );
+
   return {
     playbackState,
     play,
@@ -748,6 +766,7 @@ export function usePlaybackManager(): PlaybackContextValue {
     setPlaybackRate,
     setAudioStreamIndex,
     setSubtitleStreamIndex,
+    setSubtitleUrl,
     registerPlayer,
     unregisterPlayer,
     reportState: updateState,

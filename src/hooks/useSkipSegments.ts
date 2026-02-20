@@ -10,13 +10,17 @@ export const useSkipSegments = (itemId: string | undefined | null) => {
       return;
     }
 
-    fetchIntroOutro(itemId).then((response) => {
-      if (response && response.Items) {
-        setSegments(response.Items);
-      } else {
+    fetchIntroOutro(itemId)
+      .then((response) => {
+        if (response && response.Items) {
+          setSegments(response.Items);
+        } else {
+          setSegments([]);
+        }
+      })
+      .catch((error) => {
         setSegments([]);
-      }
-    });
+      });
   }, [itemId]);
 
   const checkSegment = useCallback(

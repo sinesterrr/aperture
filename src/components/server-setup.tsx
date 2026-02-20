@@ -10,7 +10,6 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { ThemeToggle } from "../components/ui/theme-toggle";
 import { VibrantAuroraBackground } from "../components/vibrant-aurora-background";
 import { checkServerHealth, setServerUrl } from "../actions";
 import { Loader2, Server, CheckCircle, Globe, Shield } from "lucide-react";
@@ -217,11 +216,6 @@ export function ServerSetup({ onNext }: ServerSetupProps) {
           </CardFooter>
         </form>
       </Card>
-
-      {/* Theme toggle in bottom right */}
-      <div className="fixed bottom-4 right-4">
-        <ThemeToggle />
-      </div>
     </div>
   );
 }

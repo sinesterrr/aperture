@@ -15,7 +15,6 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { ThemeToggle } from "../components/ui/theme-toggle";
 import { VibrantAuroraBackground } from "../components/vibrant-aurora-background";
 import {
   authenticateUser,
@@ -502,10 +501,6 @@ export function LoginForm({ onSuccess, onBack }: LoginFormProps) {
           </Tabs>
         </CardContent>
       </Card>
-
-      <div className="fixed bottom-4 right-4">
-        <ThemeToggle />
-      </div>
     </div>
   );
 }

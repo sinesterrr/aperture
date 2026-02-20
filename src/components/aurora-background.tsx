@@ -58,9 +58,9 @@ export function AuroraBackground({
   const palettePreset =
     colorStops || !activeTheme
       ? null
-      : (AURORA_THEME_PRESETS[normalizedTheme] ?? AURORA_THEME_PRESETS.default);
+      : (AURORA_THEME_PRESETS[normalizedTheme] ?? AURORA_THEME_PRESETS.system);
   const paletteBackground =
-    palettePreset?.background ?? AURORA_THEME_PRESETS.default.background;
+    palettePreset?.background ?? AURORA_THEME_PRESETS.system.background;
 
   const targetPalette = useMemo(() => {
     if (colorStops && colorStops.length) {

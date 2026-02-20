@@ -75,7 +75,7 @@ export default function LibraryPage() {
     return <div className="p-4">Error loading Library. Please try again.</div>;
 
   return (
-    <div className="relative px-4 py-6 max-w-full overflow-hidden">
+    <div className="relative px-4 py-3 max-w-full overflow-hidden">
       <AuroraBackground />
       {/* Main content with higher z-index */}
       <div className="relative z-10">

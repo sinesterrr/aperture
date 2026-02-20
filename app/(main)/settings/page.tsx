@@ -8,7 +8,7 @@ import UserPreferenceSection from "@/src/components/settings/user-preference-sec
 
 export default function SettingsPage() {
   return (
-    <div className="relative px-4 py-6 max-w-full overflow-hidden">
+    <div className="relative px-4 py-3 max-w-full overflow-hidden">
       <AuroraBackground />
       <div className="relative z-10">
         <div className="mb-6">

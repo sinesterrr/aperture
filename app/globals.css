@@ -541,6 +541,18 @@
   --color-5: oklch(0.85 0.1 120);
 }
 
+[data-slot="sidebar"],
+.bg-sidebar {
+  /* Match backdrop-blur-md from ThemeMediaControls */
+  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
+  /* Match shadow-lg from ThemeMediaControls */
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  isolation: isolate;
+}
+
 /* Ensure sidebar and search bar are unequivocally on top of aurora backgrounds */
 .glassmorphism [data-slot="sidebar-container"],
 .glassmorphism [data-slot="sidebar"]:not([data-mobile="true"]) {
@@ -556,8 +568,6 @@
 .glassmorphism .bg-card,
 .glassmorphism [data-slot="popover"],
 .glassmorphism .bg-popover,
-.glassmorphism [data-slot="sidebar"],
-.glassmorphism .bg-sidebar,
 .glassmorphism [data-slot="input"],
 .glassmorphism .bg-input {
   /* Match backdrop-blur-md from ThemeMediaControls */

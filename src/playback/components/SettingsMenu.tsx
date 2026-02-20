@@ -391,7 +391,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 </div>
 
                 {searchResults.length === 0 ? (
-                  <div className="px-5 py-6 text-center">
+                  <div className="px-5 py-3 text-center">
                     <span className="text-white/60 text-sm">
                       No subtitles found
                     </span>

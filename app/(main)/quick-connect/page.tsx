@@ -115,7 +115,7 @@ export default function QuickConnectPage() {
   };
 
   return (
-    <div className="relative max-w-full overflow-hidden px-4 py-6">
+    <div className="relative max-w-full overflow-hidden px-4 py-3">
       <AuroraBackground />
       <div className="relative z-10 space-y-6">
         <div className="flex items-center gap-3 text-muted-foreground">

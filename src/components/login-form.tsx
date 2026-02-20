@@ -429,7 +429,7 @@ export function LoginForm({ onSuccess, onBack }: LoginFormProps) {
 
             <TabsContent value="quickconnect" className="mt-6">
               {quickConnectChecking && (
-                <div className="flex items-center justify-center gap-2 rounded-md border border-dashed border-border/60 bg-muted/20 px-4 py-6 text-sm text-muted-foreground">
+                <div className="flex items-center justify-center gap-2 rounded-md border border-dashed border-border/60 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Checking Quick Connect availability…
                 </div>
@@ -455,7 +455,7 @@ export function LoginForm({ onSuccess, onBack }: LoginFormProps) {
                   {!quickConnectError &&
                     !quickConnectSession &&
                     quickConnectLoading && (
-                      <div className="flex items-center justify-center gap-2 rounded-md border border-dashed border-border/60 bg-muted/20 px-4 py-6 text-sm text-muted-foreground">
+                      <div className="flex items-center justify-center gap-2 rounded-md border border-dashed border-border/60 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Generating Quick Connect code…
                       </div>

@@ -228,7 +228,7 @@ function Sidebar({
       <div
         data-slot="sidebar-container"
         className={cn(
-          "h-full w-(--sidebar-width) transition-[width] duration-300 ease-in-out md:flex bg-sidebar rounded-r-2xl border-r border-sidebar-border shadow-xl",
+          "h-full w-(--sidebar-width) transition-[width] duration-300 ease-in-out md:flex",
           side === "left" ? "left-0" : "right-0",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"

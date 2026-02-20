@@ -42,7 +42,7 @@ export default function DashboardLayout({
   }, [pathname, router]);
 
   return (
-    <div className="relative px-3 sm:px-6 xl:px-8 py-6 max-w-full overflow-hidden">
+    <div className="relative px-3 sm:px-6 xl:px-8 py-3 max-w-full overflow-hidden">
       {/* Main content with higher z-index */}
       <AuroraBackground />
       <div className="relative z-10">

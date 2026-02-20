@@ -11,7 +11,7 @@ export default function DiscoverPage() {
 
   return (
     <AuthErrorHandler error={authError}>
-      <div className="relative px-4 py-6 max-w-full overflow-hidden min-h-[calc(100vh-4rem)]">
+      <div className="relative px-4 py-3 max-w-full overflow-hidden min-h-[calc(100vh-4rem)]">
         <AuroraBackground />
 
         <div className="relative z-[99] mb-8 animate-in fade-in duration-500">

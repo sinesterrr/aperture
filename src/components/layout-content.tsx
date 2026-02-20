@@ -21,7 +21,7 @@ export function LayoutContent({ children }: LayoutContentProps) {
       >
         <AppSidebar />
         <SidebarInset
-          className={`flex-1 overflow-hidden transition-all duration-300 ease-in-out md:pl-[calc(var(--sidebar-width-icon)+1.5rem)]`}
+          className={`flex-1 overflow-hidden transition-all duration-300 ease-in-out md:pl-[calc(var(--sidebar-width-icon)+0.5rem)]`}
         >
           <div className="flex-1 overflow-y-auto no-scrollbar">{children}</div>
         </SidebarInset>

@@ -411,7 +411,7 @@ const EpisodeCard = React.memo(function EpisodeCard({
               <OptimizedImage
                 src={imageUrl}
                 alt={episode.Name || "Episode"}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="transition-transform duration-300 group-hover:scale-105"
                 showMissingLabel={true}
               />
             ) : (

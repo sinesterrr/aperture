@@ -37,7 +37,7 @@ export function OptimizedImage({
     onError?.(e);
   };
 
-  if (hasError) {
+  if (hasError && isLoaded) {
     if (fallbackSrc) {
       return (
         <img

@@ -1251,6 +1251,57 @@ export async function fetchEpisodes(seasonId: string): Promise<JellyfinItem[]> {
   }
 }
 
+export async function getNextEpisode(
+  seasonId: string,
+  episodeNumber: number | null | undefined,
+): Promise<JellyfinItem | null> {
+  if (!seasonId || !episodeNumber) {
+    throw new Error("Missing seasonId or episodeNumber");
+  }
+  const { serverUrl, user } = await getAuthData();
+  if (!user.AccessToken) throw new Error("No access token found");
+
+  try {
+    const jellyfinInstance = createJellyfinInstance();
+    const api = jellyfinInstance.createApi(serverUrl);
+    api.accessToken = user.AccessToken;
+
+    const itemsApi = getItemsApi(api);
+    const { data } = await itemsApi.getItems({
+      userId: user.Id,
+      parentId: seasonId,
+      includeItemTypes: [BaseItemKind.Episode],
+      recursive: false,
+      sortBy: [ItemSortBy.SortName],
+      sortOrder: [SortOrder.Ascending],
+      fields: [
+        ItemFields.CanDelete,
+        ItemFields.PrimaryImageAspectRatio,
+        ItemFields.Overview,
+        ItemFields.MediaSources,
+      ],
+    });
+
+    if (!data.Items || data.Items.length === 0) {
+      return null;
+    }
+
+    const currentIndex = data.Items.findIndex(
+      (ep: any) => ep.IndexNumber == episodeNumber,
+    );
+
+    if (currentIndex >= 0 && currentIndex < data.Items.length - 1) {
+      const nextEpisode = data.Items[currentIndex + 1];
+      return nextEpisode;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch next episode:", error);
+    return null;
+  }
+}
+
 export async function fetchTVShowDetails(
   tvShowId: string,
 ): Promise<JellyfinItem | null> {

@@ -39,7 +39,7 @@ export default function Episode() {
         ]);
 
         setPrimaryImage(pi);
-        setBackdropImage(bi || sbi || pi);
+        setBackdropImage(sbi || bi || pi);
         setLogoImage(li);
         setServerUrl(server);
       } catch (err: any) {

@@ -7,7 +7,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "../../components/ui/dropdown-menu";
-import { Volume2, Zap, Video, Captions, Type } from "lucide-react";
+import { Volume2, Zap, Video, Captions, Type, Music2 } from "lucide-react";
 import { PlaybackContextValue } from "../hooks/usePlaybackManager";
 import {
   getAudioTracks,
@@ -510,7 +510,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               }}
               title="Audio"
             >
-              <Volume2 className="w-5 h-5" />
+              <Music2 className="w-5 h-5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent

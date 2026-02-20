@@ -36,7 +36,9 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   };
 
   return (
-    <div className="flex gap-4">
+    <div 
+      className="flex gap-4 pointer-events-auto z-50 relative"
+    >
       <PlaybackSpeedMenu
         manager={manager}
         open={openSpeed}

@@ -11,7 +11,6 @@ import {
 import { Captions, Type } from "lucide-react";
 import { PlaybackContextValue } from "../../hooks/usePlaybackManager";
 import { getSubtitleTracks } from "../../../actions";
-import { SettingsMenuButton } from "./SettingsMenuButton";
 
 interface SubtitleTracksMenuProps {
   manager: PlaybackContextValue;
@@ -27,6 +26,7 @@ export const SubtitleTracksMenu: React.FC<SubtitleTracksMenuProps> = ({
   const { playbackState } = manager;
   const { currentItem, currentMediaSource } = playbackState;
   const [subtitleTracks, setSubtitleTracks] = useState<any[]>([]);
+  const [isHovering, setIsHovering] = useState(false);
 
   const [subtitleSize, setSubtitleSize] = useState<number>(() => {
     if (typeof window !== "undefined") {
@@ -77,10 +77,29 @@ export const SubtitleTracksMenu: React.FC<SubtitleTracksMenuProps> = ({
     manager.setSubtitleStreamIndex(index);
   };
 
+  const isActive = open || isHovering;
+
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
-      <DropdownMenuTrigger asChild>
-        <SettingsMenuButton icon={Captions} isOpen={open} title="Subtitles" />
+      <DropdownMenuTrigger
+        className="glass-button rounded-full w-10 h-10 flex items-center justify-center border border-white/10 transition-all duration-300 backdrop-blur-sm pointer-events-auto z-50 relative"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        style={{
+          background: isActive
+            ? "rgba(255, 255, 255, 0.2)"
+            : "rgba(255, 255, 255, 0.05)",
+          borderColor: isActive
+            ? "rgba(255, 255, 255, 0.3)"
+            : "rgba(255, 255, 255, 0.1)",
+        }}
+        title="Subtitles"
+      >
+        <Captions className="w-5 h-5 transition-colors"
+          style={{
+            color: isActive ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.7)",
+          }}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         sideOffset={8}

@@ -283,7 +283,7 @@ export const SubtitleDisplay: React.FC<SubtitleDisplayProps> = ({
     <div
       className="absolute left-0 right-0 flex justify-center pointer-events-none transition-all duration-300"
       style={{
-        bottom: isControlsVisible ? "176px" : "112px",
+        bottom: isControlsVisible ? "176px" : "75px",
         zIndex: 40,
       }}
     >

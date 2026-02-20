@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,6 @@ import { Video } from "lucide-react";
 import { PlaybackContextValue } from "../../hooks/usePlaybackManager";
 import { canBrowserDirectPlayHevc } from "../../../actions";
 import { getVideoQualityOptions } from "../../utils/quality";
-import { SettingsMenuButton } from "./SettingsMenuButton";
 
 interface VideoQualityMenuProps {
   manager: PlaybackContextValue;
@@ -25,6 +24,7 @@ export const VideoQualityMenu: React.FC<VideoQualityMenuProps> = ({
 }) => {
   const { playbackState } = manager;
   const { currentMediaSource, currentItem } = playbackState;
+  const [isHovering, setIsHovering] = useState(false);
 
   const qualityOptions = useMemo(() => {
     const videoStream = currentMediaSource?.MediaStreams?.find(
@@ -63,10 +63,29 @@ export const VideoQualityMenu: React.FC<VideoQualityMenuProps> = ({
     }
   };
 
+  const isActive = open || isHovering;
+
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
-      <DropdownMenuTrigger asChild>
-        <SettingsMenuButton icon={Video} isOpen={open} title="Video Quality" />
+      <DropdownMenuTrigger
+        className="glass-button rounded-full w-10 h-10 flex items-center justify-center border border-white/10 transition-all duration-300 backdrop-blur-sm pointer-events-auto z-50 relative"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        style={{
+          background: isActive
+            ? "rgba(255, 255, 255, 0.2)"
+            : "rgba(255, 255, 255, 0.05)",
+          borderColor: isActive
+            ? "rgba(255, 255, 255, 0.3)"
+            : "rgba(255, 255, 255, 0.1)",
+        }}
+        title="Video Quality"
+      >
+        <Video className="w-5 h-5 transition-colors"
+          style={{
+            color: isActive ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.7)",
+          }}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-48 rounded-2xl overflow-hidden text-sm z-100 max-h-[60vh] overflow-y-auto"

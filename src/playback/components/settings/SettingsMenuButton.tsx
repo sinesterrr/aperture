@@ -4,19 +4,17 @@ import { LucideIcon } from "lucide-react";
 interface SettingsMenuButtonProps {
   icon: LucideIcon;
   isOpen: boolean;
-  onClick?: () => void;
   title: string;
 }
 
 export const SettingsMenuButton = React.forwardRef<
   HTMLButtonElement,
   SettingsMenuButtonProps
->(({ icon: Icon, isOpen, onClick, title }, ref) => {
+>(({ icon: Icon, isOpen, title }, ref) => {
   return (
     <button
       ref={ref}
-      onClick={onClick}
-      className="glass-button rounded-full w-10 h-10 flex items-center justify-center border border-white/10 transition-all duration-300 backdrop-blur-sm"
+      className="glass-button rounded-full w-10 h-10 flex items-center justify-center border border-white/10 transition-all duration-300 backdrop-blur-sm pointer-events-auto z-50 relative cursor-pointer"
       style={{
         background: isOpen
           ? "rgba(255, 255, 255, 0.2)"
@@ -27,6 +25,7 @@ export const SettingsMenuButton = React.forwardRef<
         color: isOpen ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.7)",
       }}
       title={title}
+      type="button"
     >
       <Icon className="w-5 h-5" />
     </button>
